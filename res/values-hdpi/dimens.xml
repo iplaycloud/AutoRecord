@@ -1,0 +1,6 @@
+<resources>
+
+    <!-- HDPI -->
+    <dimen name="side_shadow_width">106dp</dimen>
+
+</resources>
