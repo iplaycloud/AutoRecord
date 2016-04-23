@@ -51,19 +51,21 @@ public class StorageUtil {
 
 	/** 录像SD卡是否存在 */
 	public static boolean isVideoCardExists() {
+		boolean isVideoCardExist = true;
 		try {
 			String pathVideo = Constant.Path.RECORD_FRONT;
 			File fileVideo = new File(pathVideo);
 			fileVideo.mkdirs();
 			File file = new File(pathVideo);
 			if (!file.exists()) {
-				return false;
+				isVideoCardExist = false;
 			}
 		} catch (Exception e) {
 			MyLog.e("[StorageUtil]isVideoCardExists:Catch Exception!");
-			return false;
+			isVideoCardExist = false;
 		}
-		return true;
+		MyLog.v("[StorageUtil]isVideoCardExists:" + isVideoCardExist);
+		return isVideoCardExist;
 	}
 
 	/** 创建前后录像存储卡目录 */

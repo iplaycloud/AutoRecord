@@ -1,7 +1,11 @@
-package com.tchip.autorecord;
+package com.tchip.autorecord.ui;
 
 import java.io.File;
 
+import com.tchip.autorecord.Constant;
+import com.tchip.autorecord.MyApp;
+import com.tchip.autorecord.R;
+import com.tchip.autorecord.Typefaces;
 import com.tchip.autorecord.MyApp.CameraState;
 import com.tchip.autorecord.db.DriveVideo;
 import com.tchip.autorecord.db.DriveVideoDbHelper;
@@ -24,7 +28,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.hardware.Camera;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -39,11 +42,12 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
-import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity implements TachographCallback,
 		Callback {
@@ -74,19 +78,19 @@ public class MainActivity extends Activity implements TachographCallback,
 	private DriveVideoDbHelper videoDb;
 
 	/** 录像按钮 */
-	private ImageView imageVideoState;
+	private ImageButton imageVideoState;
 	/** 加锁按钮 */
-	private ImageView imageVideoLock;
+	private ImageButton imageVideoLock;
 	/** 前后切换 */
-	private ImageView imageCameraSwitch;
+	private ImageButton imageCameraSwitch;
 	/** 视频尺寸 */
-	private ImageView imageVideoSize;
+	private ImageButton imageVideoSize;
 	/** 视频分段 */
-	private ImageView imageVideoLength;
+	private ImageButton imageVideoLength;
 	/** 静音按钮 */
-	private ImageView imageVideoMute;
+	private ImageButton imageVideoMute;
 	/** 拍照按钮 */
-	private ImageView imagePhotoTake;
+	private ImageButton imagePhotoTake;
 
 	private TextView textRecordTime;
 
@@ -94,15 +98,9 @@ public class MainActivity extends Activity implements TachographCallback,
 	private SurfaceView surfaceCamera;
 	private SurfaceHolder surfaceHolder;
 	private TachographRecorder carRecorder;
-	private boolean isSurfaceLarge = false;
 
-	private int resolutionState, recordState, intervalState, pathState,
-			secondaryState, overlapState, muteState;
-
-	private LinearLayout layoutVideoSize, layoutVideoTime, layoutVideoLock,
-			layoutVideoMute, layoutVideoRecord, layoutVideoCamera,
-			layoutVideoRecordSmall, layoutVideoCameraSmall,
-			layoutVideoLockSmall;
+	private int resolutionState, recordState, intervalState, overlapState,
+			muteState;
 
 	private AudioRecordDialog audioRecordDialog;
 
@@ -586,31 +584,31 @@ public class MainActivity extends Activity implements TachographCallback,
 				+ "Font-Quartz-Regular.ttf"));
 
 		// 录制
-		imageVideoState = (ImageView) findViewById(R.id.imageVideoState);
+		imageVideoState = (ImageButton) findViewById(R.id.imageVideoState);
 		imageVideoState.setOnClickListener(myOnClickListener);
 
 		// 锁定
-		imageVideoLock = (ImageView) findViewById(R.id.imageVideoLock);
+		imageVideoLock = (ImageButton) findViewById(R.id.imageVideoLock);
 		imageVideoLock.setOnClickListener(myOnClickListener);
 
 		// 前后切换图标
-		imageCameraSwitch = (ImageView) findViewById(R.id.imageCameraSwitch);
+		imageCameraSwitch = (ImageButton) findViewById(R.id.imageCameraSwitch);
 		imageCameraSwitch.setOnClickListener(myOnClickListener);
 
 		// 拍照
-		imagePhotoTake = (ImageView) findViewById(R.id.imagePhotoTake);
+		imagePhotoTake = (ImageButton) findViewById(R.id.imagePhotoTake);
 		imagePhotoTake.setOnClickListener(myOnClickListener);
 
 		// 视频尺寸
-		imageVideoSize = (ImageView) findViewById(R.id.imageVideoSize);
+		imageVideoSize = (ImageButton) findViewById(R.id.imageVideoSize);
 		imageVideoSize.setOnClickListener(myOnClickListener);
 
 		// 视频分段长度
-		imageVideoLength = (ImageView) findViewById(R.id.imageVideoLength);
+		imageVideoLength = (ImageButton) findViewById(R.id.imageVideoLength);
 		imageVideoLength.setOnClickListener(myOnClickListener);
 
 		// 静音
-		imageVideoMute = (ImageView) findViewById(R.id.imageVideoMute);
+		imageVideoMute = (ImageButton) findViewById(R.id.imageVideoMute);
 		imageVideoMute.setOnClickListener(myOnClickListener);
 
 	}
@@ -1037,6 +1035,8 @@ public class MainActivity extends Activity implements TachographCallback,
 				if (MyApp.isSleeping) {
 					HintUtil.speakVoice(MainActivity.this, getResources()
 							.getString(R.string.hint_stop_record_sleeping));
+					HintUtil.showToast(MainActivity.this, getResources()
+							.getString(R.string.hint_stop_record_sleeping));
 				} else {
 					if (!powerManager.isScreenOn()) { // 点亮屏幕
 						SettingUtil.lightScreen(getApplicationContext());
@@ -1114,8 +1114,6 @@ public class MainActivity extends Activity implements TachographCallback,
 		recordState = Constant.Record.STATE_RECORD_STOPPED;
 		MyApp.isVideoReording = false;
 
-		pathState = Constant.Record.STATE_PATH_ZERO;
-		secondaryState = Constant.Record.STATE_SECONDARY_DISABLE;
 		overlapState = Constant.Record.STATE_OVERLAP_ZERO;
 
 		// 录音,静音;默认录音
@@ -1144,29 +1142,29 @@ public class MainActivity extends Activity implements TachographCallback,
 
 		// 视频分辨率
 		if (resolutionState == Constant.Record.STATE_RESOLUTION_720P) {
-			imageVideoSize.setBackground(getResources().getDrawable(
+			imageVideoSize.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_size_hd, null));
 		} else if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
-			imageVideoSize.setBackground(getResources().getDrawable(
+			imageVideoSize.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_size_fhd, null));
 		}
 
 		// 录像按钮
-		imageVideoState.setBackground(getResources().getDrawable(
+		imageVideoState.setImageDrawable(getResources().getDrawable(
 				MyApp.isVideoReording ? R.drawable.video_stop
 						: R.drawable.video_start, null));
 
 		// 视频分段
 		if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
-			imageVideoLength.setBackground(getResources().getDrawable(
+			imageVideoLength.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_length_1m, null));
 		} else if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
-			imageVideoLength.setBackground(getResources().getDrawable(
+			imageVideoLength.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_length_3m, null));
 		}
 
 		// 视频加锁
-		imageVideoLock.setBackground(getResources().getDrawable(
+		imageVideoLock.setImageDrawable(getResources().getDrawable(
 				MyApp.isVideoLock ? R.drawable.video_lock
 						: R.drawable.video_unlock, null));
 
@@ -1175,7 +1173,7 @@ public class MainActivity extends Activity implements TachographCallback,
 				Constant.Record.muteDefault);
 		muteState = videoMute ? Constant.Record.STATE_MUTE
 				: Constant.Record.STATE_UNMUTE;
-		imageVideoMute.setBackground(getResources().getDrawable(
+		imageVideoMute.setImageDrawable(getResources().getDrawable(
 				videoMute ? R.drawable.video_mute : R.drawable.video_unmute,
 				null));
 	}
@@ -1224,9 +1222,9 @@ public class MainActivity extends Activity implements TachographCallback,
 			camera = Camera.open(0);
 			camera.lock();
 
-			Camera.Parameters para = camera.getParameters();
-			para.unflatten(Constant.Record.CAMERA_PARAMS);
-			camera.setParameters(para); // 设置系统Camera参数
+			// Camera.Parameters para = camera.getParameters();
+			// para.unflatten(Constant.Record.CAMERA_PARAMS);
+			// camera.setParameters(para); // 设置系统Camera参数
 			camera.setPreviewDisplay(surfaceHolder);
 			camera.startPreview();
 			camera.unlock();
@@ -1376,6 +1374,8 @@ public class MainActivity extends Activity implements TachographCallback,
 			audioRecordDialog.showErrorDialog(strNoSD);
 			new Thread(new dismissDialogThread()).start();
 			HintUtil.speakVoice(MainActivity.this, strNoSD);
+		} else {
+			MyLog.v("[noVideoSDHint]No ACC,Do not hint");
 		}
 	}
 
@@ -1548,9 +1548,21 @@ public class MainActivity extends Activity implements TachographCallback,
 			carRecorder = new TachographRecorder();
 			carRecorder.setTachographCallback(this);
 			carRecorder.setCamera(camera);
+			carRecorder.setMediaFilenameFixs(
+					TachographCallback.FILE_TYPE_VIDEO, "aa_", "_bb");
+			carRecorder.setMediaFilenameFixs(
+					TachographCallback.FILE_TYPE_SHARE_VIDEO, "cc_", "_ee");
+			carRecorder.setMediaFilenameFixs(
+					TachographCallback.FILE_TYPE_IMAGE, "ff_", "_gg");
+			carRecorder.setMediaFileDirectory(
+					TachographCallback.FILE_TYPE_VIDEO, "vvv");
+			carRecorder.setMediaFileDirectory(
+					TachographCallback.FILE_TYPE_SHARE_VIDEO, "sss");
+			carRecorder.setMediaFileDirectory(
+					TachographCallback.FILE_TYPE_IMAGE, "iii");
 			carRecorder.setClientName(this.getPackageName());
 			if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
-				carRecorder.setVideoSize(1920, 1088); // 16倍数
+				carRecorder.setVideoSize(1920, 1080); // 16倍数
 				carRecorder.setVideoFrameRate(Constant.Record.FRAME_RATE);
 				carRecorder.setVideoBiteRate(Constant.Record.BIT_RATE_1080P);
 			} else {
@@ -1697,6 +1709,8 @@ public class MainActivity extends Activity implements TachographCallback,
 		if (type == 1) {
 			MyApp.nowRecordVideoName = path.split("/")[5];
 		}
+		Toast.makeText(this, type + " start " + path, Toast.LENGTH_SHORT)
+				.show();
 	}
 
 	class ReleaseStorageWhenFileSaveHandler extends Handler {
@@ -1852,13 +1866,6 @@ public class MainActivity extends Activity implements TachographCallback,
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			if (isSurfaceLarge) { // 如果视频全屏预览开启，返回关闭
-				int widthSmall = 480;
-				int heightSmall = 270;
-				surfaceCamera.setLayoutParams(new RelativeLayout.LayoutParams(
-						widthSmall, heightSmall));
-				isSurfaceLarge = false;
-			}
 			return true;
 		} else
 			return super.onKeyDown(keyCode, event);

@@ -185,7 +185,7 @@ public interface Constant {
 		public static final int BIT_RATE_1080P = 8000 * 1000;
 
 		/** 帧率 */
-		public static final int FRAME_RATE = Module.isPublic ? 24 : 30;
+		public static final int FRAME_RATE = 30;
 
 		// 分辨率
 		public static final int STATE_RESOLUTION_720P = 0;

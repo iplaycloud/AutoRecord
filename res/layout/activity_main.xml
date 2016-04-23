@@ -15,28 +15,31 @@
         android:layout_alignParentLeft="true"
         android:background="@drawable/side_shadow" >
 
-        <ImageView
+        <ImageButton
             android:id="@+id/imageVideoSize"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
+            android:background="@null"
             android:contentDescription="@null"
             android:src="@drawable/video_size_fhd" />
 
-        <ImageView
+        <ImageButton
             android:id="@+id/imageVideoLength"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
+            android:background="@null"
             android:contentDescription="@null"
             android:src="@drawable/video_length_3m" />
 
-        <ImageView
+        <ImageButton
             android:id="@+id/imageVideoLock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
+            android:background="@null"
             android:contentDescription="@null"
             android:src="@drawable/video_unlock" />
     </RelativeLayout>
@@ -47,28 +50,31 @@
         android:layout_alignParentRight="true"
         android:background="@drawable/side_shadow" >
 
-        <ImageView
+        <ImageButton
             android:id="@+id/imageVideoMute"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
+            android:background="@null"
             android:contentDescription="@null"
             android:src="@drawable/video_unmute" />
 
-        <ImageView
+        <ImageButton
             android:id="@+id/imageVideoState"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
+            android:background="@null"
             android:contentDescription="@null"
             android:src="@drawable/video_start" />
 
-        <ImageView
+        <ImageButton
             android:id="@+id/imageCameraSwitch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
+            android:background="@null"
             android:contentDescription="@null"
             android:src="@drawable/camera_switch" />
     </RelativeLayout>
@@ -78,12 +84,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <ImageView
+    <ImageButton
         android:id="@+id/imagePhotoTake"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
+        android:background="@null"
         android:contentDescription="@null"
         android:src="@drawable/photo_take" />
 
