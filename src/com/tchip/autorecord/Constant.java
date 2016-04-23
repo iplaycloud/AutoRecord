@@ -311,6 +311,8 @@ public interface Constant {
 
 	/** 路径 */
 	public static final class Path {
+		public static final String NODE_ACC_STATUS = "/sys/bus/i2c/devices/0-007f/ACC_status";
+
 		/** SDcard Path */
 		public static final String SD_CARD = Environment
 				.getExternalStorageDirectory().getPath();

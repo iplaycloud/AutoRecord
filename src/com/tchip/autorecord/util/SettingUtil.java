@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.tchip.autorecord.Constant;
 
-
 import android.app.ActivityManager;
 import android.app.KeyguardManager;
 import android.app.KeyguardManager.KeyguardLock;
@@ -263,8 +262,7 @@ public class SettingUtil {
 	}
 
 	/** ACC状态节点 */
-	public static File fileAccStatus = new File(
-			"/sys/devices/platform/mt-i2c.1/i2c-1/1-007f/acc_car_status");
+	public static File fileAccStatus = new File(Constant.Path.NODE_ACC_STATUS);
 
 	/**
 	 * 获取ACC状态
@@ -272,7 +270,8 @@ public class SettingUtil {
 	 * @return 0:ACC下电,1:ACC上电
 	 */
 	public static int getAccStatus() {
-		return getFileInt(fileAccStatus);
+		int accStatus = getFileInt(fileAccStatus);
+		return accStatus;
 	}
 
 	public static int getFileInt(File file) {
