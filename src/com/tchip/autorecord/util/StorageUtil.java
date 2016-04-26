@@ -291,13 +291,14 @@ public class StorageUtil {
 	 * @param imagePath
 	 */
 	public static void writeImageExif() {
-		if (!MyApp.writeImageExifPath.equals("NULL")) {
+		if (!MyApp.writeImageExifPath.equals("NULL")
+				&& MyApp.writeImageExifPath.endsWith(".jpg")) {
 			try { // Android Way
 				ExifInterface exif = new ExifInterface(MyApp.writeImageExifPath);
 				exif.setAttribute(ExifInterface.TAG_ORIENTATION, ""
 						+ ExifInterface.ORIENTATION_NORMAL);
-				exif.setAttribute(ExifInterface.TAG_MAKE, "zenlane"); // 品牌
-				exif.setAttribute(ExifInterface.TAG_MODEL, "X755"); // 型号/机型
+				exif.setAttribute(ExifInterface.TAG_MAKE, "TQ"); // 品牌
+				exif.setAttribute(ExifInterface.TAG_MODEL, "X2"); // 型号/机型
 				exif.saveAttributes();
 			} catch (Exception e) {
 				MyLog.e("[Android]Set Attribute Catch Exception:"

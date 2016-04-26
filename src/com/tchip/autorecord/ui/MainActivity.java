@@ -136,11 +136,10 @@ public class MainActivity extends Activity implements TachographCallback,
 		startService(intentSleepOnOff);
 
 		// 首次启动是否需要自动录像
-		new Thread(new AutoThread()).start(); // 序列任务线程
 		if (1 == SettingUtil.getAccStatus()) {
 			MyApp.isAccOn = true; // 同步ACC状态
 			// SettingUtil.setAirplaneMode(MainActivity.this, false); // 关闭飞行模式
-
+			new Thread(new AutoThread()).start(); // 序列任务线程
 		} else {
 			MyApp.isAccOn = false; // 同步ACC状态
 			MyApp.isSleeping = true; // ACC未连接,进入休眠
@@ -1562,7 +1561,7 @@ public class MainActivity extends Activity implements TachographCallback,
 					TachographCallback.FILE_TYPE_IMAGE, "iii");
 			carRecorder.setClientName(this.getPackageName());
 			if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
-				carRecorder.setVideoSize(1920, 1080); // 16倍数
+				carRecorder.setVideoSize(1920, 1080);
 				carRecorder.setVideoFrameRate(Constant.Record.FRAME_RATE);
 				carRecorder.setVideoBiteRate(Constant.Record.BIT_RATE_1080P);
 			} else {

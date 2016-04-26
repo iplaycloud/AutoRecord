@@ -1,11 +1,5 @@
 package com.tchip.autorecord.service;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.util.StringTokenizer;
-
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.util.MyLog;
@@ -78,8 +72,6 @@ public class SleepOnOffService extends Service {
 		filter.addAction(Constant.Broadcast.ACC_OFF);
 		filter.addAction(Constant.Broadcast.GSENSOR_CRASH);
 		filter.addAction(Constant.Broadcast.SPEECH_COMMAND);
-		filter.addAction(Constant.Broadcast.BT_MUSIC_PLAYING);
-		filter.addAction(Constant.Broadcast.BT_MUSIC_STOPED);
 		filter.addAction(Constant.Broadcast.SETTING_SYNC);
 		filter.addAction(Constant.Broadcast.MEDIA_FORMAT);
 		registerReceiver(sleepOnOffReceiver, filter);
@@ -177,12 +169,6 @@ public class SleepOnOffService extends Service {
 					}
 
 				}
-			} else if (action.equals(Constant.Broadcast.BT_MUSIC_PLAYING)) {
-				MyApp.isBTPlayMusic = true;
-
-			} else if (action.equals(Constant.Broadcast.BT_MUSIC_STOPED)) {
-				MyApp.isBTPlayMusic = false;
-
 			} else if (action.equals(Constant.Broadcast.SETTING_SYNC)) {
 				String content = intent.getExtras().getString("content");
 				if ("parkOn".equals(content)) { // 停车守卫:开
@@ -517,86 +503,8 @@ public class SleepOnOffService extends Service {
 			// 碰撞侦测服务
 			Intent intentCrash = new Intent(context, SensorWatchService.class);
 			stopService(intentCrash);
-
-			// KWAPI.createKWAPI(this, "auto").exitAPP(this);
-			String[] arrayKillApp = { "cn.kuwo.kwmusiccar", // 酷我音乐
-					"com.android.gallery3d", // 图库
-					"com.autonavi.amapauto", // 高德地图（车机版）
-					"com.hdsc.monitor.heart.monitorvoice", // 善领云中心
-					"com.ximalaya.ting.android.car", // 喜马拉雅（车机版）
-					"com.autonavi.minimap" // 高德地图
-			};
-			SettingUtil.killApp(context, arrayKillApp);
-			// killProcess("com.hdsc.monitor.heart.monitorvoice");
-			// killProcess1("com.hdsc.monitor.heart.monitorvoice");
-
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-	}
-
-	private Process process;
-
-	private void killProcess(String packageName) {
-		if (process == null)
-			try {
-				process = Runtime.getRuntime().exec("su");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		OutputStream out = process.getOutputStream();
-		String cmd = "am force-stop " + packageName + " \n";
-		try {
-			out.write(cmd.getBytes());
-			out.flush();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void killProcess1(String packageName) {
-		MyLog.i("killProcess");
-		java.lang.Process process = null;
-		try {
-			String processId = "";
-			process = Runtime.getRuntime().exec("su");
-			OutputStream os = process.getOutputStream();
-			os.write("ps \n".getBytes());
-			os.flush();
-			BufferedReader br = new BufferedReader(new InputStreamReader(
-					process.getInputStream()));
-			String inline;
-			while ((inline = br.readLine()) != null) {
-				if (inline.contains(packageName)) {
-					MyLog.i("" + inline);
-					StringTokenizer processInfoTokenizer = new StringTokenizer(
-							inline);
-					int count = 0;
-					while (processInfoTokenizer.hasMoreTokens()) {
-						count++;
-						processId = processInfoTokenizer.nextToken();
-						if (count == 2) {
-							break;
-						}
-					}
-					MyLog.i("kill process : " + processId);
-					os.write(("kill " + processId).getBytes());
-					os.flush();
-					if (os != null) {
-						os.close();
-						os = null;
-					}
-					br.close();
-					return;
-				}
-			}
-		} catch (IOException ex) {
-			MyLog.e("" + ex.getStackTrace());
-		} finally {
-			if (process != null) {
-				process.destroy();
-				process = null;
-			}
 		}
 	}
 
