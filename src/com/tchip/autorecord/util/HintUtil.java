@@ -31,14 +31,6 @@ public class HintUtil {
 		}
 	}
 
-	public static void speakVoice(Context context, String content) {
-		Intent intent = new Intent();
-		intent.setClassName("com.tchip.weather",
-				"com.tchip.weather.service.SpeakService");
-		intent.putExtra("content", content);
-		context.startService(intent);
-	}
-
 	public static void showToast(Context context, String content) {
 		Toast.makeText(context, content, Toast.LENGTH_SHORT).show();
 	}

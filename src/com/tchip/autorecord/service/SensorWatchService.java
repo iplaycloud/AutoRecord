@@ -1,6 +1,7 @@
 package com.tchip.autorecord.service;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -16,7 +17,6 @@ import com.tchip.autorecord.R;
 import com.tchip.autorecord.util.HintUtil;
 import com.tchip.autorecord.util.MyLog;
 import com.tchip.autorecord.util.SettingUtil;
-
 
 /**
  * Created by AlexZhou on 2015/3/26. 11:06
@@ -37,10 +37,12 @@ public class SensorWatchService extends Service {
 
 	private SensorManager sensorManager;
 	private SensorEventListener sensorEventListener;
+	private Context context;
 
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		context = getApplicationContext();
 		MyLog.v("[SensorWatchService]onCreate");
 
 		sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -72,10 +74,10 @@ public class SensorWatchService extends Service {
 						if (MyApp.isVideoReording && !MyApp.isVideoLock) {
 							MyApp.isVideoLock = true;
 							MyApp.isCrashed = true;
-							HintUtil.speakVoice(
-									getApplicationContext(),
-									getResources().getString(
-											R.string.hint_video_lock));
+							// MyApp.speakVoice(getResources().getString(
+							// R.string.hint_video_lock));
+							HintUtil.showToast(context, getResources()
+									.getString(R.string.hint_video_lock));
 							MyLog.v("[SensorWarchService] Crashed -> isVideoLock = true;X:"
 									+ valueX + ",Y:" + valueY + ",Z:" + valueZ);
 						}

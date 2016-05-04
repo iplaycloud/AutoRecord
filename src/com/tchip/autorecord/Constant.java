@@ -150,7 +150,7 @@ public interface Constant {
 		public static final boolean parkDefaultOn = true;
 
 		/** 开机自动录像延时 */
-		public static final int autoRecordDelay = 2500;
+		public static final int autoRecordDelay = 3500;
 
 		/** 循环录像保留空间(单位：字节B) */
 		public static final long SD_MIN_FREE_STORAGE = 400 * 1024 * 1024; // 400M
@@ -313,21 +313,15 @@ public interface Constant {
 		public static String RECORD_SDCARD = SDCARD_2 + File.separator;// "/storage/sdcard2/";
 
 		/** 前录存储路径 */
-		public static String RECORD_FRONT = RECORD_SDCARD + "tachograph"
-				+ File.separator;
+		public static String RECORD_FRONT = "/storage/sdcard2/DrivingRecord/VideoFront/";
+
+		public static String IMAGE = "/storage/sdcard2/DrivingRecord/Image/";
 
 		/** 后录存储路径 */
-		public static String RECORD_BACK = RECORD_SDCARD + "tachograph_back"
-				+ File.separator;
+		public static String RECORD_BACK = "/storage/sdcard2/tachograph_back/";
 
 		/** 字体目录 */
 		public static final String FONT = "fonts/";
-
-		/** 百度离线地图子级目录 */
-		public static final String BAIDU_OFFLINE_SUB = "/storage/sdcard0/BaiduMapSDK/vmp/l/";
-
-		/** 百度离线地图，存储卡位置 */
-		public static final String SD_CARD_MAP = "/storage/sdcard1";
 	}
 
 }

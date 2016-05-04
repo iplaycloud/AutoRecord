@@ -1,6 +1,7 @@
 package com.tchip.autorecord.ui;
 
 import java.io.File;
+import java.util.Locale;
 
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
@@ -15,6 +16,8 @@ import com.tchip.autorecord.util.ClickUtil;
 import com.tchip.autorecord.util.DateUtil;
 import com.tchip.autorecord.util.HintUtil;
 import com.tchip.autorecord.util.MyLog;
+import com.tchip.autorecord.util.ProviderUtil;
+import com.tchip.autorecord.util.ProviderUtil.Name;
 import com.tchip.autorecord.util.SettingUtil;
 import com.tchip.autorecord.util.StorageUtil;
 import com.tchip.autorecord.view.AudioRecordDialog;
@@ -35,6 +38,8 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -43,16 +48,14 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity implements TachographCallback,
 		Callback {
 
 	private Context context;
+
+	private TextToSpeech textToSpeech;
 
 	/** onFileSave时释放空间 */
 	private static final HandlerThread fileSaveHandlerThread = new HandlerThread(
@@ -116,6 +119,9 @@ public class MainActivity extends Activity implements TachographCallback,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_main);
 		context = getApplicationContext();
+		textToSpeech = new TextToSpeech(getApplicationContext(),
+				new MyTTSOnInitialListener());
+		powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE); // 获取屏幕状态
 
 		sharedPreferences = getSharedPreferences(Constant.MySP.NAME,
 				Context.MODE_PRIVATE);
@@ -124,12 +130,12 @@ public class MainActivity extends Activity implements TachographCallback,
 		audioRecordDialog = new AudioRecordDialog(MainActivity.this); // 提示框
 
 		initialLayout();
-		SettingUtil.initialNodeState(MainActivity.this);
+		//SettingUtil.initialNodeState(MainActivity.this); // FIXME
 		StorageUtil.createRecordDirectory();
 		setupRecordDefaults();
 		setupRecordViews();
 
-		SettingUtil.setGpsState(MainActivity.this, true); // 打开GPS
+		//SettingUtil.setGpsState(MainActivity.this, true); // 打开GPS // FIXME
 		// ACC上下电侦测服务
 		Intent intentSleepOnOff = new Intent(MainActivity.this,
 				SleepOnOffService.class);
@@ -215,7 +221,30 @@ public class MainActivity extends Activity implements TachographCallback,
 		MyLog.v("[Main]onDestroy");
 		release(); // 释放录像区域
 		videoDb.close();
+
+		if (textToSpeech != null) { // 关闭TTS引擎
+			textToSpeech.shutdown();
+		}
 		super.onDestroy();
+	}
+
+	class MyTTSOnInitialListener implements OnInitListener {
+
+		@Override
+		public void onInit(int status) {
+			// tts.setEngineByPackageName("com.iflytek.vflynote");
+			textToSpeech.setLanguage(Locale.CHINESE);
+		}
+
+	}
+
+	private void speakVoice(String content) {
+		if (textToSpeech != null) {
+			textToSpeech
+					.speak(content, TextToSpeech.QUEUE_FLUSH, null, content);
+		} else {
+
+		}
 	}
 
 	/**
@@ -561,11 +590,6 @@ public class MainActivity extends Activity implements TachographCallback,
 		// 碰撞侦测服务
 		Intent intentSensor = new Intent(this, SensorWatchService.class);
 		startService(intentSensor);
-		// 天气播报(整点报时)
-		Intent intentWeather = new Intent();
-		intentWeather.setClassName("com.tchip.weather",
-				"com.tchip.weather.service.TimeTickService");
-		startService(intentWeather);
 	}
 
 	private void initialCameraSurface() {
@@ -649,6 +673,8 @@ public class MainActivity extends Activity implements TachographCallback,
 
 	/** 设置当前录像状态 */
 	private void setRecordState(boolean isVideoRecord) {
+		ProviderUtil.setValue(context, Name.REC_FRONT_STATE,
+				isVideoRecord ? "1" : "0");
 		if (isVideoRecord) {
 			recordState = Constant.Record.STATE_RECORD_STARTED;
 			MyApp.isVideoReording = true;
@@ -695,12 +721,6 @@ public class MainActivity extends Activity implements TachographCallback,
 					Message messageFormat = new Message();
 					messageFormat.what = 7;
 					updateRecordTimeHandler.sendMessage(messageFormat);
-					return;
-				} else if (!MyApp.isPowerConnect) { // 电源断开
-					MyLog.e("Stop Record:Power is unconnected");
-					Message messagePowerUnconnect = new Message();
-					messagePowerUnconnect.what = 3;
-					updateRecordTimeHandler.sendMessage(messagePowerUnconnect);
 					return;
 				} else if (!MyApp.isAccOn
 						&& !MyApp.shouldStopWhenCrashVideoSave) { // ACC下电停止录像
@@ -756,7 +776,6 @@ public class MainActivity extends Activity implements TachographCallback,
 						}
 
 						// 熄灭屏幕,判断当前屏幕是否关闭
-						PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 						boolean isScreenOn = powerManager.isScreenOn();
 						if (isScreenOn) {
 							sendBroadcast(new Intent("com.tchip.SLEEP_ON"));
@@ -797,25 +816,8 @@ public class MainActivity extends Activity implements TachographCallback,
 				HintUtil.showToast(MainActivity.this, strVideoCardEject);
 
 				MyLog.e("CardEjectReceiver:Video SD Removed");
-				HintUtil.speakVoice(MainActivity.this, strVideoCardEject);
+				speakVoice(strVideoCardEject);
 				audioRecordDialog.showErrorDialog(strVideoCardEject);
-				new Thread(new dismissDialogThread()).start();
-				break;
-
-			case 3: // 电源断开，停止录像
-				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 3");
-				if (stopRecorder() == 0) {
-					setRecordState(false);
-				} else {
-					MyLog.e("stopRecorder Error 3");
-				}
-				String strPowerUnconnect = getResources().getString(
-						R.string.hint_stop_record_power_unconnect);
-				HintUtil.showToast(MainActivity.this, strPowerUnconnect);
-				HintUtil.speakVoice(MainActivity.this, strPowerUnconnect);
-
-				MyLog.e("Record Stop:power unconnect.");
-				audioRecordDialog.showErrorDialog(strPowerUnconnect);
 				new Thread(new dismissDialogThread()).start();
 				break;
 
@@ -842,8 +844,7 @@ public class MainActivity extends Activity implements TachographCallback,
 					MyLog.e("stopRecorder Error 5");
 				}
 				// 如果此时屏幕为点亮状态，则不回收
-				boolean isScreenOn = powerManager.isScreenOn();
-				if (!isScreenOn) {
+				if (!powerManager.isScreenOn()) {
 					releaseCameraZone();
 				}
 				MyApp.shouldResetRecordWhenResume = true;
@@ -870,7 +871,7 @@ public class MainActivity extends Activity implements TachographCallback,
 				HintUtil.showToast(MainActivity.this, strVideoCardFormat);
 
 				MyLog.e("CardEjectReceiver:Video SD Removed");
-				HintUtil.speakVoice(MainActivity.this, strVideoCardFormat);
+				speakVoice(strVideoCardFormat);
 				audioRecordDialog.showErrorDialog(strVideoCardFormat);
 				new Thread(new dismissDialogThread()).start();
 				break;
@@ -901,17 +902,15 @@ public class MainActivity extends Activity implements TachographCallback,
 				if (!ClickUtil.isQuickClick(2000)) {
 					if (recordState == Constant.Record.STATE_RECORD_STOPPED) {
 						if (StorageUtil.isVideoCardExists()) {
-							HintUtil.speakVoice(
-									MainActivity.this,
-									getResources().getString(
-											R.string.hint_record_start));
+							speakVoice(getResources().getString(
+									R.string.hint_record_start));
 							startRecord();
 						} else {
 							noVideoSDHint();
 						}
 					} else if (recordState == Constant.Record.STATE_RECORD_STARTED) {
-						HintUtil.speakVoice(MainActivity.this, getResources()
-								.getString(R.string.hint_record_stop));
+						speakVoice(getResources().getString(
+								R.string.hint_record_stop));
 						MyLog.v("[onClick]stopRecorder()");
 						stopRecord();
 					}
@@ -940,14 +939,14 @@ public class MainActivity extends Activity implements TachographCallback,
 						setResolution(Constant.Record.STATE_RESOLUTION_720P);
 						editor.putString("videoSize", "720");
 						recordState = Constant.Record.STATE_RECORD_STOPPED;
-						HintUtil.speakVoice(MainActivity.this, getResources()
-								.getString(R.string.hint_video_size_720));
+						speakVoice(getResources().getString(
+								R.string.hint_video_size_720));
 					} else if (resolutionState == Constant.Record.STATE_RESOLUTION_720P) {
 						setResolution(Constant.Record.STATE_RESOLUTION_1080P);
 						editor.putString("videoSize", "1080");
 						recordState = Constant.Record.STATE_RECORD_STOPPED;
-						HintUtil.speakVoice(MainActivity.this, getResources()
-								.getString(R.string.hint_video_size_1080));
+						speakVoice(getResources().getString(
+								R.string.hint_video_size_1080));
 					}
 					editor.commit();
 					setupRecordViews();
@@ -966,19 +965,15 @@ public class MainActivity extends Activity implements TachographCallback,
 						if (setInterval(1 * 60) == 0) {
 							intervalState = Constant.Record.STATE_INTERVAL_1MIN;
 							editor.putString("videoTime", "1");
-							HintUtil.speakVoice(
-									MainActivity.this,
-									getResources().getString(
-											R.string.hint_video_time_1));
+							speakVoice(getResources().getString(
+									R.string.hint_video_time_1));
 						}
 					} else if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
 						if (setInterval(3 * 60) == 0) {
 							intervalState = Constant.Record.STATE_INTERVAL_3MIN;
 							editor.putString("videoTime", "3");
-							HintUtil.speakVoice(
-									MainActivity.this,
-									getResources().getString(
-											R.string.hint_video_time_3));
+							speakVoice(getResources().getString(
+									R.string.hint_video_time_3));
 						}
 					}
 					editor.commit();
@@ -1031,9 +1026,9 @@ public class MainActivity extends Activity implements TachographCallback,
 	private void startRecord() {
 		try {
 			if (recordState == Constant.Record.STATE_RECORD_STOPPED) {
-				if (MyApp.isSleeping) {
-					HintUtil.speakVoice(MainActivity.this, getResources()
-							.getString(R.string.hint_stop_record_sleeping));
+				if (MyApp.isSleeping || !MyApp.isAccOn) {
+					speakVoice(getResources().getString(
+							R.string.hint_stop_record_sleeping));
 					HintUtil.showToast(MainActivity.this, getResources()
 							.getString(R.string.hint_stop_record_sleeping));
 				} else {
@@ -1051,7 +1046,8 @@ public class MainActivity extends Activity implements TachographCallback,
 			setupRecordViews();
 			MyLog.v("MyApplication.isVideoReording:" + MyApp.isVideoReording);
 		} catch (Exception e) {
-			MyLog.e("[MainActivity]startOrStopRecord catch exception: "
+			e.printStackTrace();
+			MyLog.e("[MainActivity]startRecord catch exception: "
 					+ e.toString());
 		}
 	}
@@ -1076,13 +1072,11 @@ public class MainActivity extends Activity implements TachographCallback,
 	private void lockOrUnlockVideo() {
 		if (!MyApp.isVideoLock) {
 			MyApp.isVideoLock = true;
-			HintUtil.speakVoice(MainActivity.this,
-					getResources().getString(R.string.hint_video_lock));
+			speakVoice(getResources().getString(R.string.hint_video_lock));
 		} else {
 			MyApp.isVideoLock = false;
 			MyApp.isVideoLockSecond = false;
-			HintUtil.speakVoice(MainActivity.this,
-					getResources().getString(R.string.hint_video_unlock));
+			speakVoice(getResources().getString(R.string.hint_video_unlock));
 		}
 		setupRecordViews();
 	}
@@ -1372,7 +1366,7 @@ public class MainActivity extends Activity implements TachographCallback,
 					R.string.hint_sd2_not_exist);
 			audioRecordDialog.showErrorDialog(strNoSD);
 			new Thread(new dismissDialogThread()).start();
-			HintUtil.speakVoice(MainActivity.this, strNoSD);
+			speakVoice(strNoSD);
 		} else {
 			MyLog.v("[noVideoSDHint]No ACC,Do not hint");
 		}
@@ -1473,10 +1467,8 @@ public class MainActivity extends Activity implements TachographCallback,
 
 				if (sharedPreferences.getBoolean(Constant.MySP.STR_PARKING_ON,
 						true) && Constant.Module.hintParkingMonitor) {
-					HintUtil.speakVoice(
-							getApplicationContext(),
-							getResources().getString(
-									R.string.hint_start_park_monitor_after_90));
+					speakVoice(getResources().getString(
+							R.string.hint_start_park_monitor_after_90));
 				}
 			}
 			if (powerManager.isScreenOn()) {
@@ -1509,11 +1501,9 @@ public class MainActivity extends Activity implements TachographCallback,
 	private int setMute(boolean mute, boolean isFromUser) {
 		if (carRecorder != null) {
 			if (isFromUser) {
-				HintUtil.speakVoice(
-						MainActivity.this,
-						getResources().getString(
-								mute ? R.string.hint_video_mute_on
-										: R.string.hint_video_mute_off));
+				speakVoice(getResources().getString(
+						mute ? R.string.hint_video_mute_on
+								: R.string.hint_video_mute_off));
 				editor.putBoolean("videoMute", mute);
 				editor.commit();
 			}
@@ -1547,16 +1537,18 @@ public class MainActivity extends Activity implements TachographCallback,
 			carRecorder = new TachographRecorder();
 			carRecorder.setTachographCallback(this);
 			carRecorder.setCamera(camera);
+			// 前缀，后缀
 			carRecorder.setMediaFilenameFixs(
-					TachographCallback.FILE_TYPE_VIDEO, "aa_", "_bb");
+					TachographCallback.FILE_TYPE_VIDEO, "", "");
 			carRecorder.setMediaFilenameFixs(
 					TachographCallback.FILE_TYPE_SHARE_VIDEO, "cc_", "_ee");
 			carRecorder.setMediaFilenameFixs(
 					TachographCallback.FILE_TYPE_IMAGE, "ff_", "_gg");
+			// 路径
 			carRecorder.setMediaFileDirectory(
-					TachographCallback.FILE_TYPE_VIDEO, "vvv");
+					TachographCallback.FILE_TYPE_VIDEO, "VideoFront");
 			carRecorder.setMediaFileDirectory(
-					TachographCallback.FILE_TYPE_SHARE_VIDEO, "sss");
+					TachographCallback.FILE_TYPE_SHARE_VIDEO, "Share");
 			carRecorder.setMediaFileDirectory(
 					TachographCallback.FILE_TYPE_IMAGE, "iii");
 			carRecorder.setClientName(this.getPackageName());
@@ -1708,8 +1700,7 @@ public class MainActivity extends Activity implements TachographCallback,
 		if (type == 1) {
 			MyApp.nowRecordVideoName = path.split("/")[5];
 		}
-		Toast.makeText(this, type + " start " + path, Toast.LENGTH_SHORT)
-				.show();
+		MyLog.v("[onFileStart]Path:" + path);
 	}
 
 	class ReleaseStorageWhenFileSaveHandler extends Handler {
@@ -1747,8 +1738,9 @@ public class MainActivity extends Activity implements TachographCallback,
 	 *            0-图片 1-视频
 	 * 
 	 * @param path
-	 *            视频：/mnt/sdcard/tachograph/2015-07-01/2015-07-01_105536.mp4
-	 *            图片:/mnt/sdcard/tachograph/camera_shot/2015-07-01_105536.jpg
+	 *            视频：/storage/sdcard2/DrivingRecord/VideoFront/2016-05-
+	 *            04_155010.mp4
+	 *            图片:/storage/sdcard2/DrivingRecord/Image/2015-07-01_105536.jpg
 	 */
 	@Override
 	public void onFileSave(int type, String path) {

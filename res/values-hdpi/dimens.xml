@@ -2,5 +2,7 @@
 
     <!-- HDPI -->
     <dimen name="side_shadow_width">106dp</dimen>
+    <dimen name="record_time_text_size">25sp</dimen>
+    <dimen name="record_time_margin_top">5dp</dimen>
 
 </resources>

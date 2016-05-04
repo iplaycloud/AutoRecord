@@ -76,23 +76,6 @@ public class StorageUtil {
 		}
 	}
 
-	/** 地图SD卡是否存在 */
-	public boolean isMapSDExists() {
-		try {
-			String pathVideo = Constant.Path.SD_CARD_MAP + "/BaiduMapSDK/";
-			File fileVideo = new File(pathVideo);
-			fileVideo.mkdirs();
-			File file = new File(pathVideo);
-			if (!file.exists()) {
-				return false;
-			}
-		} catch (Exception e) {
-			MyLog.e("[StorageUtil]isMapSDExists:Catch Exception!");
-			return false;
-		}
-		return true;
-	}
-
 	/**
 	 * 递归删除文件和文件夹
 	 * 
@@ -195,8 +178,7 @@ public class StorageUtil {
 											R.string.hint_storage_full_cause_by_other);
 
 							audioRecordDialog.showErrorDialog(strNoStorage);
-							HintUtil.speakVoice(context, strNoStorage);
-
+							// MyApp.speakVoice(strNoStorage);
 							return false;
 						}
 					} else {
@@ -205,7 +187,7 @@ public class StorageUtil {
 								.getResources()
 								.getString(
 										R.string.hint_storage_full_and_delete_lock);
-						HintUtil.speakVoice(context, strStorageFull);
+						// MyApp.speakVoice(strStorageFull);
 						HintUtil.showToast(context, strStorageFull);
 						String oldestVideoName = videoDb
 								.getVideNameById(oldestVideoId);
@@ -322,20 +304,21 @@ public class StorageUtil {
 				// 修改EXIF
 				// exifHeader.setValue(Tag.DATETIMEORIGINAL,
 				// "2015:05:55 05:55:55");
-				exifHeader.setValue(Tag.ORIENTATION, "1"); // 浏览模式/方向:上/左
-				exifHeader.setValue(Tag.APERTUREVALUE, "22/10"); // 光圈：2.2
-				exifHeader.setValue(Tag.FOCALLENGTH, "7/2"); // 焦距：3.5mm
-				exifHeader.setValue(Tag.WHITEBALANCE, "0"); // 白平衡：自动
-				exifHeader.setValue(Tag.ISOSPEEDRATINGS, "100"); // ISO感光度：100
-				exifHeader.setValue(Tag.EXPOSURETIME, "1/30"); // 曝光时间：1/30
+				// exifHeader.setValue(Tag.ORIENTATION, "1"); // 浏览模式/方向:上/左
+				// exifHeader.setValue(Tag.APERTUREVALUE, "22/10"); // 光圈：2.2
+				// exifHeader.setValue(Tag.FOCALLENGTH, "7/2"); // 焦距：3.5mm
+				// exifHeader.setValue(Tag.WHITEBALANCE, "0"); // 白平衡：自动
+				// exifHeader.setValue(Tag.ISOSPEEDRATINGS, "100"); //
+				// ISO感光度：100
+				// exifHeader.setValue(Tag.EXPOSURETIME, "1/30"); // 曝光时间：1/30
 				// 曝光补偿:EV值每增加1.0，相当于摄入的光线量增加一倍，如果照片过亮，要减小EV值，EV值每减小1.0，相当于摄入的光线量减小一倍
-				exifHeader.setValue(Tag.EXPOSUREBIASVALUE,
-						(1 + new Random().nextInt(10)) + "/10");
-				exifHeader.setValue(Tag.METERINGMODE, "1"); // 测光模式：平均
-				exifHeader.setValue(Tag.SATURATION,
-						"" + (5 + new Random().nextInt(10))); // 饱和度：5-15
-				exifHeader.setValue(Tag.FLASH, "0"); // 闪光灯：未使用
-				jpegHeaders.save(false); // 保存,参数：是否保存原文件为.old
+				// exifHeader.setValue(Tag.EXPOSUREBIASVALUE,
+				// (1 + new Random().nextInt(10)) + "/10");
+				// exifHeader.setValue(Tag.METERINGMODE, "1"); // 测光模式：平均
+				// exifHeader.setValue(Tag.SATURATION,
+				// "" + (5 + new Random().nextInt(10))); // 饱和度：5-15
+				// exifHeader.setValue(Tag.FLASH, "0"); // 闪光灯：未使用
+				// jpegHeaders.save(false); // 保存,参数：是否保存原文件为.old
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				MyLog.e("[JpegHeaders]Set Attribute Error,FileNotFoundException:"
