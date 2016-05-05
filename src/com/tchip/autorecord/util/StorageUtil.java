@@ -52,25 +52,38 @@ public class StorageUtil {
 	/** 录像SD卡是否存在 */
 	public static boolean isVideoCardExists() {
 		boolean isVideoCardExist = true;
-		try {
-			String pathVideo = Constant.Path.RECORD_FRONT;
-			File fileVideo = new File(pathVideo);
-			fileVideo.mkdirs();
-			File file = new File(pathVideo);
-			if (!file.exists()) {
-				isVideoCardExist = false;
-			}
-		} catch (Exception e) {
-			MyLog.e("[StorageUtil]isVideoCardExists:Catch Exception!");
+
+		String pathVideoCard = Constant.Path.SDCARD_2;
+		File file = new File(pathVideoCard);
+		if (!file.exists()) {
 			isVideoCardExist = false;
+		} else {
+			isVideoCardExist = true;
 		}
+
+		// try {
+		// String pathVideo = Constant.Path.RECORD_FRONT;
+		// File fileVideo = new File(pathVideo);
+		// boolean isSuccess = fileVideo.mkdirs();
+		// MyLog.v("[StorageUtil]isVideoCardExists,mkdirs isSuccess:"
+		// + isSuccess);
+		// File file = new File(pathVideo);
+		// if (!file.exists()) {
+		// isVideoCardExist = false;
+		// }
+		// } catch (Exception e) {
+		// MyLog.e("[StorageUtil]isVideoCardExists:Catch Exception!");
+		// isVideoCardExist = false;
+		// }
 		MyLog.v("[StorageUtil]isVideoCardExists:" + isVideoCardExist);
 		return isVideoCardExist;
 	}
 
 	/** 创建前后录像存储卡目录 */
 	public static void createRecordDirectory() {
-		new File(Constant.Path.RECORD_FRONT).mkdirs();
+		boolean isSuccess = new File(Constant.Path.RECORD_FRONT).mkdirs();
+		MyLog.v("[StorageUtil]createRecordDirectory,mkdirs isSuccess:"
+				+ isSuccess);
 		if (Constant.Module.isRecordSingleCard) {
 			new File(Constant.Path.RECORD_BACK).mkdirs();
 		}
@@ -145,7 +158,8 @@ public class StorageUtil {
 		try {
 			// 视频数据库
 			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context);
-			AudioRecordDialog audioRecordDialog = new AudioRecordDialog(context);
+			// AudioRecordDialog audioRecordDialog = new
+			// AudioRecordDialog(context);
 			StorageUtil.deleteEmptyVideoDirectory();
 			while (isStorageLess()) {
 				int oldestUnlockVideoId = videoDb.getOldestUnlockVideoId();
@@ -176,8 +190,9 @@ public class StorageUtil {
 									.getResources()
 									.getString(
 											R.string.hint_storage_full_cause_by_other);
+							HintUtil.showToast(context, strNoStorage);
 
-							audioRecordDialog.showErrorDialog(strNoStorage);
+							// audioRecordDialog.showErrorDialog(strNoStorage);
 							// MyApp.speakVoice(strNoStorage);
 							return false;
 						}
@@ -231,7 +246,8 @@ public class StorageUtil {
 			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context); // 视频数据库
 			try {
 				String fileName = file.getName();
-				if (file.isFile() && !fileName.endsWith(".jpg")) {
+				if (file.isFile() && !fileName.endsWith(".jpg")
+						&& !fileName.endsWith(".tmp")) {
 					if (fileName.startsWith(".")) {
 						// Delete file start with dot but not the recording one
 						if (!MyApp.isVideoReording) {
@@ -242,9 +258,9 @@ public class StorageUtil {
 					} else {
 						boolean isVideoExist = videoDb.isVideoExist(fileName);
 						if (!isVideoExist) {
-							file.delete();
+							boolean isSuccess = file.delete();
 							MyLog.v("[StorageUtil]RecursionCheckFile-Delete Error File:"
-									+ fileName);
+									+ fileName + ",isSuccess:" + isSuccess);
 						}
 					}
 					return;

@@ -145,49 +145,8 @@ public class SettingUtil {
 	public static File nodeFmChannel = new File(
 			"/sys/devices/platform/mt-i2c.1/i2c-1/1-002c/setch_qn8027");
 
-	public static boolean isFmTransmitOn(Context context) {
-		boolean isFmTransmitOpen = false;
-		String fmEnable = Settings.System.getString(
-				context.getContentResolver(),
-				Constant.FMTransmit.SETTING_ENABLE);
-		if (fmEnable.trim().length() > 0) {
-			if ("1".equals(fmEnable)) {
-				isFmTransmitOpen = true;
-			} else {
-				isFmTransmitOpen = false;
-			}
-		}
-		return isFmTransmitOpen;
-	}
 
-	/**
-	 * 获取设置中存取的频率
-	 * 
-	 * @return 8750-10800
-	 */
-	public static int getFmFrequceny(Context context) {
-		String fmChannel = Settings.System.getString(
-				context.getContentResolver(),
-				Constant.FMTransmit.SETTING_CHANNEL);
 
-		return Integer.parseInt(fmChannel);
-	}
-
-	/**
-	 * 设置FM发射频率:8750-10800
-	 * 
-	 * @param frequency
-	 */
-	public static void setFmFrequency(Context context, int frequency) {
-		if (frequency >= 8750 || frequency <= 10800) {
-			Settings.System.putString(context.getContentResolver(),
-					Constant.FMTransmit.SETTING_CHANNEL, "" + frequency);
-
-			SaveFileToNode(nodeFmChannel, String.valueOf(frequency));
-			MyLog.v("[SettingUtil]:Set FM Frequency success:" + frequency
-					/ 100.0f + "MHz");
-		}
-	}
 
 	public static void SaveFileToNode(File file, String value) {
 		if (file.exists()) {
@@ -333,51 +292,6 @@ public class SettingUtil {
 		SaveFileToNode(fileEDogPower, isEDogOn ? "1" : "0");
 	}
 
-	/** 初始化节点状态 */
-	public static void initialNodeState(Context context) {
-		SharedPreferences sharedPreferences = context.getSharedPreferences(
-				Constant.MySP.NAME, Context.MODE_PRIVATE);
-
-		// 1.启动时初始化FM发射频率节点,频率范围：7600~10800:8750-10800
-		try {
-			int freq = SettingUtil.getFmFrequceny(context);
-			if (freq >= 8750 && freq <= 10800)
-				SettingUtil.setFmFrequency(context, freq);
-			else
-				SettingUtil.setFmFrequency(context, 8750);
-
-			boolean isFmOn = SettingUtil.isFmTransmitOn(context);
-			Settings.System.putString(context.getContentResolver(),
-					Constant.FMTransmit.SETTING_ENABLE, isFmOn ? "1" : "0");
-			SettingUtil.SaveFileToNode(SettingUtil.nodeFmEnable, isFmOn ? "1"
-					: "0");
-			context.sendBroadcast(new Intent(
-					isFmOn ? "com.tchip.FM_OPEN_CARLAUNCHER"
-							: "com.tchip.FM_CLOSE_CARLAUNCHER")); // 通知状态栏同步图标
-
-		} catch (Exception e) {
-			MyLog.e("[SettingUtil]initFmTransmit: Catch Exception!");
-		}
-
-		// 2.初始化自动亮度节点
-		try {
-			boolean autoScreenLight = sharedPreferences.getBoolean(
-					"autoScreenLight", Constant.Setting.AUTO_BRIGHT_DEFAULT_ON);
-			SettingUtil.setAutoLight(context, autoScreenLight);
-		} catch (Exception e) {
-			MyLog.e("[SettingUtil]initialAutoLight: Catch Exception!");
-		}
-
-		// 3.初始化停车侦测开关
-		try {
-			boolean isParkingMonitorOn = sharedPreferences.getBoolean(
-					"parkingOn", Constant.Record.parkDefaultOn);
-			SettingUtil.setParkingMonitor(context, isParkingMonitorOn);
-		} catch (Exception e) {
-			MyLog.e("[SettingUtil]initialParkingMonitor: Catch Exception!");
-		}
-
-	}
 
 	/** 获取设备Mac地址 */
 	public String getLocalMacAddress(Context context) {

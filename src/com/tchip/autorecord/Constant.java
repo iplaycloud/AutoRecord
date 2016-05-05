@@ -260,41 +260,8 @@ public interface Constant {
 		/** 双录是否录制到单卡 */
 		public static final boolean isRecordSingleCard = true;
 
-		/** 导航是否是百度:true-(自写百度SDK导航) false-图吧导航 **/
-		public static final boolean isNavigationBaidu = false;
-
-		/** 是否有微信助手 */
-		public static final boolean hasWechat = isPublic;
-
-		/** 是否有善领云中心(云电话、一键接人) */
-		public static final boolean hasCloudCenter = !isPublic;
-
-		/** 是否有微密 */
-		public static final boolean hasWeme = false;// isPublic;
-
-		/** 是否有翼卡在线 */
-		public static final boolean hasECarOnline = isPublic;
-
-		/** 是否有网络电台 */
-		public static final boolean hasOnlineFM = isPublic;
-
 		/** 是否提示90s后启动停车守卫 */
 		public static final boolean hintParkingMonitor = !isPublic;
-
-		/** 是否有天气预报 */
-		public static final boolean hasWeather = false;
-
-		/** 图标是否以块为单位移动 */
-		public static final boolean isIconAtom = false;
-	}
-
-	/** FM发射 */
-	public static final class FMTransmit {
-		/** 系统设置：FM发射开关 */
-		public static final String SETTING_ENABLE = "fm_transmitter_enable";
-
-		/** 系统设置：FM发射频率 */
-		public static final String SETTING_CHANNEL = "fm_transmitter_channel";
 	}
 
 	/** 路径 */

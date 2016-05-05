@@ -383,17 +383,18 @@ public class SleepOnOffService extends Service {
 		SettingUtil.setGpsState(context, false);
 		SettingUtil.setEDogEnable(false); // 关闭电子狗电源
 
-		// 关闭FM发射，并保存休眠前状态
-		boolean fmStateBeforeSleep = SettingUtil.isFmTransmitOn(context);
-		editor.putBoolean("fmStateBeforeSleep", fmStateBeforeSleep);
-		editor.commit();
-		if (fmStateBeforeSleep) {
-			MyLog.v("[SleepReceiver]Sleep: close FM");
-			Settings.System.putString(context.getContentResolver(),
-					Constant.FMTransmit.SETTING_ENABLE, "0");
-			SettingUtil.SaveFileToNode(SettingUtil.nodeFmEnable, "0");
-			sendBroadcast(new Intent("com.tchip.FM_CLOSE_CARLAUNCHER")); // 通知状态栏同步图标
-		}
+		// // 关闭FM发射，并保存休眠前状态
+		// boolean fmStateBeforeSleep = SettingUtil.isFmTransmitOn(context);
+		// editor.putBoolean("fmStateBeforeSleep", fmStateBeforeSleep);
+		// editor.commit();
+		// if (fmStateBeforeSleep) {
+		// MyLog.v("[SleepReceiver]Sleep: close FM");
+		// Settings.System.putString(context.getContentResolver(),
+		// Constant.FMTransmit.SETTING_ENABLE, "0");
+		// SettingUtil.SaveFileToNode(SettingUtil.nodeFmEnable, "0");
+		// sendBroadcast(new Intent("com.tchip.FM_CLOSE_CARLAUNCHER")); //
+		// 通知状态栏同步图标
+		// }
 	}
 
 	/**
@@ -431,16 +432,17 @@ public class SleepOnOffService extends Service {
 			// SettingUtil.setEDogEnable(true); // 打开电子狗电源
 			context.sendBroadcast(new Intent(Constant.Broadcast.SLEEP_OFF)); // 通知其他应用取消休眠
 
-			// 重置FM发射状态
-			boolean fmStateBeforeSleep = sharedPreferences.getBoolean(
-					"fmStateBeforeSleep", false);
-			if (fmStateBeforeSleep) {
-				MyLog.v("[SleepReceiver]WakeUp:open FM Transmit");
-				Settings.System.putString(context.getContentResolver(),
-						Constant.FMTransmit.SETTING_ENABLE, "1");
-				SettingUtil.SaveFileToNode(SettingUtil.nodeFmEnable, "1");
-				sendBroadcast(new Intent("com.tchip.FM_OPEN_CARLAUNCHER")); // 通知状态栏同步图标
-			}
+			// // 重置FM发射状态
+			// boolean fmStateBeforeSleep = sharedPreferences.getBoolean(
+			// "fmStateBeforeSleep", false);
+			// if (fmStateBeforeSleep) {
+			// MyLog.v("[SleepReceiver]WakeUp:open FM Transmit");
+			// Settings.System.putString(context.getContentResolver(),
+			// Constant.FMTransmit.SETTING_ENABLE, "1");
+			// SettingUtil.SaveFileToNode(SettingUtil.nodeFmEnable, "1");
+			// sendBroadcast(new Intent("com.tchip.FM_OPEN_CARLAUNCHER")); //
+			// 通知状态栏同步图标
+			// }
 		} catch (Exception e) {
 			MyLog.e("[SleepReceiver]Error when run deviceWake");
 		}

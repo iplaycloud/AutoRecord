@@ -20,11 +20,11 @@ public class DriveVideoProvider extends ContentProvider {
 	private static final int VIDEO_NAME = 3;
 
 	static {
-		VIDEO_MATCHER.addURI("com.tchip.carlauncher.model.DriveVideoProvider",
+		VIDEO_MATCHER.addURI("com.tchip.autorecord.db.DriveVideoProvider",
 				"videos", VIDEOS);
-		VIDEO_MATCHER.addURI("com.tchip.carlauncher.model.DriveVideoProvider",
+		VIDEO_MATCHER.addURI("com.tchip.autorecord.db.DriveVideoProvider",
 				"video/#", VIDEO);
-		VIDEO_MATCHER.addURI("com.tchip.carlauncher.model.DriveVideoProvider",
+		VIDEO_MATCHER.addURI("com.tchip.autorecord.db.DriveVideoProvider",
 				"video/name/*", VIDEO_NAME);
 	}
 

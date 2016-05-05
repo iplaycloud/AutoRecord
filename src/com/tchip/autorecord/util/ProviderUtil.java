@@ -12,6 +12,9 @@ public class ProviderUtil {
 	}
 
 	public static final class Name { // Ctrl+Shift+X
+		/** ACC状态 */
+		public static final String ACC_STATE = "acc_state";
+		
 		/** 后录录像状态:0-未录像，1-录像 */
 		public static final String REC_BACK_STATE = "rec_back_state";
 
