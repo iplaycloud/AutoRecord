@@ -11,35 +11,39 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
-import java.util.List;
 
 import com.tchip.autorecord.Constant;
+import com.tchip.autorecord.util.ProviderUtil.Name;
 
-import android.app.ActivityManager;
 import android.app.KeyguardManager;
 import android.app.KeyguardManager.KeyguardLock;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.location.LocationManager;
-import android.media.AudioManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
-import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.provider.Settings.SettingNotFoundException;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class SettingUtil {
+
+	/** ACC 是否在 */
+	public static boolean isAccOn(Context context) {
+		String accState = ProviderUtil.getValue(context, Name.ACC_STATE);
+		if (null != accState && accState.trim().length() > 0
+				&& "1".equals(accState)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	/** 设置飞行模式 */
 	public static void setAirplaneMode(Context context, boolean setAirPlane) {
@@ -51,102 +55,6 @@ public class SettingUtil {
 		intent.putExtra("state", setAirPlane);
 		context.sendBroadcast(intent);
 	}
-
-	public static void setGpsState(final Context context, final boolean isGpsOn) {
-		new Handler().postDelayed(new Runnable() {
-
-			@Override
-			public void run() {
-				ContentResolver resolver = context.getContentResolver();
-				boolean nowState = getGpsState(context);
-				if (isGpsOn != nowState) {
-					MyLog.v("[GPS]Set State:" + isGpsOn);
-					// Settings.Secure.setLocationProviderEnabled(resolver,
-					// LocationManager.GPS_PROVIDER, isGpsOn);
-					int mCurrentMode = (!isGpsOn) ? Settings.Secure.LOCATION_MODE_HIGH_ACCURACY
-							: Settings.Secure.LOCATION_MODE_OFF;
-					int mode = isGpsOn ? Settings.Secure.LOCATION_MODE_HIGH_ACCURACY
-							: Settings.Secure.LOCATION_MODE_OFF;
-					Intent intent = new Intent(
-							"com.android.settings.location.MODE_CHANGING");
-					intent.putExtra("CURRENT_MODE", mCurrentMode);
-					intent.putExtra("NEW_MODE", mode);
-					context.sendBroadcast(intent,
-							android.Manifest.permission.WRITE_SECURE_SETTINGS);
-					Settings.Secure.putInt(resolver,
-							Settings.Secure.LOCATION_MODE, mode);
-				}
-			}
-
-		}, 3000);
-	}
-
-	public static boolean getGpsState(Context context) {
-		ContentResolver resolver = context.getContentResolver();
-		boolean gpsState = Settings.Secure.isLocationProviderEnabled(resolver,
-				LocationManager.GPS_PROVIDER);
-		MyLog.v("[GPS]Now State:" + gpsState);
-		return gpsState;
-	}
-
-	/** 调整系统亮度 */
-	public static void setBrightness(Context context, int brightness) {
-		if (brightness <= Constant.Setting.MAX_BRIGHTNESS && brightness > -1) {
-			boolean setSuccess = Settings.System.putInt(
-					context.getContentResolver(),
-					Settings.System.SCREEN_BRIGHTNESS, brightness);
-			MyLog.v("[SettingUtil]setBrightness: " + brightness + ", "
-					+ setSuccess);
-
-			SharedPreferences sharedPreferences = context.getSharedPreferences(
-					Constant.MySP.NAME, Context.MODE_PRIVATE);
-			Editor editor = sharedPreferences.edit();
-			editor.putInt(Constant.MySP.STR_MANUL_LIGHT_VALUE, brightness);
-			editor.commit();
-		}
-	}
-
-	/** 获取系统亮度 */
-	public static int getBrightness(Context context) {
-		try {
-			int nowBrightness = Settings.System.getInt(
-					context.getContentResolver(),
-					Settings.System.SCREEN_BRIGHTNESS);
-			MyLog.v("[SettingUtil]nowBrightness:" + nowBrightness);
-			return nowBrightness;
-		} catch (SettingNotFoundException e) {
-			e.printStackTrace();
-			return Constant.Setting.DEFAULT_BRIGHTNESS;
-		}
-	}
-
-	/** 设置熄屏时间 */
-	public static void setScreenOffTime(Context context, int time) {
-		Settings.System.putInt(context.getContentResolver(),
-				android.provider.Settings.System.SCREEN_OFF_TIMEOUT, time);
-	}
-
-	/** 获取熄屏时间 */
-	public static int getScreenOffTime(Context context) {
-		try {
-			return Settings.System.getInt(context.getContentResolver(),
-					Settings.System.SCREEN_OFF_TIMEOUT);
-		} catch (SettingNotFoundException e) {
-			e.printStackTrace();
-			return 155;
-		}
-	}
-
-	/** FM发射开关节点,1：开 0：关 */
-	public static File nodeFmEnable = new File(
-			"/sys/devices/platform/mt-i2c.1/i2c-1/1-002c/enable_qn8027");
-
-	/** FM发射频率节点，频率范围：7600~10800:8750-10800 */
-	public static File nodeFmChannel = new File(
-			"/sys/devices/platform/mt-i2c.1/i2c-1/1-002c/setch_qn8027");
-
-
-
 
 	public static void SaveFileToNode(File file, String value) {
 		if (file.exists()) {
@@ -194,6 +102,8 @@ public class SettingUtil {
 		KeyguardLock kl = km.newKeyguardLock("ZMS"); // 参数是LogCat里用的Tag
 		kl.disableKeyguard();
 	}
+	
+	// ========== Below is OLD ================
 
 	/** Camera自动调节亮度节点，1：开 0：关;默认打开 */
 	public static File fileAutoLightSwitch = new File(
@@ -291,7 +201,6 @@ public class SettingUtil {
 		MyLog.v("[SettingUtil]setEDogEnable:" + isEDogOn);
 		SaveFileToNode(fileEDogPower, isEDogOn ? "1" : "0");
 	}
-
 
 	/** 获取设备Mac地址 */
 	public String getLocalMacAddress(Context context) {

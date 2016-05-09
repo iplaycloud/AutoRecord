@@ -1,7 +1,6 @@
 package com.tchip.autorecord.ui;
 
 import java.io.File;
-import java.util.Locale;
 
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
@@ -11,7 +10,6 @@ import com.tchip.autorecord.MyApp.CameraState;
 import com.tchip.autorecord.db.DriveVideo;
 import com.tchip.autorecord.db.DriveVideoDbHelper;
 import com.tchip.autorecord.service.SensorWatchService;
-import com.tchip.autorecord.service.SleepOnOffService;
 import com.tchip.autorecord.util.ClickUtil;
 import com.tchip.autorecord.util.DateUtil;
 import com.tchip.autorecord.util.HintUtil;
@@ -26,8 +24,10 @@ import com.tchip.tachograph.TachographRecorder;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.hardware.Camera;
@@ -38,8 +38,6 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -54,8 +52,6 @@ public class MainActivity extends Activity implements TachographCallback,
 		Callback {
 
 	private Context context;
-
-	private TextToSpeech textToSpeech;
 
 	/** onFileSave时释放空间 */
 	private static final HandlerThread fileSaveHandlerThread = new HandlerThread(
@@ -107,7 +103,6 @@ public class MainActivity extends Activity implements TachographCallback,
 
 	private AudioRecordDialog audioRecordDialog;
 
-	/** SIM卡状态 */
 	private PowerManager powerManager;
 
 	@Override
@@ -119,8 +114,6 @@ public class MainActivity extends Activity implements TachographCallback,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		setContentView(R.layout.activity_main);
 		context = getApplicationContext();
-		textToSpeech = new TextToSpeech(getApplicationContext(),
-				new MyTTSOnInitialListener());
 		powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE); // 获取屏幕状态
 
 		sharedPreferences = getSharedPreferences(Constant.MySP.NAME,
@@ -130,34 +123,30 @@ public class MainActivity extends Activity implements TachographCallback,
 		audioRecordDialog = new AudioRecordDialog(MainActivity.this); // 提示框
 
 		initialLayout();
-		//SettingUtil.initialNodeState(MainActivity.this); // FIXME
 		StorageUtil.createRecordDirectory();
 		setupRecordDefaults();
 		setupRecordViews();
 
-		//SettingUtil.setGpsState(MainActivity.this, true); // 打开GPS // FIXME
-		// ACC上下电侦测服务
-		Intent intentSleepOnOff = new Intent(MainActivity.this,
-				SleepOnOffService.class);
-		startService(intentSleepOnOff);
-
 		// 首次启动是否需要自动录像
 		if (1 == SettingUtil.getAccStatus()) {
 			MyApp.isAccOn = true; // 同步ACC状态
-			// SettingUtil.setAirplaneMode(MainActivity.this, false); // 关闭飞行模式
 			new Thread(new AutoThread()).start(); // 序列任务线程
 		} else {
 			MyApp.isAccOn = false; // 同步ACC状态
 			MyApp.isSleeping = true; // ACC未连接,进入休眠
 			MyLog.v("[Main]ACC Check:OFF, Send Broadcast:com.tchip.SLEEP_ON.");
-
-			// sendBroadcast(new Intent(Constant.Broadcast.SLEEP_ON)); //
-			// 通知其他应用进入休眠
-			// SettingUtil.setAirplaneMode(MainActivity.this, true); // 打开飞行模式
-			// SettingUtil.setGpsState(MainActivity.this, false); // 关闭GPS
-			// SettingUtil.setEDogEnable(false); // 关闭电子狗电源
 		}
 		new Thread(new BackThread()).start(); // 后台线程
+
+		mainReceiver = new MainReceiver();
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(Constant.Broadcast.ACC_ON);
+		intentFilter.addAction(Constant.Broadcast.ACC_OFF);
+		intentFilter.addAction(Constant.Broadcast.GSENSOR_CRASH);
+		intentFilter.addAction(Constant.Broadcast.SPEECH_COMMAND);
+		intentFilter.addAction(Constant.Broadcast.SETTING_SYNC);
+		intentFilter.addAction(Constant.Broadcast.MEDIA_FORMAT);
+		registerReceiver(mainReceiver, intentFilter);
 	}
 
 	@Override
@@ -222,29 +211,115 @@ public class MainActivity extends Activity implements TachographCallback,
 		release(); // 释放录像区域
 		videoDb.close();
 
-		if (textToSpeech != null) { // 关闭TTS引擎
-			textToSpeech.shutdown();
+		if (mainReceiver != null) {
+			unregisterReceiver(mainReceiver);
 		}
 		super.onDestroy();
 	}
 
-	class MyTTSOnInitialListener implements OnInitListener {
+	private MainReceiver mainReceiver;
+
+	public class MainReceiver extends BroadcastReceiver {
 
 		@Override
-		public void onInit(int status) {
-			// tts.setEngineByPackageName("com.iflytek.vflynote");
-			textToSpeech.setLanguage(Locale.CHINESE);
-		}
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			MyLog.v("[SleepOnOffReceiver]action:" + action);
+			if (action.equals(Constant.Broadcast.ACC_OFF)) {
+				MyApp.isAccOn = false;
 
+				// 关闭碰撞侦测服务
+				Intent intentCrash = new Intent(context,
+						SensorWatchService.class);
+				stopService(intentCrash);
+
+			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
+				MyApp.isAccOn = true;
+				initialService();
+
+			} else if (action.equals(Constant.Broadcast.GSENSOR_CRASH)) { // 停车守卫:侦测到碰撞广播触发
+				if (MyApp.isSleeping) {
+					MyLog.v("[GSENSOR_CRASH]Before State->shouldCrashRecord:"
+							+ MyApp.shouldCrashRecord
+							+ ",shouldStopWhenCrashVideoSave:"
+							+ MyApp.shouldStopWhenCrashVideoSave);
+
+					if (MyApp.shouldStopWhenCrashVideoSave) {
+						if (!MyApp.shouldCrashRecord && !MyApp.isVideoReording) {
+							MyApp.shouldCrashRecord = true;
+							MyApp.shouldStopWhenCrashVideoSave = true;
+						}
+					} else {
+						MyApp.shouldCrashRecord = true;
+						MyApp.shouldStopWhenCrashVideoSave = true;
+					}
+				}
+			} else if (action.equals(Constant.Broadcast.SPEECH_COMMAND)) {
+				String command = intent.getExtras().getString("command");
+				if ("take_photo".equals(command)) {
+					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
+
+					// sendKeyCode(KeyEvent.KEYCODE_HOME); // 发送Home键，回到主界面
+					if (!powerManager.isScreenOn()) { // 确保屏幕点亮
+						SettingUtil.lightScreen(getApplicationContext());
+					}
+				} else if ("take_photo_wenxin".equals(command)) {
+					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
+
+					sendKeyCode(KeyEvent.KEYCODE_HOME); // 发送Home键，回到主界面
+					if (!powerManager.isScreenOn()) { // 确保屏幕点亮
+						SettingUtil.lightScreen(getApplicationContext());
+					}
+				} else if ("open_dvr".equals(command)) {
+					if (MyApp.isAccOn && !MyApp.isVideoReording) {
+						MyApp.shouldMountRecord = true;
+					}
+					// sendKeyCode(KeyEvent.KEYCODE_HOME);
+				} else if ("close_dvr".equals(command)) {
+					if (MyApp.isVideoReording) {
+						MyApp.shouldStopRecordFromVoice = true;
+					}
+				}
+			} else if (action.equals(Constant.Broadcast.SETTING_SYNC)) {
+				String content = intent.getExtras().getString("content");
+				if ("parkOn".equals(content)) { // 停车守卫:开
+					editor.putBoolean(Constant.MySP.STR_PARKING_ON, true);
+					editor.commit();
+				} else if ("parkOff".equals(content)) { // 停车守卫:关
+					editor.putBoolean(Constant.MySP.STR_PARKING_ON, false);
+					editor.commit();
+				} else if ("crashOn".equals(content)) { // 碰撞侦测:开
+					editor.putBoolean("crashOn", true);
+					editor.commit();
+				} else if ("crashOff".equals(content)) { // 碰撞侦测:关
+					editor.putBoolean("crashOn", false);
+					editor.commit();
+				} else if ("crashLow".equals(content)) { // 碰撞侦测灵敏度:低
+					MyApp.crashSensitive = 0;
+					editor.putInt("crashSensitive", 0);
+					editor.commit();
+				} else if ("crashMiddle".equals(content)) { // 碰撞侦测灵敏度:中
+					MyApp.crashSensitive = 1;
+					editor.putInt("crashSensitive", 1);
+					editor.commit();
+				} else if ("crashHigh".equals(content)) { // 碰撞侦测灵敏度:高
+					MyApp.crashSensitive = 2;
+					editor.putInt("crashSensitive", 2);
+					editor.commit();
+				}
+			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
+				String path = intent.getExtras().getString("path");
+				MyLog.e("SleepOnOffReceiver: MEDIA_FORMAT !! Path:" + path);
+				if ("/storage/sdcard2".equals(path)) {
+					MyApp.isVideoCardFormat = true;
+				}
+			}
+		}
 	}
 
 	private void speakVoice(String content) {
-		if (textToSpeech != null) {
-			textToSpeech
-					.speak(content, TextToSpeech.QUEUE_FLUSH, null, content);
-		} else {
-
-		}
+		sendBroadcast(new Intent(Constant.Broadcast.TTS_SPEAK).putExtra(
+				"content", content));
 	}
 
 	/**
@@ -347,7 +422,7 @@ public class MainActivity extends Activity implements TachographCallback,
 							MyApp.isVideoLock = true;
 						}
 						if (!MyApp.isMainForeground) { // 发送Home键，回到主界面
-							sendKeyCode(KeyEvent.KEYCODE_HOME);
+							// sendKeyCode(KeyEvent.KEYCODE_HOME);
 						}
 						new Thread(new RecordWhenCrashThread()).start();
 					}
@@ -452,7 +527,7 @@ public class MainActivity extends Activity implements TachographCallback,
 				try {
 					if (recordState == Constant.Record.STATE_RECORD_STOPPED) {
 						if (!MyApp.isMainForeground) {
-							sendKeyCode(KeyEvent.KEYCODE_HOME); // 回到主界面
+							// sendKeyCode(KeyEvent.KEYCODE_HOME); // 回到主界面
 						}
 						startRecordTask();
 					}
@@ -498,7 +573,7 @@ public class MainActivity extends Activity implements TachographCallback,
 				try {
 					if (recordState == Constant.Record.STATE_RECORD_STOPPED) {
 						if (!MyApp.isMainForeground) { // 发送Home键，回到主界面
-							sendKeyCode(KeyEvent.KEYCODE_HOME);
+							// sendKeyCode(KeyEvent.KEYCODE_HOME);
 						}
 						setInterval(3 * 60); // 防止在分段一分钟的时候，停车守卫录出1分和0秒两段视频
 
@@ -1036,7 +1111,7 @@ public class MainActivity extends Activity implements TachographCallback,
 						SettingUtil.lightScreen(getApplicationContext());
 					}
 					if (!MyApp.isMainForeground) { // 发送Home键，回到主界面
-						sendKeyCode(KeyEvent.KEYCODE_HOME);
+						// sendKeyCode(KeyEvent.KEYCODE_HOME);
 					}
 					new Thread(new StartRecordThread()).start(); // 开始录像
 				}

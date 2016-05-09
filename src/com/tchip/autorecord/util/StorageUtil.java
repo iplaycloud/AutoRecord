@@ -3,13 +3,11 @@ package com.tchip.autorecord.util;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Random;
 
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.R;
 import com.tchip.autorecord.db.DriveVideoDbHelper;
-import com.tchip.autorecord.view.AudioRecordDialog;
 
 import net.sourceforge.jheader.App1Header;
 import net.sourceforge.jheader.ExifFormatException;
@@ -168,8 +166,7 @@ public class StorageUtil {
 					String oldestUnlockVideoName = videoDb
 							.getVideNameById(oldestUnlockVideoId);
 					File file = new File(Constant.Path.RECORD_FRONT
-							+ oldestUnlockVideoName.split("_")[0]
-							+ File.separator + oldestUnlockVideoName);
+							+ oldestUnlockVideoName);
 					if (file.exists() && file.isFile()) {
 						MyLog.d("[StorageUtil]Delete Old Unlock Video:"
 								+ file.getName());
@@ -207,8 +204,7 @@ public class StorageUtil {
 						String oldestVideoName = videoDb
 								.getVideNameById(oldestVideoId);
 						File file = new File(Constant.Path.RECORD_FRONT
-								+ oldestVideoName.split("_")[0]
-								+ File.separator + oldestVideoName);
+								+ oldestVideoName);
 						if (file.exists() && file.isFile()) {
 							MyLog.d("[StorageUtil]Delete Old lock Video:"
 									+ file.getName());

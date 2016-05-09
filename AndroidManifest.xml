@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.tchip.autorecord"
     android:versionCode="1"
-    android:versionName="2016.05.05-10:35" >
+    android:versionName="2016.05.09-10:55" >
 
     <uses-sdk
         android:minSdkVersion="21"

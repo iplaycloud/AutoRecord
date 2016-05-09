@@ -34,6 +34,17 @@ public interface Constant {
 		/** ACC下电 */
 		public static final String ACC_OFF = "com.tchip.ACC_OFF";
 
+		/** 通知设置打开GPS */
+		public static final String GPS_ON = "tchip.intent.action.GPS_ON";
+
+		/** 通知设置关闭GPS */
+		public static final String GPS_OFF = "tchip.intent.action.GPS_OFF";
+
+		/** TTS播报,Extra:content(String) */
+		public static final String TTS_SPEAK = "tchip.intent.action.TTS_SPEAK";
+
+		// ================ Below is OLD ===============
+
 		/** 进入休眠 */
 		public static final String SLEEP_ON = "com.tchip.SLEEP_ON";
 
