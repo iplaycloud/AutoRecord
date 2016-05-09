@@ -144,6 +144,7 @@ public class FileUtil {
 			FileInputStream fis = null;
 			fis = new FileInputStream(file);
 			size = fis.available();
+			fis.close();
 		} else {
 			file.createNewFile();
 			MyLog.e("获取文件大小:文件不存在!");

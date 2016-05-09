@@ -254,9 +254,16 @@ public class StorageUtil {
 					} else {
 						boolean isVideoExist = videoDb.isVideoExist(fileName);
 						if (!isVideoExist) {
-							boolean isSuccess = file.delete();
+							// boolean isSuccess = file.delete();
+							boolean isSuccess = file.getAbsoluteFile().delete();
 							MyLog.v("[StorageUtil]RecursionCheckFile-Delete Error File:"
-									+ fileName + ",isSuccess:" + isSuccess);
+									+ file.getAbsolutePath()
+									+ ",canRead:"
+									+ file.canRead()
+									+ ",canWrite:"
+									+ file.canWrite()
+									+ ",isSuccess:"
+									+ isSuccess);
 						}
 					}
 					return;
