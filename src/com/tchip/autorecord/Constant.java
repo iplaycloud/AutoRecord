@@ -273,6 +273,9 @@ public interface Constant {
 
 		/** 是否提示90s后启动停车守卫 */
 		public static final boolean hintParkingMonitor = !isPublic;
+		
+		/** 是否使用系统Camera参数 */
+		public static final boolean useSystemCameraParam = false;
 	}
 
 	/** 路径 */

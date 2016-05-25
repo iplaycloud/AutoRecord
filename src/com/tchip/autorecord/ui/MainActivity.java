@@ -1,6 +1,7 @@
 package com.tchip.autorecord.ui;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
@@ -177,14 +178,7 @@ public class MainActivity extends Activity implements TachographCallback,
 						// surfaceHolder = holder;
 						setup();
 					} else {
-						try {
-							camera.lock();
-							camera.setPreviewDisplay(surfaceHolder);
-							camera.startPreview();
-							camera.unlock();
-						} catch (Exception e) {
-							// e.printStackTrace();
-						}
+						previewCamera();
 					}
 				}
 			} else {
@@ -1255,19 +1249,11 @@ public class MainActivity extends Activity implements TachographCallback,
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		MyLog.v("[Record]surfaceCreated");
-
 		if (camera == null) {
 			surfaceHolder = holder;
 			setup();
 		} else {
-			try {
-				camera.lock();
-				camera.setPreviewDisplay(surfaceHolder);
-				camera.startPreview();
-				camera.unlock();
-			} catch (Exception e) {
-				// e.printStackTrace();
-			}
+			previewCamera();
 		}
 	}
 
@@ -1288,14 +1274,7 @@ public class MainActivity extends Activity implements TachographCallback,
 		try {
 			MyLog.v("[Record] Camera.open");
 			camera = Camera.open(0);
-			camera.lock();
-
-			// Camera.Parameters para = camera.getParameters();
-			// para.unflatten(Constant.Record.CAMERA_PARAMS);
-			// camera.setParameters(para); // 设置系统Camera参数
-			camera.setPreviewDisplay(surfaceHolder);
-			camera.startPreview();
-			camera.unlock();
+			previewCamera();
 			return true;
 		} catch (Exception ex) {
 			closeCamera();
@@ -1305,9 +1284,33 @@ public class MainActivity extends Activity implements TachographCallback,
 	}
 
 	/**
+	 * Camera预览：
+	 * 
+	 * lock > setPreviewDisplay > startPreview > unlock
+	 */
+	private void previewCamera() {
+		try {
+			camera.lock();
+			if (Constant.Module.useSystemCameraParam) { // 设置系统Camera参数
+				Camera.Parameters para = camera.getParameters();
+				para.unflatten(Constant.Record.CAMERA_PARAMS);
+				camera.setParameters(para);
+			}
+			camera.setPreviewDisplay(surfaceHolder);
+			// camera.setDisplayOrientation(180);
+			camera.startPreview();
+			camera.unlock();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
 	 * 关闭Camera
 	 * 
-	 * @return
+	 * lock > stopPreview > setPreviewDisplay > release > unlock
 	 */
 	private boolean closeCamera() {
 		if (camera == null)
@@ -1320,9 +1323,9 @@ public class MainActivity extends Activity implements TachographCallback,
 			camera.unlock();
 			camera = null;
 			return true;
-		} catch (Exception ex) {
+		} catch (Exception e) {
 			camera = null;
-			MyLog.e("[MainActivity]closeCamera:Catch Exception!");
+			MyLog.e("[MainActivity]closeCamera:Catch Exception:" + e.toString());
 			return false;
 		}
 	}
@@ -1616,16 +1619,16 @@ public class MainActivity extends Activity implements TachographCallback,
 			carRecorder.setMediaFilenameFixs(
 					TachographCallback.FILE_TYPE_VIDEO, "", "");
 			carRecorder.setMediaFilenameFixs(
-					TachographCallback.FILE_TYPE_SHARE_VIDEO, "cc_", "_ee");
+					TachographCallback.FILE_TYPE_SHARE_VIDEO, "", "");
 			carRecorder.setMediaFilenameFixs(
-					TachographCallback.FILE_TYPE_IMAGE, "ff_", "_gg");
+					TachographCallback.FILE_TYPE_IMAGE, "", "");
 			// 路径
 			carRecorder.setMediaFileDirectory(
 					TachographCallback.FILE_TYPE_VIDEO, "VideoFront");
 			carRecorder.setMediaFileDirectory(
 					TachographCallback.FILE_TYPE_SHARE_VIDEO, "Share");
 			carRecorder.setMediaFileDirectory(
-					TachographCallback.FILE_TYPE_IMAGE, "iii");
+					TachographCallback.FILE_TYPE_IMAGE, "Image");
 			carRecorder.setClientName(this.getPackageName());
 			if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
 				carRecorder.setVideoSize(1920, 1080);
@@ -1932,6 +1935,10 @@ public class MainActivity extends Activity implements TachographCallback,
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
+			Intent intent = new Intent(Intent.ACTION_MAIN);
+			intent.addCategory(Intent.CATEGORY_HOME);
+			intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+			startActivity(intent);
 			return true;
 		} else
 			return super.onKeyDown(keyCode, event);
