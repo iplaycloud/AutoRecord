@@ -58,7 +58,7 @@ public class FloatWindowService extends Service {
 
 		LayoutInflater inflater = LayoutInflater.from(getApplication());
 		// 获取浮动窗口视图所在布局
-		layoutFloat = (LinearLayout) inflater.inflate(R.layout.float_window,
+		layoutFloat = (LinearLayout) inflater.inflate(R.layout.record_hint_float_window,
 				null);
 		windowManager.addView(layoutFloat, wmParams); // 添加mFloatLayout
 		// 浮动窗口按钮

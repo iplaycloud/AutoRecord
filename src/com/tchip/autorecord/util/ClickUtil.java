@@ -76,4 +76,20 @@ public class ClickUtil {
 		lastSaveLogTime = time;
 		return false;
 	}
+	
+	/**
+	 * 传递过来的Intent是否是最近传递过来
+	 * 
+	 * @param sendTime
+	 * @return
+	 */
+	public static boolean isIntentInTime(long sendTime) {
+		long nowTime = System.currentTimeMillis();
+		long duration = nowTime - sendTime;
+		if (duration < 3000) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 }
