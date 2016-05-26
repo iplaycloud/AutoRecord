@@ -5,7 +5,7 @@
     tools:context="${relativePackage}.${activityClass}" >
 
     <SurfaceView
-        android:id="@+id/surfaceCamera"
+        android:id="@+id/surfaceViewFront"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

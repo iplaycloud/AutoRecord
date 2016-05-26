@@ -28,7 +28,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 public class BackFloatService extends Service {
-	
+
 	private Context context;
 
 	RelativeLayout layoutFloat; // 定义浮动窗口布局
@@ -122,6 +122,7 @@ public class BackFloatService extends Service {
 
 			case R.id.imageCameraSwitch:
 				HintUtil.showToast(context, "imageCameraSwitch");
+				stopSelf(); // 结束
 				break;
 
 			default:
