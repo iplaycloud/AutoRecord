@@ -199,5 +199,5 @@ public class MyUncaughtExceptionHandler implements UncaughtExceptionHandler {
 		}
 	}
 
-	public static String crashLogPath = "/storage/sdcard0/.CarLog/AutoRecord/";
+	public static String crashLogPath = "/storage/sdcard0/.AutoLog/AutoRecord/";
 }

@@ -27,6 +27,7 @@ import com.tchip.tachograph.TachographRecorder;
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -1109,9 +1110,20 @@ public class MainActivity extends Activity {
 
 			case R.id.imageCameraSwitch:
 				// sendBroadcast(new Intent("com.tchip.showUVC"));
-				Intent intentSwitch = new Intent(MainActivity.this,
-						BackFloatService.class);
-				startService(intentSwitch);
+				// Intent intentSwitch = new Intent(MainActivity.this,
+				// BackFloatService.class);
+				// startService(intentSwitch);
+				try {
+					ComponentName componentRecord = new ComponentName(
+							"com.tchip.autorecordback",
+							"com.tchip.autorecordback.ui.MainActivity");
+					Intent intentRecord = new Intent();
+					intentRecord.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+					intentRecord.setComponent(componentRecord);
+					startActivity(intentRecord);
+				} catch (Exception e) {
+
+				}
 				break;
 
 			default:
@@ -1669,13 +1681,11 @@ public class MainActivity extends Activity {
 			recorderFront.setClientName(this.getPackageName());
 			if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
 				recorderFront.setVideoSize(1920, 1080);
-				recorderFront
-						.setVideoFrameRate(Constant.Record.FRAME_RATE);
+				recorderFront.setVideoFrameRate(Constant.Record.FRAME_RATE);
 				recorderFront.setVideoBiteRate(Constant.Record.BIT_RATE_1080P);
 			} else {
 				recorderFront.setVideoSize(1280, 720);
-				recorderFront
-						.setVideoFrameRate(Constant.Record.FRAME_RATE);
+				recorderFront.setVideoFrameRate(Constant.Record.FRAME_RATE);
 				recorderFront.setVideoBiteRate(Constant.Record.BIT_RATE_720P);
 			}
 			if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
