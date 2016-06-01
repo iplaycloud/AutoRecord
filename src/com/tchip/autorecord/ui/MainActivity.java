@@ -163,6 +163,8 @@ public class MainActivity extends Activity {
 
 		mainReceiver = new MainReceiver();
 		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(Constant.Broadcast.ACC_ON);
+		intentFilter.addAction(Constant.Broadcast.ACC_OFF);
 		intentFilter.addAction(Constant.Broadcast.GSENSOR_CRASH);
 		intentFilter.addAction(Constant.Broadcast.SPEECH_COMMAND);
 		intentFilter.addAction(Constant.Broadcast.MEDIA_FORMAT);
@@ -199,7 +201,7 @@ public class MainActivity extends Activity {
 			isIntentInTime = ClickUtil.isIntentInTime(sendTime);
 			if (isIntentInTime) {
 				MyLog.v("reason:" + reason);
-				if ("autoui_oncreate".equals(reason)) { // 回到主界面
+				if ("autoui_oncreate".equals(reason) || "acc_on".equals(reason)) { // 回到主界面
 					shouldBackHome = true;
 				}
 			}
@@ -343,14 +345,11 @@ public class MainActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			MyLog.v("[SleepOnOffReceiver]action:" + action);
+			MyLog.v("[AutoRecord.MainReceiver]action:" + action);
 			if (action.equals(Constant.Broadcast.ACC_OFF)) {
 				MyApp.isAccOn = false;
-
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
 				MyApp.isAccOn = true;
-				initialService();
-
 			} else if (action.equals(Constant.Broadcast.GSENSOR_CRASH)) { // 停车守卫:侦测到碰撞广播触发
 				if (MyApp.isSleeping) {
 					MyLog.v("[GSENSOR_CRASH]Before State->shouldCrashRecord:"
@@ -370,7 +369,18 @@ public class MainActivity extends Activity {
 				}
 			} else if (action.equals(Constant.Broadcast.SPEECH_COMMAND)) {
 				String command = intent.getExtras().getString("command");
-				if ("take_photo".equals(command)) {
+				if ("open_dvr".equals(command)) {
+					// if (MyApp.isAccOn && !MyApp.isVideoReording) {
+					// MyApp.shouldMountRecord = true;
+					// }
+
+				} else if ("close_dvr".equals(command)) {
+					// if (MyApp.isVideoReording) {
+					// MyApp.shouldStopRecordFromVoice = true;
+					// }
+
+					// sendKeyCode(KeyEvent.KEYCODE_HOME);
+				} else if ("take_photo".equals(command)) {
 					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
 
 					// sendKeyCode(KeyEvent.KEYCODE_HOME); // 发送Home键，回到主界面
