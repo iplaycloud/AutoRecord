@@ -4,6 +4,8 @@ import java.util.Locale;
 
 import com.tchip.autorecord.util.MyLog;
 import com.tchip.autorecord.util.MyUncaughtExceptionHandler;
+import com.tchip.autorecord.util.ProviderUtil;
+import com.tchip.autorecord.util.ProviderUtil.Name;
 
 import android.app.Application;
 import android.content.Context;
@@ -111,16 +113,10 @@ public class MyApp extends Application {
 
 	public static String writeImageExifPath = "NULL";
 
-	public static enum CameraState {
-		/** 未初始化 */
-		NULL,
+	/** 录像预览窗口是否初始化 */
+	public static boolean isCameraPreview = false;
 
-		/** 已初始化，预览或录像 */
-		OKAY
-	}
-
-	/** 录像窗口状态 */
-	public static CameraState cameraState = CameraState.OKAY;
+	private Context context;
 
 	public static enum SLEEP_STATE {
 		/** 未休眠：ACC连接 */
@@ -141,14 +137,14 @@ public class MyApp extends Application {
 
 	@Override
 	public void onCreate() {
+		context = getApplicationContext();
 		MyUncaughtExceptionHandler myUncaughtExceptionHandler = MyUncaughtExceptionHandler
 				.getInstance();
-		myUncaughtExceptionHandler.init(getApplicationContext());
+		myUncaughtExceptionHandler.init(context);
 
 		initialCrashData();
 		super.onCreate();
 	}
-	
 
 	/** 初始化碰撞数据 */
 	private void initialCrashData() {
@@ -156,10 +152,33 @@ public class MyApp extends Application {
 			sharedPreferences = getSharedPreferences(Constant.MySP.NAME,
 					Context.MODE_PRIVATE);
 
-			isCrashOn = sharedPreferences.getBoolean("crashOn",
-					Constant.GravitySensor.DEFAULT_ON);
-			crashSensitive = sharedPreferences.getInt("crashSensitive",
-					Constant.GravitySensor.SENSITIVE_DEFAULT);
+			String strDetectCrashState = ProviderUtil.getValue(context,
+					Name.SET_DETECT_CRASH_STATE);
+			if (strDetectCrashState != null
+					&& strDetectCrashState.trim().length() > 0) {
+				if ("0".equals(strDetectCrashState)) {
+					isCrashOn = false;
+				} else {
+					isCrashOn = true;
+				}
+			} else {
+				isCrashOn = true;
+			}
+
+			String strDetectCrashLevel = ProviderUtil.getValue(context,
+					Name.SET_DETECT_CRASH_LEVEL);
+			if (strDetectCrashLevel != null
+					&& strDetectCrashLevel.trim().length() > 0) {
+				if ("0".equals(strDetectCrashLevel)) {
+					crashSensitive = 0;
+				} else if ("2".equals(strDetectCrashLevel)) {
+					crashSensitive = 2;
+				} else {
+					crashSensitive = 1;
+				}
+			}else{
+				crashSensitive = 2;
+			}
 		} catch (Exception e) {
 			MyLog.e("[MyApplication]initialCrashData: Catch Exception!"
 					+ e.getMessage());

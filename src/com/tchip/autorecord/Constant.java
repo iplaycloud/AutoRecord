@@ -59,7 +59,7 @@ public interface Constant {
 
 		/** 系统设置进入格式化界面 */
 		public static final String MEDIA_FORMAT = "tchip.intent.action.MEDIA_FORMAT";
-		
+
 		/** 系统关机 */
 		public static final String GOING_SHUTDOWN = "tchip.intent.action.GOING_SHUTDOWN";
 
@@ -136,7 +136,7 @@ public interface Constant {
 		public static final boolean DEFAULT_ON = true;
 
 		/** 碰撞侦测默认灵敏度Level */
-		public static final float VALUE = 9.8f;
+		public static final float VALUE = 10.0f;
 
 		public static final int SENSITIVE_LOW = 0;
 		public static final int SENSITIVE_MIDDLE = 1;
@@ -145,7 +145,7 @@ public interface Constant {
 
 		public static final float VALUE_LOW = VALUE * 1.8f;
 		public static final float VALUE_MIDDLE = VALUE * 1.5f;
-		public static final float VALUE_HIGH = VALUE * 1;
+		public static final float VALUE_HIGH = VALUE * 1.2f;
 		public static final float VALUE_DEFAULT = VALUE_MIDDLE;
 
 	}

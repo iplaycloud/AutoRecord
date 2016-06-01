@@ -7,7 +7,6 @@ import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.R;
 import com.tchip.autorecord.Typefaces;
-import com.tchip.autorecord.MyApp.CameraState;
 import com.tchip.autorecord.db.DriveVideo;
 import com.tchip.autorecord.db.DriveVideoDbHelper;
 import com.tchip.autorecord.service.SensorWatchService;
@@ -32,6 +31,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.database.ContentObserver;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
@@ -136,6 +136,12 @@ public class MainActivity extends Activity {
 		audioRecordDialog = new AudioRecordDialog(MainActivity.this); // 提示框
 
 		initialLayout();
+
+		getContentResolver()
+				.registerContentObserver(
+						Uri.parse("content://com.tchip.provider.AutoProvider/state/name/"),
+						true, new AutoContentObserver(new Handler()));
+
 		StorageUtil.createRecordDirectory();
 		setupRecordDefaults();
 		setupRecordViews();
@@ -197,9 +203,7 @@ public class MainActivity extends Activity {
 					shouldBackHome = true;
 				}
 			}
-
 		}
-
 		super.onResume();
 	}
 
@@ -247,6 +251,63 @@ public class MainActivity extends Activity {
 			return true;
 		} else
 			return super.onKeyDown(keyCode, event);
+	}
+
+	/** ContentProvder监听 */
+	public class AutoContentObserver extends ContentObserver {
+
+		public AutoContentObserver(Handler handler) {
+			super(handler);
+		}
+
+		@Override
+		public void onChange(boolean selfChange, Uri uri) {
+			String name = uri.getLastPathSegment(); // getPathSegments().get(2);
+			if (name.equals("state")) { // insert
+
+			} else { // update
+				MyLog.v("[AutoRecord.ContentObserver]onChange,selfChange:"
+						+ selfChange + ",Name:" + name);
+				if (Name.SET_DETECT_CRASH_STATE.equals(name)) {
+					String strDetectCrashState = ProviderUtil.getValue(context,
+							Name.SET_DETECT_CRASH_STATE);
+					if (strDetectCrashState != null
+							&& strDetectCrashState.trim().length() > 0) {
+						if ("0".equals(strDetectCrashState)) {
+							MyApp.isCrashOn = false;
+						} else {
+							MyApp.isCrashOn = true;
+						}
+					} else {
+						MyApp.isCrashOn = true;
+					}
+				} else if (Name.SET_DETECT_CRASH_LEVEL.equals(name)) {
+					String strDetectCrashLevel = ProviderUtil.getValue(context,
+							Name.SET_DETECT_CRASH_LEVEL);
+					if (strDetectCrashLevel != null
+							&& strDetectCrashLevel.trim().length() > 0) {
+						if ("0".equals(strDetectCrashLevel)) {
+							MyApp.crashSensitive = 0;
+						} else if ("2".equals(strDetectCrashLevel)) {
+							MyApp.crashSensitive = 2;
+						} else {
+							MyApp.crashSensitive = 1;
+						}
+					} else {
+						MyApp.crashSensitive = 2;
+					}
+				} else if (Name.SET_PARK_MONITOR_STATE.equals(name)) {
+
+				}
+			}
+			super.onChange(selfChange, uri);
+		}
+
+		@Override
+		public void onChange(boolean selfChange) {
+			super.onChange(selfChange);
+		}
+
 	}
 
 	/**
@@ -1216,8 +1277,8 @@ public class MainActivity extends Activity {
 			}
 			MyApp.shouldResetRecordWhenResume = true;
 			MyLog.v("[Record]releaseCameraZone");
+			MyApp.isCameraPreview = false;
 		}
-		MyApp.cameraState = CameraState.NULL;
 	}
 
 	// *********** Record ***********
@@ -1765,7 +1826,7 @@ public class MainActivity extends Activity {
 			MyLog.e("[MainActivity]setupRecorder: Catch Exception!");
 		}
 
-		MyApp.cameraState = CameraState.OKAY;
+		MyApp.isCameraPreview = true;
 	}
 
 	/** 释放Recorder */

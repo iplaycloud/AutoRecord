@@ -12,6 +12,7 @@ import android.os.IBinder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.R;
 import com.tchip.autorecord.util.HintUtil;
@@ -74,12 +75,17 @@ public class SensorWatchService extends Service {
 						if (MyApp.isVideoReording && !MyApp.isVideoLock) {
 							MyApp.isVideoLock = true;
 							MyApp.isCrashed = true;
-							// MyApp.speakVoice(getResources().getString(
-							// R.string.hint_video_lock));
+							speakVoice(getResources().getString(
+									R.string.hint_video_lock));
 							HintUtil.showToast(context, getResources()
 									.getString(R.string.hint_video_lock));
-							MyLog.v("[SensorWarchService] Crashed -> isVideoLock = true;X:"
-									+ valueX + ",Y:" + valueY + ",Z:" + valueZ);
+							MyLog.v("[SensorWarchService] Crashed->VideoLock;LIMIT:"
+									+ LIMIT_X
+									+ ",X:"
+									+ valueX
+									+ ",Y:"
+									+ valueY
+									+ ",Z:" + valueZ);
 						}
 						// 重置碰撞标志位
 						isCrash = false;
@@ -122,6 +128,11 @@ public class SensorWatchService extends Service {
 		Date date = new Date(nowTime);
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 		return sdf.format(date);
+	}
+
+	private void speakVoice(String content) {
+		sendBroadcast(new Intent(Constant.Broadcast.TTS_SPEAK).putExtra(
+				"content", content));
 	}
 
 	public float getValue(int axis) {
