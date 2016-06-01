@@ -50,6 +50,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -83,14 +84,19 @@ public class MainActivity extends Activity {
 	private ImageButton imageVideoState;
 	/** 加锁按钮 */
 	private ImageButton imageVideoLock;
+	private TextView textVideoLock;
 	/** 前后切换 */
 	private ImageButton imageCameraSwitch;
+	private TextView textCameraSwitch;
 	/** 视频尺寸 */
 	private ImageButton imageVideoSize;
+	private TextView textVideoSize;
 	/** 视频分段 */
 	private ImageButton imageVideoLength;
+	private TextView textVideoLength;
 	/** 静音按钮 */
 	private ImageButton imageVideoMute;
+	private TextView textVideoMute;
 	/** 拍照按钮 */
 	private ImageButton imagePhotoTake;
 
@@ -143,17 +149,20 @@ public class MainActivity extends Activity {
 		} else {
 			MyApp.isAccOn = false; // 同步ACC状态
 			MyApp.isSleeping = true; // ACC未连接,进入休眠
-			MyLog.v("[Main]ACC Check:OFF, Send Broadcast:com.tchip.SLEEP_ON.");
+			MyLog.v("[Main]ACC Check:OFF");
 		}
+		// 碰撞侦测服务
+		Intent intentSensor = new Intent(this, SensorWatchService.class);
+		startService(intentSensor);
+
 		new Thread(new BackThread()).start(); // 后台线程
 
 		mainReceiver = new MainReceiver();
 		IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(Constant.Broadcast.ACC_ON);
-		intentFilter.addAction(Constant.Broadcast.ACC_OFF);
 		intentFilter.addAction(Constant.Broadcast.GSENSOR_CRASH);
 		intentFilter.addAction(Constant.Broadcast.SPEECH_COMMAND);
 		intentFilter.addAction(Constant.Broadcast.MEDIA_FORMAT);
+		intentFilter.addAction(Constant.Broadcast.RELEASE_RECORD);
 		registerReceiver(mainReceiver, intentFilter);
 	}
 
@@ -182,7 +191,7 @@ public class MainActivity extends Activity {
 			MyLog.e("[Main]onResume catch Exception:" + e.toString());
 		}
 
-		// 接收来自语音的导航目的地
+		// 接收额外信息
 		Bundle extras = getIntent().getExtras();
 		if (extras != null) {
 			String reason = extras.getString("reason");
@@ -226,6 +235,10 @@ public class MainActivity extends Activity {
 		MyLog.v("[Main]onDestroy");
 		releaseFront(); // 释放录像区域
 		videoDb.close();
+
+		// 关闭碰撞侦测服务
+		Intent intentCrash = new Intent(context, SensorWatchService.class);
+		stopService(intentCrash);
 
 		if (mainReceiver != null) {
 			unregisterReceiver(mainReceiver);
@@ -279,11 +292,6 @@ public class MainActivity extends Activity {
 			if (action.equals(Constant.Broadcast.ACC_OFF)) {
 				MyApp.isAccOn = false;
 
-				// 关闭碰撞侦测服务
-				Intent intentCrash = new Intent(context,
-						SensorWatchService.class);
-				stopService(intentCrash);
-
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
 				MyApp.isAccOn = true;
 				initialService();
@@ -317,19 +325,6 @@ public class MainActivity extends Activity {
 				} else if ("take_photo_wenxin".equals(command)) {
 					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
 
-					sendKeyCode(KeyEvent.KEYCODE_HOME); // 发送Home键，回到主界面
-					if (!powerManager.isScreenOn()) { // 确保屏幕点亮
-						SettingUtil.lightScreen(getApplicationContext());
-					}
-				} else if ("open_dvr".equals(command)) {
-					if (MyApp.isAccOn && !MyApp.isVideoReording) {
-						MyApp.shouldMountRecord = true;
-					}
-					// sendKeyCode(KeyEvent.KEYCODE_HOME);
-				} else if ("close_dvr".equals(command)) {
-					if (MyApp.isVideoReording) {
-						MyApp.shouldStopRecordFromVoice = true;
-					}
 				}
 			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
 				String path = intent.getExtras().getString("path");
@@ -337,6 +332,9 @@ public class MainActivity extends Activity {
 				if ("/storage/sdcard2".equals(path)) {
 					MyApp.isVideoCardFormat = true;
 				}
+			} else if (Constant.Broadcast.RELEASE_RECORD.equals(action)) { // 退出录像
+				android.os.Process.killProcess(android.os.Process.myPid());
+				System.exit(1);
 			}
 		}
 	}
@@ -684,9 +682,7 @@ public class MainActivity extends Activity {
 	 * 3.天气播报服务
 	 */
 	private void initialService() {
-		// 碰撞侦测服务
-		Intent intentSensor = new Intent(this, SensorWatchService.class);
-		startService(intentSensor);
+
 	}
 
 	private void initialCameraSurfaceFront() {
@@ -710,10 +706,13 @@ public class MainActivity extends Activity {
 		// 锁定
 		imageVideoLock = (ImageButton) findViewById(R.id.imageVideoLock);
 		imageVideoLock.setOnClickListener(myOnClickListener);
+		textVideoLock = (TextView) findViewById(R.id.textVideoLock);
+		textVideoLock.setOnClickListener(myOnClickListener);
 
 		// 前后切换图标
 		imageCameraSwitch = (ImageButton) findViewById(R.id.imageCameraSwitch);
 		imageCameraSwitch.setOnClickListener(myOnClickListener);
+		textCameraSwitch = (TextView) findViewById(R.id.textCameraSwitch);
 
 		// 拍照
 		imagePhotoTake = (ImageButton) findViewById(R.id.imagePhotoTake);
@@ -722,15 +721,20 @@ public class MainActivity extends Activity {
 		// 视频尺寸
 		imageVideoSize = (ImageButton) findViewById(R.id.imageVideoSize);
 		imageVideoSize.setOnClickListener(myOnClickListener);
+		textVideoSize = (TextView) findViewById(R.id.textVideoSize);
+		textVideoSize.setOnClickListener(myOnClickListener);
 
 		// 视频分段长度
 		imageVideoLength = (ImageButton) findViewById(R.id.imageVideoLength);
 		imageVideoLength.setOnClickListener(myOnClickListener);
+		textVideoLength = (TextView) findViewById(R.id.textVideoLength);
+		textVideoLength.setOnClickListener(myOnClickListener);
 
 		// 静音
 		imageVideoMute = (ImageButton) findViewById(R.id.imageVideoMute);
 		imageVideoMute.setOnClickListener(myOnClickListener);
-
+		textVideoMute = (TextView) findViewById(R.id.textVideoMute);
+		textVideoMute.setOnClickListener(myOnClickListener);
 	}
 
 	private int secondCount = -1;
@@ -1014,6 +1018,7 @@ public class MainActivity extends Activity {
 				break;
 
 			case R.id.imageVideoLock:
+			case R.id.textVideoLock:
 				if (!ClickUtil.isQuickClick(1000)) {
 					if (MyApp.isVideoReording) {
 						lockOrUnlockVideo();
@@ -1025,6 +1030,7 @@ public class MainActivity extends Activity {
 				break;
 
 			case R.id.imageVideoSize:
+			case R.id.textVideoSize:
 				if (!ClickUtil.isQuickClick(1500)) {
 					// 切换分辨率录像停止，需要重置时间
 					MyApp.shouldVideoRecordWhenChangeSize = MyApp.isVideoReording;
@@ -1056,6 +1062,7 @@ public class MainActivity extends Activity {
 				break;
 
 			case R.id.imageVideoLength:
+			case R.id.textVideoLength:
 				if (!ClickUtil.isQuickClick(1000)) {
 					if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
 						if (setInterval(1 * 60) == 0) {
@@ -1078,6 +1085,7 @@ public class MainActivity extends Activity {
 				break;
 
 			case R.id.imageVideoMute:
+			case R.id.textVideoMute:
 				if (!ClickUtil.isQuickClick(1500)) {
 					// 切换录音/静音状态停止录像，需要重置时间
 					MyApp.shouldVideoRecordWhenChangeMute = MyApp.isVideoReording;
@@ -1109,21 +1117,8 @@ public class MainActivity extends Activity {
 				break;
 
 			case R.id.imageCameraSwitch:
-				// sendBroadcast(new Intent("com.tchip.showUVC"));
-				// Intent intentSwitch = new Intent(MainActivity.this,
-				// BackFloatService.class);
-				// startService(intentSwitch);
-				try {
-					ComponentName componentRecord = new ComponentName(
-							"com.tchip.autorecordback",
-							"com.tchip.autorecordback.ui.MainActivity");
-					Intent intentRecord = new Intent();
-					intentRecord.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-					intentRecord.setComponent(componentRecord);
-					startActivity(intentRecord);
-				} catch (Exception e) {
-
-				}
+			case R.id.textCameraSwitch:
+				sendBroadcast(new Intent("com.tchip.showUVC"));
 				break;
 
 			default:
@@ -1246,9 +1241,13 @@ public class MainActivity extends Activity {
 		if (resolutionState == Constant.Record.STATE_RESOLUTION_720P) {
 			imageVideoSize.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_size_hd, null));
+			textVideoSize.setText(getResources().getString(
+					R.string.icon_hint_720p));
 		} else if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
 			imageVideoSize.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_size_fhd, null));
+			textVideoSize.setText(getResources().getString(
+					R.string.icon_hint_1080p));
 		}
 
 		// 录像按钮
@@ -1260,15 +1259,22 @@ public class MainActivity extends Activity {
 		if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
 			imageVideoLength.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_length_1m, null));
+			textVideoLength.setText(getResources().getString(
+					R.string.icon_hint_1_minute));
 		} else if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
 			imageVideoLength.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_length_3m, null));
+			textVideoLength.setText(getResources().getString(
+					R.string.icon_hint_3_minutes));
 		}
 
 		// 视频加锁
 		imageVideoLock.setImageDrawable(getResources().getDrawable(
 				MyApp.isVideoLock ? R.drawable.video_lock
 						: R.drawable.video_unlock, null));
+		textVideoLock.setText(getResources().getString(
+				MyApp.isVideoLock ? R.string.icon_hint_lock
+						: R.string.icon_hint_unlock));
 
 		// 静音按钮
 		boolean videoMute = sharedPreferences.getBoolean("videoMute",
@@ -1278,6 +1284,10 @@ public class MainActivity extends Activity {
 		imageVideoMute.setImageDrawable(getResources().getDrawable(
 				videoMute ? R.drawable.video_mute : R.drawable.video_unmute,
 				null));
+		textVideoMute.setText(getResources()
+				.getString(
+						videoMute ? R.string.icon_hint_mute
+								: R.string.icon_hint_unmute));
 	}
 
 	class FrontCallBack implements Callback {

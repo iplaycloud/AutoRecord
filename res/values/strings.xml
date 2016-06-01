@@ -33,6 +33,17 @@
     <string name="hint_save_photo_error">图片保存失败</string>
 
     <!-- UncaughtExceptionHandler -->
-    <string name="app_has_exception">很抱歉程序异常，即将退出</string>
+    <string name="app_has_exception">很抱歉录像异常，即将退出</string>
+
+    <!-- Icon + Text -->
+    <string name="icon_hint_3_minutes">3分钟</string>
+    <string name="icon_hint_1_minute">1分钟</string>
+    <string name="icon_hint_1080p">1080P</string>
+    <string name="icon_hint_720p">720P</string>
+    <string name="icon_hint_unlock">未锁</string>
+    <string name="icon_hint_lock">已锁</string>
+    <string name="icon_hint_mute">静音</string>
+    <string name="icon_hint_unmute">录音</string>
+    <string name="icon_hint_switch">切换</string>
 
 </resources>

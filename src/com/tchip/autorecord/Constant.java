@@ -43,6 +43,9 @@ public interface Constant {
 		/** TTS播报,Extra:content(String) */
 		public static final String TTS_SPEAK = "tchip.intent.action.TTS_SPEAK";
 
+		/** 关掉录像：释放预览 */
+		public static final String RELEASE_RECORD = "tchip.intent.action.RELEASE_RECORD";
+
 		// ================ Below is OLD ===============
 
 		/** 进入休眠 */
@@ -273,9 +276,9 @@ public interface Constant {
 
 		/** 是否提示90s后启动停车守卫 */
 		public static final boolean hintParkingMonitor = !isPublic;
-		
+
 		/** 是否使用系统Camera参数 */
-		public static final boolean useSystemCameraParam = false;
+		public static final boolean useSystemCameraParam = true;
 	}
 
 	/** 路径 */

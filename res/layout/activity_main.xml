@@ -2,12 +2,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000000"
     tools:context="${relativePackage}.${activityClass}" >
 
     <SurfaceView
         android:id="@+id/surfaceViewFront"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_width="@dimen/surface_width"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true" />
 
     <RelativeLayout
         android:layout_width="@dimen/side_shadow_width"
@@ -15,33 +17,81 @@
         android:layout_alignParentLeft="true"
         android:background="@drawable/side_shadow" >
 
-        <ImageButton
-            android:id="@+id/imageVideoSize"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:background="@null"
-            android:contentDescription="@null"
-            android:src="@drawable/video_size_fhd" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/icon_area_height"
+            android:layout_marginTop="@dimen/icon_area_margin_top_bottom" >
 
-        <ImageButton
-            android:id="@+id/imageVideoLength"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:background="@null"
-            android:contentDescription="@null"
-            android:src="@drawable/video_length_3m" />
+            <ImageButton
+                android:id="@+id/imageVideoSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:src="@drawable/video_size_fhd" />
 
-        <ImageButton
-            android:id="@+id/imageVideoLock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            <TextView
+                android:id="@+id/textVideoSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:text="@string/icon_hint_1080p"
+                android:textColor="@color/icon_hint_text_color"
+                android:textSize="@dimen/icon_hint_text_size" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/icon_area_height"
+            android:layout_centerInParent="true" >
+
+            <ImageButton
+                android:id="@+id/imageVideoLength"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:src="@drawable/video_length_3m" />
+
+            <TextView
+                android:id="@+id/textVideoLength"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:text="@string/icon_hint_3_minutes"
+                android:textColor="@color/icon_hint_text_color"
+                android:textSize="@dimen/icon_hint_text_size" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/icon_area_height"
             android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:background="@null"
-            android:contentDescription="@null"
-            android:src="@drawable/video_unlock" />
+            android:layout_marginBottom="@dimen/icon_area_margin_top_bottom" >
+
+            <ImageButton
+                android:id="@+id/imageVideoLock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:src="@drawable/video_unlock" />
+
+            <TextView
+                android:id="@+id/textVideoLock"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:text="@string/icon_hint_unlock"
+                android:textColor="@color/icon_hint_text_color"
+                android:textSize="@dimen/icon_hint_text_size" />
+        </RelativeLayout>
     </RelativeLayout>
 
     <RelativeLayout
@@ -50,33 +100,71 @@
         android:layout_alignParentRight="true"
         android:background="@drawable/side_shadow" >
 
-        <ImageButton
-            android:id="@+id/imageVideoMute"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:background="@null"
-            android:contentDescription="@null"
-            android:src="@drawable/video_unmute" />
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/icon_area_height"
+            android:layout_marginTop="@dimen/icon_area_margin_top_bottom" >
 
-        <ImageButton
-            android:id="@+id/imageVideoState"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:background="@null"
-            android:contentDescription="@null"
-            android:src="@drawable/video_start" />
+            <ImageButton
+                android:id="@+id/imageVideoMute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:src="@drawable/video_unmute" />
 
-        <ImageButton
-            android:id="@+id/imageCameraSwitch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            <TextView
+                android:id="@+id/textVideoMute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:text="@string/icon_hint_unmute"
+                android:textColor="@color/icon_hint_text_color"
+                android:textSize="@dimen/icon_hint_text_size" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/icon_area_height"
+            android:layout_centerInParent="true" >
+
+            <ImageButton
+                android:id="@+id/imageVideoState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:src="@drawable/video_start" />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/icon_area_height"
             android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:background="@null"
-            android:contentDescription="@null"
-            android:src="@drawable/camera_switch" />
+            android:layout_marginBottom="@dimen/icon_area_margin_top_bottom" >
+
+            <ImageButton
+                android:id="@+id/imageCameraSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:src="@drawable/camera_switch" />
+
+            <TextView
+                android:id="@+id/textCameraSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:text="@string/icon_hint_switch"
+                android:textColor="@color/icon_hint_text_color"
+                android:textSize="@dimen/icon_hint_text_size" />
+        </RelativeLayout>
     </RelativeLayout>
 
     <TextView
@@ -87,12 +175,12 @@
         android:layout_marginTop="@dimen/record_time_margin_top"
         android:shadowColor="#000000"
         android:shadowDx="1.5"
-        android:visibility="gone"
         android:shadowDy="1.5"
         android:shadowRadius="2.5"
         android:text="@string/default_record_time"
         android:textColor="#ffffff"
-        android:textSize="@dimen/record_time_text_size" />
+        android:textSize="@dimen/record_time_text_size"
+        android:visibility="gone" />
 
     <ImageButton
         android:id="@+id/imagePhotoTake"
@@ -100,7 +188,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:background="@null"
+        android:layout_marginBottom="@dimen/icon_area_margin_top_bottom"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
         android:contentDescription="@null"
         android:src="@drawable/photo_take" />
 
