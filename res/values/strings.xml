@@ -31,6 +31,7 @@
     <string name="short_record">REC</string>
     <string name="hint_save_video_error">视频保存失败</string>
     <string name="hint_save_photo_error">图片保存失败</string>
+    <string name="hint_going_shutdown">系统关机，停止录像</string>
 
     <!-- UncaughtExceptionHandler -->
     <string name="app_has_exception">很抱歉录像异常，即将退出</string>

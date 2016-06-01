@@ -81,6 +81,9 @@ public class MyApp extends Application {
 	/** SD卡准备格式化 */
 	public static boolean isVideoCardFormat = false;
 
+	/** 系统准备关机 */
+	public static boolean isGoingShutdown = false;
+
 	/** 蓝牙是否正在播放音乐 */
 	public static boolean isBTPlayMusic = false;
 

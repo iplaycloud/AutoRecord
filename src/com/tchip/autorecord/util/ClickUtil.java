@@ -20,34 +20,27 @@ public class ClickUtil {
 		return false;
 	}
 
-	private static long lastUpdate3GSingalTime;
+	private static long lastHintNoSd2Time;
 
-	/**
-	 * @param runMinSpan
-	 *            两次运行至少间隔时间,单位:ms
-	 * @return
-	 */
-	public static boolean isUpdate3GSignalTooQuick(int runMinSpan) {
+	public static boolean isHintNoSd2TooQuick(int runMinSpan) {
 		long time = System.currentTimeMillis();
-		long timeD = time - lastUpdate3GSingalTime;
+		long timeD = time - lastHintNoSd2Time;
 		if (0 < timeD && timeD < runMinSpan) {
-			MyLog.v("[ClickUtil]isUpdate3GSignalTooQuick,Run Too Quickly!");
 			return true;
 		}
-		lastUpdate3GSingalTime = time;
+		lastHintNoSd2Time = time;
 		return false;
 	}
 
-	private static long lastUpdateRightTopIconTime;
+	private static long lastHintSleepTime;
 
-	public static boolean isUpdateRightTopIconTooQuick(int runMinSpan) {
+	public static boolean isHintSleepTooQuick(int runMinSpan) {
 		long time = System.currentTimeMillis();
-		long timeD = time - lastUpdateRightTopIconTime;
+		long timeD = time - lastHintSleepTime;
 		if (0 < timeD && timeD < runMinSpan) {
-			MyLog.v("[ClickUtil]isUpdateRightTopIconTooQuick,Run Too Quickly!");
 			return true;
 		}
-		lastUpdateRightTopIconTime = time;
+		lastHintSleepTime = time;
 		return false;
 	}
 
@@ -57,7 +50,7 @@ public class ClickUtil {
 		long time = System.currentTimeMillis();
 		long timeD = time - lastPlusRecordTime;
 		if (0 < timeD && timeD < runMinSpan) {
-			MyLog.v("[ClickUtil]isPlusRecordTimeTooQuick,Run Too Quickly!");
+			// MyLog.v("[ClickUtil]isPlusRecordTimeTooQuick,Run Too Quickly!");
 			return true;
 		}
 		lastPlusRecordTime = time;
@@ -76,7 +69,7 @@ public class ClickUtil {
 		lastSaveLogTime = time;
 		return false;
 	}
-	
+
 	/**
 	 * 传递过来的Intent是否是最近传递过来
 	 * 

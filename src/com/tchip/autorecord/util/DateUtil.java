@@ -36,7 +36,9 @@ public class DateUtil {
 	 */
 	public static String getFormatTimeBySecond(int secondCount) {
 		String strTime = "";
-		if (secondCount < 10) { // [0,10秒)
+		if (secondCount < 0) {
+			strTime = "00 : 00";
+		} else if (secondCount < 10) { // [0,10秒)
 			strTime = "00 : 0" + secondCount;
 		} else if (secondCount < 60) { // [10秒,1分)
 			strTime = "00 : " + secondCount;

@@ -10,7 +10,6 @@ import com.tchip.autorecord.Typefaces;
 import com.tchip.autorecord.MyApp.CameraState;
 import com.tchip.autorecord.db.DriveVideo;
 import com.tchip.autorecord.db.DriveVideoDbHelper;
-import com.tchip.autorecord.service.BackFloatService;
 import com.tchip.autorecord.service.SensorWatchService;
 import com.tchip.autorecord.util.ClickUtil;
 import com.tchip.autorecord.util.DateUtil;
@@ -50,7 +49,6 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
 import android.widget.ImageButton;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -162,6 +160,7 @@ public class MainActivity extends Activity {
 		intentFilter.addAction(Constant.Broadcast.GSENSOR_CRASH);
 		intentFilter.addAction(Constant.Broadcast.SPEECH_COMMAND);
 		intentFilter.addAction(Constant.Broadcast.MEDIA_FORMAT);
+		intentFilter.addAction(Constant.Broadcast.GOING_SHUTDOWN); // TODO
 		intentFilter.addAction(Constant.Broadcast.RELEASE_RECORD);
 		registerReceiver(mainReceiver, intentFilter);
 	}
@@ -174,12 +173,7 @@ public class MainActivity extends Activity {
 			if (!MyApp.isFirstLaunch) {
 				if (!MyApp.isVideoReording || MyApp.shouldResetRecordWhenResume) {
 					MyApp.shouldResetRecordWhenResume = false;
-					if (cameraFront == null) { // 重置预览区域
-						// surfaceHolder = holder;
-						setupFront();
-					} else {
-						previewCameraFront();
-					}
+					recreateCameraZone();
 				}
 			} else {
 				MyApp.isFirstLaunch = false;
@@ -198,7 +192,7 @@ public class MainActivity extends Activity {
 			long sendTime = extras.getLong("time");
 			isIntentInTime = ClickUtil.isIntentInTime(sendTime);
 			if (isIntentInTime) {
-				HintUtil.showToast(context, "reason:" + reason);
+				MyLog.v("reason:" + reason);
 				if ("autoui_oncreate".equals(reason)) { // 回到主界面
 					shouldBackHome = true;
 				}
@@ -319,9 +313,9 @@ public class MainActivity extends Activity {
 					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
 
 					// sendKeyCode(KeyEvent.KEYCODE_HOME); // 发送Home键，回到主界面
-					if (!powerManager.isScreenOn()) { // 确保屏幕点亮
-						SettingUtil.lightScreen(getApplicationContext());
-					}
+					// if (!powerManager.isScreenOn()) { // 确保屏幕点亮
+					// SettingUtil.lightScreen(getApplicationContext());
+					// }
 				} else if ("take_photo_wenxin".equals(command)) {
 					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
 
@@ -332,6 +326,8 @@ public class MainActivity extends Activity {
 				if ("/storage/sdcard2".equals(path)) {
 					MyApp.isVideoCardFormat = true;
 				}
+			} else if (Constant.Broadcast.GOING_SHUTDOWN.equals(action)) {
+				MyApp.isGoingShutdown = true;
 			} else if (Constant.Broadcast.RELEASE_RECORD.equals(action)) { // 退出录像
 				android.os.Process.killProcess(android.os.Process.myPid());
 				System.exit(1);
@@ -658,10 +654,8 @@ public class MainActivity extends Activity {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case 1:
-				// startRecord();
 				if (!MyApp.isVideoReording) {
 					startRecordTask();
-
 				}
 				break;
 
@@ -713,6 +707,7 @@ public class MainActivity extends Activity {
 		imageCameraSwitch = (ImageButton) findViewById(R.id.imageCameraSwitch);
 		imageCameraSwitch.setOnClickListener(myOnClickListener);
 		textCameraSwitch = (TextView) findViewById(R.id.textCameraSwitch);
+		textCameraSwitch.setOnClickListener(myOnClickListener);
 
 		// 拍照
 		imagePhotoTake = (ImageButton) findViewById(R.id.imagePhotoTake);
@@ -777,15 +772,20 @@ public class MainActivity extends Activity {
 		ProviderUtil.setValue(context, Name.REC_FRONT_STATE,
 				isVideoRecord ? "1" : "0");
 		if (isVideoRecord) {
-			MyApp.isVideoReording = true;
-			textRecordTime.setVisibility(View.VISIBLE);
-			startUpdateRecordTimeThread();
-			setupRecordViews();
+			if (!MyApp.isVideoReording) {
+				MyApp.isVideoReording = true;
+				textRecordTime.setVisibility(View.VISIBLE);
+				startUpdateRecordTimeThread();
+				setupRecordViews();
+			}
 		} else {
-			MyApp.isVideoReording = false;
-			setupRecordViews();
-			// releaseCameraZone();
-			MyApp.isUpdateTimeThreadRun = false;
+			if (MyApp.isVideoReording) {
+				MyApp.isVideoReording = false;
+				textRecordTime.setVisibility(View.INVISIBLE);
+				resetRecordTimeText();
+				MyApp.isUpdateTimeThreadRun = false;
+				setupRecordViews();
+			}
 		}
 		if (shouldBackHome) { // XXX
 			shouldBackHome = false;
@@ -825,6 +825,13 @@ public class MainActivity extends Activity {
 					messageFormat.what = 7;
 					updateRecordTimeHandler.sendMessage(messageFormat);
 					return;
+				} else if (MyApp.isGoingShutdown) {
+					MyApp.isGoingShutdown = false;
+					MyLog.e("Going shutdown, stop record!");
+					Message messageFormat = new Message();
+					messageFormat.what = 9;
+					updateRecordTimeHandler.sendMessage(messageFormat);
+					return;
 				} else if (!MyApp.isAccOn
 						&& !MyApp.shouldStopWhenCrashVideoSave) { // ACC下电停止录像
 					MyLog.e("Stop Record:isSleeping = true");
@@ -858,7 +865,8 @@ public class MainActivity extends Activity {
 	final Handler updateRecordTimeHandler = new Handler() {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case 1: // 处理停车守卫录像
+			case 1: { // 处理停车守卫录像
+				this.removeMessages(1);
 				if (!ClickUtil.isPlusRecordTimeTooQuick(900)) {
 					secondCount++;
 				}
@@ -870,19 +878,11 @@ public class MainActivity extends Activity {
 								: Constant.Record.STATE_INTERVAL_3MIN;
 
 						MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 1");
-						if (stopRecorder() == 0) { // 停止录像
-							setRecordState(false);
-							setInterval(("1".equals(videoTimeStr)) ? 1 * 60
-									: 3 * 60); // 重设视频分段
-						} else {
-							MyLog.e("stopRecorder Error 1");
-						}
+						stopRecorder5Times(); // 停止录像
+						setInterval(("1".equals(videoTimeStr)) ? 1 * 60
+								: 3 * 60); // 重设视频分段
 
-						// 熄灭屏幕,判断当前屏幕是否关闭
-						boolean isScreenOn = powerManager.isScreenOn();
-						if (isScreenOn) {
-							sendBroadcast(new Intent("com.tchip.SLEEP_ON"));
-						}
+						new Thread(new CloseScreenThread()).start(); // 熄灭屏幕
 					}
 				}
 
@@ -906,16 +906,14 @@ public class MainActivity extends Activity {
 				}
 				textRecordTime.setText(DateUtil
 						.getFormatTimeBySecond(secondCount));
-
+				this.removeMessages(1);
+			}
 				break;
 
-			case 2: // SD卡异常移除：停止录像
+			case 2: { // SD卡异常移除：停止录像
+				this.removeMessages(2);
 				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 2");
-				if (stopRecorder() == 0) {
-					setRecordState(false);
-				} else {
-					MyLog.e("stopRecorder Error 2");
-				}
+				stopRecorder5Times();
 				String strVideoCardEject = getResources().getString(
 						R.string.hint_sd_remove_badly);
 				HintUtil.showToast(MainActivity.this, strVideoCardEject);
@@ -924,9 +922,12 @@ public class MainActivity extends Activity {
 				speakVoice(strVideoCardEject);
 				audioRecordDialog.showErrorDialog(strVideoCardEject);
 				new Thread(new dismissDialogThread()).start();
+				this.removeMessages(2);
+			}
 				break;
 
-			case 4:
+			case 4: {
+				this.removeMessages(4);
 				MyApp.isCrashed = false;
 				// 碰撞后判断是否需要加锁第二段视频
 				if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
@@ -939,33 +940,30 @@ public class MainActivity extends Activity {
 					}
 				}
 				setupRecordViews();
+				this.removeMessages(4);
+			}
 				break;
 
-			case 5: // 进入休眠，停止录像
+			case 5: { // 进入休眠，停止录像
+				this.removeMessages(5);
 				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 5");
-				if (stopRecorder() == 0) {
-					setRecordState(false);
-				} else {
-					MyLog.e("stopRecorder Error 5");
-				}
+				stopRecorder5Times();
+				this.removeMessages(5);
+			}
 				break;
 
-			case 6: // 语音命令：停止录像
+			case 6: { // 语音命令：停止录像
+				this.removeMessages(6);
 				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 6");
-				if (stopRecorder() == 0) {
-					setRecordState(false);
-				} else {
-					MyLog.e("stopRecorder Error 6");
-				}
+				stopRecorder5Times();
+				this.removeMessages(6);
+			}
 				break;
 
-			case 7:
+			case 7: {
+				this.removeMessages(7);
 				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 7");
-				if (stopRecorder() == 0) {
-					setRecordState(false);
-				} else {
-					MyLog.e("stopRecorder Error 7");
-				}
+				stopRecorder5Times();
 				String strVideoCardFormat = getResources().getString(
 						R.string.hint_sd2_format);
 				HintUtil.showToast(MainActivity.this, strVideoCardFormat);
@@ -974,15 +972,30 @@ public class MainActivity extends Activity {
 				speakVoice(strVideoCardFormat);
 				audioRecordDialog.showErrorDialog(strVideoCardFormat);
 				new Thread(new dismissDialogThread()).start();
+				this.removeMessages(7);
+			}
 				break;
 
-			case 8: // 程序异常，停止录像
+			case 8: { // 程序异常，停止录像
+				this.removeMessages(8);
 				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 8");
-				if (stopRecorder() == 0) {
-					setRecordState(false);
-				} else {
-					MyLog.e("stopRecorder Error 8");
-				}
+				stopRecorder5Times();
+				this.removeMessages(8);
+			}
+				break;
+
+			case 9: { // 系统关机，停止录像
+				this.removeMessages(9);
+				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 9");
+				stopRecorder5Times();
+				String strGoingShutdown = getResources().getString(
+						R.string.hint_going_shutdown);
+				HintUtil.showToast(MainActivity.this, strGoingShutdown);
+
+				MyLog.e("CardEjectReceiver:Going Shutdown");
+				speakVoice(strGoingShutdown);
+				this.removeMessages(9);
+			}
 				break;
 
 			default:
@@ -1004,7 +1017,7 @@ public class MainActivity extends Activity {
 						speakVoice(getResources().getString(
 								R.string.hint_record_stop));
 						MyLog.v("[onClick]stopRecorder()");
-						stopRecord();
+						stopRecorder5Times();
 					} else {
 						if (StorageUtil.isVideoCardExists()) {
 							speakVoice(getResources().getString(
@@ -1090,10 +1103,10 @@ public class MainActivity extends Activity {
 					// 切换录音/静音状态停止录像，需要重置时间
 					MyApp.shouldVideoRecordWhenChangeMute = MyApp.isVideoReording;
 					if (MyApp.isVideoReording) {
+						stopRecorder5Times();
 						resetRecordTimeText();
 						textRecordTime.setVisibility(View.INVISIBLE);
 						MyApp.isVideoReording = false;
-						stopRecord();
 					}
 					if (muteState == Constant.Record.STATE_MUTE) {
 						setMute(false, true);
@@ -1132,17 +1145,13 @@ public class MainActivity extends Activity {
 		try {
 			if (!MyApp.isVideoReording) {
 				if (MyApp.isSleeping || !MyApp.isAccOn) {
-					speakVoice(getResources().getString(
-							R.string.hint_stop_record_sleeping));
-					HintUtil.showToast(MainActivity.this, getResources()
-							.getString(R.string.hint_stop_record_sleeping));
+					if (!ClickUtil.isHintSleepTooQuick(3000)) {
+						speakVoice(getResources().getString(
+								R.string.hint_stop_record_sleeping));
+						HintUtil.showToast(MainActivity.this, getResources()
+								.getString(R.string.hint_stop_record_sleeping));
+					}
 				} else {
-					if (!powerManager.isScreenOn()) { // 点亮屏幕
-						SettingUtil.lightScreen(getApplicationContext());
-					}
-					if (!MyApp.isMainForeground) { // 发送Home键，回到主界面
-						// sendKeyCode(KeyEvent.KEYCODE_HOME);
-					}
 					new Thread(new StartRecordThread()).start(); // 开始录像
 				}
 			} else {
@@ -1157,22 +1166,6 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	/** 停止录像 */
-	private void stopRecord() {
-		try {
-			if (MyApp.isVideoReording) {
-				if (stopRecorder() == 0) {
-					setRecordState(false);
-					if (MyApp.shouldStopWhenCrashVideoSave) {
-						MyApp.shouldStopWhenCrashVideoSave = false;
-					}
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
 	/** 加锁或解锁视频 */
 	private void lockOrUnlockVideo() {
 		if (!MyApp.isVideoLock) {
@@ -1184,6 +1177,27 @@ public class MainActivity extends Activity {
 			speakVoice(getResources().getString(R.string.hint_video_unlock));
 		}
 		setupRecordViews();
+	}
+
+	/** 重置预览区域 */
+	private void recreateCameraZone() {
+		if (cameraFront == null) {
+			// surfaceHolder = holder;
+			releaseRecorderFront();
+			closeCameraFront();
+			if (openCameraFront()) {
+				setupRecorderFront();
+			}
+		} else {
+			try {
+				cameraFront.lock();
+				cameraFront.setPreviewDisplay(surfaceHolderFront);
+				cameraFront.startPreview();
+				cameraFront.unlock();
+			} catch (Exception e) {
+				// e.printStackTrace();
+			}
+		}
 	}
 
 	/**
@@ -1532,6 +1546,24 @@ public class MainActivity extends Activity {
 		}
 	};
 
+	/** 停止录像x5 */
+	private void stopRecorder5Times() {
+		if (MyApp.isVideoReording) {
+			try {
+				int tryTime = 0;
+				while (stopRecorder() != 0 && tryTime < 5) { // 停止录像
+					tryTime++;
+				}
+				if (MyApp.shouldStopWhenCrashVideoSave) {
+					MyApp.shouldStopWhenCrashVideoSave = false;
+				}
+				setRecordState(false);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	/**
 	 * 停止录像
 	 * 
@@ -1624,6 +1656,30 @@ public class MainActivity extends Activity {
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
 			recorderFront.takePicture();
 		}
+	}
+
+	public class CloseScreenThread implements Runnable {
+
+		@Override
+		public void run() {
+			try {
+				Thread.sleep(2500);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			if (!MyApp.isAccOn && powerManager.isScreenOn()) {
+				// sendKeyCode(KeyEvent.KEYCODE_POWER); // 熄屏
+				Intent intentLockScreen = new Intent();
+				ComponentName componentLockScreen = new ComponentName(
+						"com.tchip.lockscreen",
+						"com.tchip.lockscreen.MainActivity");
+				intentLockScreen.setComponent(componentLockScreen);
+				intentLockScreen.setAction("android.intent.action.VIEW");
+				intentLockScreen.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+				startActivity(intentLockScreen);
+			}
+		}
+
 	}
 
 	/** 设置保存路径 */
@@ -1738,11 +1794,11 @@ public class MainActivity extends Activity {
 				HintUtil.showToast(MainActivity.this, strSaveVideoErr);
 				MyLog.e("Record Error : ERROR_SAVE_VIDEO_FAIL");
 				// 视频保存失败，原因：存储空间不足，清空文件夹，视频被删掉
-				resetRecordTimeText();
-				MyLog.v("[onError]stopRecorder()");
-				if (stopRecorder() == 0) {
-					setRecordState(false);
-				}
+				// resetRecordTimeText();
+				// MyLog.v("[onError]stopRecorder()");
+				// if (stopRecorder() == 0) {
+				// setRecordState(false);
+				// }
 				break;
 
 			case TachographCallback.ERROR_SAVE_IMAGE_FAIL:
@@ -1913,13 +1969,14 @@ public class MainActivity extends Activity {
 			switch (msg.what) {
 			case 1:
 				this.removeMessages(1);
-				boolean isDeleteSuccess = StorageUtil
+				final boolean isDeleteSuccess = StorageUtil
 						.releaseRecordStorage(context);
 				mMainHandler.post(new Runnable() {
 
 					@Override
 					public void run() {
-						// main thread
+						if (isDeleteSuccess) {
+						}
 
 					}
 				});

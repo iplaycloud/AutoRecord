@@ -59,6 +59,9 @@ public interface Constant {
 
 		/** 系统设置进入格式化界面 */
 		public static final String MEDIA_FORMAT = "tchip.intent.action.MEDIA_FORMAT";
+		
+		/** 系统关机 */
+		public static final String GOING_SHUTDOWN = "tchip.intent.action.GOING_SHUTDOWN";
 
 		/**
 		 * 设置同步广播,Extra:content
