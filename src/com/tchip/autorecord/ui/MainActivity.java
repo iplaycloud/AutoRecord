@@ -168,8 +168,12 @@ public class MainActivity extends Activity {
 		intentFilter.addAction(Constant.Broadcast.GSENSOR_CRASH);
 		intentFilter.addAction(Constant.Broadcast.SPEECH_COMMAND);
 		intentFilter.addAction(Constant.Broadcast.MEDIA_FORMAT);
-		intentFilter.addAction(Constant.Broadcast.GOING_SHUTDOWN); // TODO
+		intentFilter.addAction(Constant.Broadcast.GOING_SHUTDOWN);
 		intentFilter.addAction(Constant.Broadcast.RELEASE_RECORD);
+		// intentFilter.addAction(Intent.ACTION_MEDIA_EJECT);
+		// intentFilter.addAction(Intent.ACTION_MEDIA_BAD_REMOVAL);
+		// intentFilter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);
+		// intentFilter.addAction(Intent.ACTION_MEDIA_MOUNTED);
 		registerReceiver(mainReceiver, intentFilter);
 	}
 

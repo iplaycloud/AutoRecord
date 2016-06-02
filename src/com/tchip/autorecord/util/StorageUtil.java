@@ -14,7 +14,6 @@ import net.sourceforge.jheader.ExifFormatException;
 import net.sourceforge.jheader.JpegFormatException;
 import net.sourceforge.jheader.JpegHeaders;
 import net.sourceforge.jheader.TagFormatException;
-import net.sourceforge.jheader.App1Header.Tag;
 
 import android.content.Context;
 import android.media.ExifInterface;
@@ -49,30 +48,32 @@ public class StorageUtil {
 
 	/** 录像SD卡是否存在 */
 	public static boolean isVideoCardExists() {
-		boolean isVideoCardExist = true;
+		boolean isVideoCardExist = false;
 
-		String pathVideoCard = Constant.Path.SDCARD_2;
-		File file = new File(pathVideoCard);
-		if (!file.exists()) {
-			isVideoCardExist = false;
-		} else {
-			isVideoCardExist = true;
-		}
-
-		// try {
-		// String pathVideo = Constant.Path.RECORD_FRONT;
-		// File fileVideo = new File(pathVideo);
-		// boolean isSuccess = fileVideo.mkdirs();
-		// MyLog.v("[StorageUtil]isVideoCardExists,mkdirs isSuccess:"
-		// + isSuccess);
-		// File file = new File(pathVideo);
+		// String pathVideoCard = Constant.Path.SDCARD_2;
+		// File file = new File(pathVideoCard);
 		// if (!file.exists()) {
 		// isVideoCardExist = false;
+		// } else {
+		// isVideoCardExist = true;
 		// }
-		// } catch (Exception e) {
-		// MyLog.e("[StorageUtil]isVideoCardExists:Catch Exception!");
-		// isVideoCardExist = false;
-		// }
+
+		try {
+			String pathVideo = Constant.Path.RECORD_FRONT;
+			File fileVideo = new File(pathVideo);
+			boolean isSuccess = fileVideo.mkdirs();
+			MyLog.v("[StorageUtil]isVideoCardExists,mkdirs isSuccess:"
+					+ isSuccess);
+			File file = new File(pathVideo);
+			if (!file.exists()) {
+				isVideoCardExist = false;
+			}else{
+				isVideoCardExist = true;
+			}
+		} catch (Exception e) {
+			MyLog.e("[StorageUtil]isVideoCardExists:Catch Exception!");
+			isVideoCardExist = false;
+		}
 		MyLog.v("[StorageUtil]isVideoCardExists:" + isVideoCardExist);
 		return isVideoCardExist;
 	}

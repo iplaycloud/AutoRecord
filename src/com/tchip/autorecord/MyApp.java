@@ -1,7 +1,5 @@
 package com.tchip.autorecord;
 
-import java.util.Locale;
-
 import com.tchip.autorecord.util.MyLog;
 import com.tchip.autorecord.util.MyUncaughtExceptionHandler;
 import com.tchip.autorecord.util.ProviderUtil;
@@ -10,8 +8,6 @@ import com.tchip.autorecord.util.ProviderUtil.Name;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.TextToSpeech.OnInitListener;
 
 public class MyApp extends Application {
 	/** 应用出错:需要停止录像 */
@@ -176,7 +172,7 @@ public class MyApp extends Application {
 				} else {
 					crashSensitive = 1;
 				}
-			}else{
+			} else {
 				crashSensitive = 2;
 			}
 		} catch (Exception e) {

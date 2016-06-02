@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.tchip.autorecord"
     android:versionCode="1"
-    android:versionName="2016.06.01-17:05" >
+    android:versionName="2016.06.02-16:30" >
 
     <uses-sdk
         android:minSdkVersion="21"
@@ -42,6 +42,19 @@
             android:name="com.tchip.autorecord.db.DriveVideoProvider"
             android:authorities="com.tchip.autorecord.db.DriveVideoProvider"
             android:exported="true" />
+
+        <receiver android:name="com.tchip.autorecord.receiver.CardEjectReceiver" >
+            <intent-filter android:priority="2147483647" >
+                <action android:name="android.intent.action.MEDIA_MOUNTED" />
+                <action android:name="android.intent.action.MEDIA_EJECT" />
+                <action android:name="android.intent.action.MEDIA_BAD_REMOVAL" />
+                <action android:name="android.intent.action.MEDIA_REMOVED" />
+                <action android:name="android.intent.action.MEDIA_UNMOUNTED" />
+                <action android:name="android.intent.action.MEDIA_NOFS" />
+
+                <data android:scheme="file" />
+            </intent-filter>
+        </receiver>
 
         <service android:name="com.tchip.autorecord.service.BackFloatService" />
         <service android:name="com.tchip.autorecord.service.SensorWatchService" />
