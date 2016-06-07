@@ -1,7 +1,6 @@
 package com.tchip.autorecord.ui;
 
 import java.io.File;
-import java.io.IOException;
 
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
@@ -101,22 +100,21 @@ public class MainActivity extends Activity {
 	private TextView textRecordTime;
 
 	// 前置
-	private Camera cameraFront;
-	private SurfaceView surfaceViewFront;
-	private SurfaceHolder surfaceHolderFront;
-	private TachographRecorder recorderFront;
+	private Camera camera;
+	private SurfaceView surfaceView;
+	private SurfaceHolder surfaceHolder;
+	private TachographRecorder recorder;
 
 	private int resolutionState, intervalState, muteState;
-
-	private AudioRecordDialog audioRecordDialog;
 
 	private PowerManager powerManager;
 	private WakeLock wakeLock;
 
 	/** Intent是否是新的 */
 	private boolean isIntentInTime = false;
+
 	/** 启动录像后是否需要返回主页 */
-	private boolean shouldBackHome = false;
+	// private boolean shouldBackHome = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +131,6 @@ public class MainActivity extends Activity {
 				Context.MODE_PRIVATE);
 		editor = sharedPreferences.edit();
 		videoDb = new DriveVideoDbHelper(context); // 视频数据库
-		audioRecordDialog = new AudioRecordDialog(MainActivity.this); // 提示框
 
 		initialLayout();
 
@@ -182,14 +179,6 @@ public class MainActivity extends Activity {
 		MyLog.v("[Main]onResume");
 		MyApp.isMainForeground = true;
 		try {
-			if (!MyApp.isFirstLaunch) {
-				if (!MyApp.isVideoReording || MyApp.shouldResetRecordWhenResume) {
-					MyApp.shouldResetRecordWhenResume = false;
-					recreateCameraZone();
-				}
-			} else {
-				MyApp.isFirstLaunch = false;
-			}
 			refreshRecordButton(); // 更新录像界面按钮状态
 			setupRecordViews();
 		} catch (Exception e) {
@@ -206,7 +195,8 @@ public class MainActivity extends Activity {
 			if (isIntentInTime) {
 				MyLog.v("reason:" + reason);
 				if ("autoui_oncreate".equals(reason) || "acc_on".equals(reason)) { // 回到主界面
-					shouldBackHome = true;
+					MyApp.shouldMountRecord = true;
+					new Thread(new BackHomeThread()).start();
 				}
 			}
 		}
@@ -222,7 +212,6 @@ public class MainActivity extends Activity {
 
 		// ACC在的时候不频繁释放录像区域：ACC在的时候Suspend？
 		if (!MyApp.isAccOn && !MyApp.isVideoReording) {
-			// releaseCameraZone();
 			MyApp.isVideoLockSecond = false;
 		}
 		super.onPause();
@@ -237,7 +226,9 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		MyLog.v("[Main]onDestroy");
-		releaseFront(); // 释放录像区域
+		// 释放录像区域
+		releaseRecorder();
+		closeCamera();
 		videoDb.close();
 
 		// 关闭碰撞侦测服务
@@ -257,6 +248,21 @@ public class MainActivity extends Activity {
 			return true;
 		} else
 			return super.onKeyDown(keyCode, event);
+	}
+
+	class BackHomeThread implements Runnable {
+
+		@Override
+		public void run() {
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			sendBroadcast(new Intent(Constant.Broadcast.SEND_KEY).putExtra(
+					"keycode", KeyEvent.KEYCODE_HOME));
+		}
+
 	}
 
 	/** ContentProvder监听 */
@@ -304,6 +310,8 @@ public class MainActivity extends Activity {
 					}
 				} else if (Name.SET_PARK_MONITOR_STATE.equals(name)) {
 
+				} else if (Name.ACC_STATE.equals(name)) {
+					MyApp.isAccOn = (SettingUtil.getAccStatus() == 1);
 				}
 			}
 			super.onChange(selfChange, uri);
@@ -404,6 +412,7 @@ public class MainActivity extends Activity {
 			} else if (Constant.Broadcast.GOING_SHUTDOWN.equals(action)) {
 				MyApp.isGoingShutdown = true;
 			} else if (Constant.Broadcast.RELEASE_RECORD.equals(action)) { // 退出录像
+				releaseCameraZone();
 				android.os.Process.killProcess(android.os.Process.myPid());
 				System.exit(1);
 			}
@@ -673,6 +682,7 @@ public class MainActivity extends Activity {
 							if (startRecordTask() == 0) {
 								setRecordState(true);
 							} else {
+								setRecordState(false);
 								MyLog.e("Start Record Failed");
 							}
 						}
@@ -754,16 +764,16 @@ public class MainActivity extends Activity {
 
 	}
 
-	private void initialCameraSurfaceFront() {
-		surfaceViewFront = (SurfaceView) findViewById(R.id.surfaceViewFront);
-		surfaceViewFront.setOnClickListener(new MyOnClickListener());
-		surfaceViewFront.getHolder().addCallback(new FrontCallBack());
+	private void initialCameraSurface() {
+		surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
+		surfaceView.setOnClickListener(new MyOnClickListener());
+		surfaceView.getHolder().addCallback(new FrontCallBack());
 	}
 
 	/** 初始化布局 */
 	private void initialLayout() {
 		MyOnClickListener myOnClickListener = new MyOnClickListener();
-		initialCameraSurfaceFront(); // 录像窗口
+		initialCameraSurface(); // 录像窗口
 		textRecordTime = (TextView) findViewById(R.id.textRecordTime);
 		textRecordTime.setTypeface(Typefaces.get(this, Constant.Path.FONT
 				+ "Font-Quartz-Regular.ttf"));
@@ -861,10 +871,6 @@ public class MainActivity extends Activity {
 				MyApp.isUpdateTimeThreadRun = false;
 				setupRecordViews();
 			}
-		}
-		if (shouldBackHome) { // XXX
-			shouldBackHome = false;
-			backToHome();
 		}
 	}
 
@@ -995,8 +1001,6 @@ public class MainActivity extends Activity {
 
 				MyLog.e("CardEjectReceiver:Video SD Removed");
 				speakVoice(strVideoCardEject);
-				audioRecordDialog.showErrorDialog(strVideoCardEject);
-				new Thread(new dismissDialogThread()).start();
 				this.removeMessages(2);
 			}
 				break;
@@ -1045,8 +1049,6 @@ public class MainActivity extends Activity {
 
 				MyLog.e("CardEjectReceiver:Video SD Removed");
 				speakVoice(strVideoCardFormat);
-				audioRecordDialog.showErrorDialog(strVideoCardFormat);
-				new Thread(new dismissDialogThread()).start();
 				this.removeMessages(7);
 			}
 				break;
@@ -1083,7 +1085,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void onClick(View v) {
 			switch (v.getId()) {
-			case R.id.surfaceViewFront:
+			case R.id.surfaceView:
 				break;
 
 			case R.id.imageVideoState:
@@ -1126,13 +1128,13 @@ public class MainActivity extends Activity {
 					resetRecordTimeText();
 					textRecordTime.setVisibility(View.INVISIBLE);
 					if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
-						setResolutionFront(Constant.Record.STATE_RESOLUTION_720P);
+						setResolution(Constant.Record.STATE_RESOLUTION_720P);
 						editor.putString("videoSize", "720");
 						MyApp.isVideoReording = false;
 						speakVoice(getResources().getString(
 								R.string.hint_video_size_720));
 					} else if (resolutionState == Constant.Record.STATE_RESOLUTION_720P) {
-						setResolutionFront(Constant.Record.STATE_RESOLUTION_1080P);
+						setResolution(Constant.Record.STATE_RESOLUTION_1080P);
 						editor.putString("videoSize", "1080");
 						MyApp.isVideoReording = false;
 						speakVoice(getResources().getString(
@@ -1256,19 +1258,19 @@ public class MainActivity extends Activity {
 
 	/** 重置预览区域 */
 	private void recreateCameraZone() {
-		if (cameraFront == null) {
+		if (camera == null) {
 			// surfaceHolder = holder;
-			releaseRecorderFront();
-			closeCameraFront();
-			if (openCameraFront()) {
-				setupRecorderFront();
+			releaseRecorder();
+			closeCamera();
+			if (openCamera()) {
+				setupRecorder();
 			}
 		} else {
 			try {
-				cameraFront.lock();
-				cameraFront.setPreviewDisplay(surfaceHolderFront);
-				cameraFront.startPreview();
-				cameraFront.unlock();
+				camera.lock();
+				camera.setPreviewDisplay(surfaceHolder);
+				camera.startPreview();
+				camera.unlock();
 			} catch (Exception e) {
 				// e.printStackTrace();
 			}
@@ -1276,18 +1278,16 @@ public class MainActivity extends Activity {
 	}
 
 	/**
-	 * 如果录像界面不在前台且未在录像，则释放Camera，防止出现熄屏时未在录像仍在预览功耗高的问题
-	 * 
-	 * 调用地方：在成功执行{@link #stopRecorder}之后
-	 * 
-	 * @deprecated
+	 * 释放Camera
 	 */
 	private void releaseCameraZone() {
 		if (!MyApp.isAccOn && !MyApp.isMainForeground) {
-			releaseFront();
+			// 释放录像区域
+			releaseRecorder();
+			closeCamera();
 			// surfaceHolder = null;
-			if (cameraFront != null) {
-				cameraFront.stopPreview();
+			if (camera != null) {
+				camera.stopPreview();
 			}
 			MyApp.shouldResetRecordWhenResume = true;
 			MyLog.v("[Record]releaseCameraZone");
@@ -1390,11 +1390,11 @@ public class MainActivity extends Activity {
 		@Override
 		public void surfaceCreated(SurfaceHolder holder) {
 			MyLog.v("[Record]surfaceCreated");
-			if (cameraFront == null) {
-				surfaceHolderFront = holder;
-				setupFront();
+			if (camera == null) {
+				surfaceHolder = holder;
+				setup();
 			} else {
-				previewCameraFront();
+				previewCamera();
 			}
 
 		}
@@ -1411,17 +1411,17 @@ public class MainActivity extends Activity {
 	 * 
 	 * @return
 	 */
-	private boolean openCameraFront() {
-		if (cameraFront != null) {
-			closeCameraFront();
+	private boolean openCamera() {
+		if (camera != null) {
+			closeCamera();
 		}
 		try {
 			MyLog.v("[Record] Camera.open");
-			cameraFront = Camera.open(0);// Camera.open(0);
-			previewCameraFront();
+			camera = Camera.open(0);// Camera.open(0);
+			previewCamera();
 			return true;
 		} catch (Exception ex) {
-			closeCameraFront();
+			closeCamera();
 			MyLog.e("[Record]openCamera:Catch Exception!");
 			return false;
 		}
@@ -1432,22 +1432,27 @@ public class MainActivity extends Activity {
 	 * 
 	 * lock > setPreviewDisplay > startPreview > unlock
 	 */
-	private void previewCameraFront() {
+	private void previewCamera() {
 		try {
-			cameraFront.lock();
+			camera.lock();
 			if (Constant.Module.useSystemCameraParam) { // 设置系统Camera参数
-				Camera.Parameters para = cameraFront.getParameters();
+				Camera.Parameters para = camera.getParameters();
 				para.unflatten(Constant.Record.CAMERA_PARAMS);
-				cameraFront.setParameters(para);
+				camera.setParameters(para);
 			}
-			cameraFront.setPreviewDisplay(surfaceHolderFront);
+			camera.setPreviewDisplay(surfaceHolder);
 			// camera.setDisplayOrientation(180);
-			cameraFront.startPreview();
-			cameraFront.unlock();
-		} catch (IOException e) {
-			e.printStackTrace();
+			camera.startPreview();
+			camera.unlock();
 		} catch (Exception e) {
+			MyApp.isCameraPreview = false;
 			e.printStackTrace();
+		} finally {
+			MyApp.isCameraPreview = true;
+			// if (shouldBackHome) {
+			// shouldBackHome = false;
+			// // backToHome(); FIXME
+			// }
 		}
 	}
 
@@ -1456,19 +1461,19 @@ public class MainActivity extends Activity {
 	 * 
 	 * lock > stopPreview > setPreviewDisplay > release > unlock
 	 */
-	private boolean closeCameraFront() {
-		if (cameraFront == null)
+	private boolean closeCamera() {
+		if (camera == null)
 			return true;
 		try {
-			cameraFront.lock();
-			cameraFront.stopPreview();
-			cameraFront.setPreviewDisplay(null);
-			cameraFront.release();
-			cameraFront.unlock();
-			cameraFront = null;
+			camera.lock();
+			camera.stopPreview();
+			camera.setPreviewDisplay(null);
+			camera.release();
+			camera.unlock();
+			camera = null;
 			return true;
 		} catch (Exception e) {
-			cameraFront = null;
+			camera = null;
 			MyLog.e("[MainActivity]closeCamera:Catch Exception:" + e.toString());
 			return false;
 		}
@@ -1498,6 +1503,7 @@ public class MainActivity extends Activity {
 					if (startRecordTask() == 0) {
 						setRecordState(true);
 					} else {
+						setRecordState(false);
 						MyLog.e("Start Record Failed");
 					}
 				}
@@ -1566,6 +1572,7 @@ public class MainActivity extends Activity {
 					if (startRecordTask() == 0) {
 						setRecordState(true);
 					} else {
+						setRecordState(false);
 						MyLog.e("Start Record Failed");
 					}
 				}
@@ -1586,40 +1593,12 @@ public class MainActivity extends Activity {
 		if (MyApp.isAccOn) {
 			String strNoSD = getResources().getString(
 					R.string.hint_sd2_not_exist);
-			audioRecordDialog.showErrorDialog(strNoSD);
-			new Thread(new dismissDialogThread()).start();
+			HintUtil.showToast(context, strNoSD);
 			speakVoice(strNoSD);
 		} else {
 			MyLog.v("[noVideoSDHint]No ACC,Do not hint");
 		}
 	}
-
-	public class dismissDialogThread implements Runnable {
-		@Override
-		public void run() {
-			try {
-				Thread.sleep(1500);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			Message messageEject = new Message();
-			messageEject.what = 1;
-			dismissDialogHandler.sendMessage(messageEject);
-		}
-	}
-
-	final Handler dismissDialogHandler = new Handler() {
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 1:
-				audioRecordDialog.dismissDialog();
-				break;
-
-			default:
-				break;
-			}
-		}
-	};
 
 	/** 停止录像x5 */
 	private void stopRecorder5Times() {
@@ -1647,7 +1626,7 @@ public class MainActivity extends Activity {
 	public int stopRecorder() {
 		resetRecordTimeText();
 		textRecordTime.setVisibility(View.INVISIBLE);
-		if (recorderFront != null) {
+		if (recorder != null) {
 			MyLog.d("Record Stop");
 			// 停车守卫不播放声音
 			if (MyApp.shouldStopWhenCrashVideoSave) {
@@ -1655,7 +1634,7 @@ public class MainActivity extends Activity {
 			}
 			HintUtil.playAudio(getApplicationContext(),
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
-			return recorderFront.stop();
+			return recorder.stop();
 		}
 		return -1;
 	}
@@ -1667,8 +1646,7 @@ public class MainActivity extends Activity {
 	 * @return
 	 */
 	public int setInterval(int seconds) {
-		return (recorderFront != null) ? recorderFront.setVideoSeconds(seconds)
-				: -1;
+		return (recorder != null) ? recorder.setVideoSeconds(seconds) : -1;
 	}
 
 	/**
@@ -1678,8 +1656,7 @@ public class MainActivity extends Activity {
 	 * @return
 	 */
 	public int setOverlap(int seconds) {
-		return (recorderFront != null) ? recorderFront.setVideoOverlap(seconds)
-				: -1;
+		return (recorder != null) ? recorder.setVideoOverlap(seconds) : -1;
 	}
 
 	/** 拍照 */
@@ -1687,18 +1664,18 @@ public class MainActivity extends Activity {
 		if (!StorageUtil.isVideoCardExists()) { // 判断SD卡2是否存在，需要耗费一定时间
 			noVideoSDHint(); // SDCard不存在
 			return -1;
-		} else if (recorderFront != null) {
+		} else if (recorder != null) {
 			setDirectory(Constant.Path.SDCARD_2); // 设置保存路径，否则会保存到内部存储
 			HintUtil.playAudio(getApplicationContext(),
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
-			return recorderFront.takePicture();
+			return recorder.takePicture();
 		}
 		return -1;
 	}
 
 	/** ACC下电拍照 */
 	public void takePhotoWhenAccOff() {
-		if (recorderFront != null) {
+		if (recorder != null) {
 			if (!MyApp.isAccOffPhotoTaking) {
 				MyApp.isAccOffPhotoTaking = true;
 				if (StorageUtil.isVideoCardExists()) {
@@ -1706,7 +1683,7 @@ public class MainActivity extends Activity {
 				}
 				HintUtil.playAudio(getApplicationContext(),
 						com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
-				recorderFront.takePicture();
+				recorder.takePicture();
 
 				if (sharedPreferences.getBoolean(Constant.MySP.STR_PARKING_ON,
 						true) && Constant.Module.hintParkingMonitor) {
@@ -1722,14 +1699,14 @@ public class MainActivity extends Activity {
 
 	/** 语音拍照 */
 	public void takePhotoWhenVoiceCommand() {
-		if (recorderFront != null) {
+		if (recorder != null) {
 			if (StorageUtil.isVideoCardExists()) { // 如果录像卡不存在，则会保存到内部存储
 				setDirectory(Constant.Path.SDCARD_2);
 			}
 
 			HintUtil.playAudio(getApplicationContext(),
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
-			recorderFront.takePicture();
+			recorder.takePicture();
 		}
 	}
 
@@ -1759,15 +1736,15 @@ public class MainActivity extends Activity {
 
 	/** 设置保存路径 */
 	public int setDirectory(String dir) {
-		if (recorderFront != null) {
-			return recorderFront.setDirectory(dir);
+		if (recorder != null) {
+			return recorder.setDirectory(dir);
 		}
 		return -1;
 	}
 
 	/** 设置录像静音，需要已经初始化recorderFront */
 	private int setMute(boolean mute, boolean isFromUser) {
-		if (recorderFront != null) {
+		if (recorder != null) {
 			if (isFromUser) {
 				speakVoice(getResources().getString(
 						mute ? R.string.hint_video_mute_on
@@ -1777,7 +1754,7 @@ public class MainActivity extends Activity {
 			}
 			muteState = mute ? Constant.Record.STATE_MUTE
 					: Constant.Record.STATE_UNMUTE;
-			return recorderFront.setMute(mute);
+			return recorder.setMute(mute);
 		}
 		return -1;
 	}
@@ -1788,69 +1765,70 @@ public class MainActivity extends Activity {
 	 * @param state
 	 * @return
 	 */
-	public int setResolutionFront(int state) {
+	public int setResolution(int state) {
 		if (state != resolutionState) {
 			resolutionState = state;
-			releaseFront();
-			if (openCameraFront()) {
-				setupRecorderFront();
+			// 释放录像区域
+			releaseRecorder();
+			closeCamera();
+			if (openCamera()) {
+				setupRecorder();
 			}
 		}
 		return -1;
 	}
 
-	private void setupRecorderFront() {
-		releaseRecorderFront();
+	private void setupRecorder() {
+		releaseRecorder();
 		try {
-			recorderFront = new TachographRecorder();
-			recorderFront.setTachographCallback(new FrontTachographCallback());
-			recorderFront.setCamera(cameraFront);
+			recorder = new TachographRecorder();
+			recorder.setTachographCallback(new FrontTachographCallback());
+			recorder.setCamera(camera);
 			// 前缀，后缀
-			recorderFront.setMediaFilenameFixs(
-					TachographCallback.FILE_TYPE_VIDEO, "", "");
-			recorderFront.setMediaFilenameFixs(
+			recorder.setMediaFilenameFixs(TachographCallback.FILE_TYPE_VIDEO,
+					"", "");
+			recorder.setMediaFilenameFixs(
 					TachographCallback.FILE_TYPE_SHARE_VIDEO, "", "");
-			recorderFront.setMediaFilenameFixs(
-					TachographCallback.FILE_TYPE_IMAGE, "", "");
+			recorder.setMediaFilenameFixs(TachographCallback.FILE_TYPE_IMAGE,
+					"", "");
 			// 路径
-			recorderFront.setMediaFileDirectory(
-					TachographCallback.FILE_TYPE_VIDEO, "VideoFront");
-			recorderFront.setMediaFileDirectory(
+			recorder.setMediaFileDirectory(TachographCallback.FILE_TYPE_VIDEO,
+					"VideoFront");
+			recorder.setMediaFileDirectory(
 					TachographCallback.FILE_TYPE_SHARE_VIDEO, "Share");
-			recorderFront.setMediaFileDirectory(
-					TachographCallback.FILE_TYPE_IMAGE, "Image");
-			recorderFront.setClientName(this.getPackageName());
+			recorder.setMediaFileDirectory(TachographCallback.FILE_TYPE_IMAGE,
+					"Image");
+			recorder.setClientName(this.getPackageName());
 			if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
-				recorderFront.setVideoSize(1920, 1080);
-				recorderFront.setVideoFrameRate(Constant.Record.FRAME_RATE);
-				recorderFront.setVideoBiteRate(Constant.Record.BIT_RATE_1080P);
+				recorder.setVideoSize(1920, 1080);
+				recorder.setVideoFrameRate(Constant.Record.FRAME_RATE);
+				recorder.setVideoBiteRate(Constant.Record.BIT_RATE_1080P);
 			} else {
-				recorderFront.setVideoSize(1280, 720);
-				recorderFront.setVideoFrameRate(Constant.Record.FRAME_RATE);
-				recorderFront.setVideoBiteRate(Constant.Record.BIT_RATE_720P);
+				recorder.setVideoSize(1280, 720);
+				recorder.setVideoFrameRate(Constant.Record.FRAME_RATE);
+				recorder.setVideoBiteRate(Constant.Record.BIT_RATE_720P);
 			}
 			if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
-				recorderFront.setVideoSeconds(1 * 60);
+				recorder.setVideoSeconds(1 * 60);
 			} else {
-				recorderFront.setVideoSeconds(3 * 60);
+				recorder.setVideoSeconds(3 * 60);
 			}
-			recorderFront.setVideoOverlap(0);
-			recorderFront.prepare();
+			recorder.setVideoOverlap(0);
+			recorder.prepare();
 		} catch (Exception e) {
 			MyLog.e("[MainActivity]setupRecorder: Catch Exception!");
 		}
 
-		MyApp.isCameraPreview = true;
 	}
 
 	/** 释放Recorder */
-	private void releaseRecorderFront() {
+	private void releaseRecorder() {
 		try {
-			if (recorderFront != null) {
-				recorderFront.stop();
-				recorderFront.close();
-				recorderFront.release();
-				recorderFront = null;
+			if (recorder != null) {
+				recorder.stop();
+				recorder.close();
+				recorder.release();
+				recorder = null;
 				MyLog.d("Record Release");
 			}
 		} catch (Exception e) {
@@ -1988,8 +1966,10 @@ public class MainActivity extends Activity {
 							HintUtil.playAudio(
 									getApplicationContext(),
 									com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
-							if (recorderFront.start() == 0) {
+							if (MyApp.isCameraPreview && recorder.start() == 0) {
 								setRecordState(true);
+							} else {
+								setRecordState(false);
 							}
 						}
 
@@ -2008,7 +1988,7 @@ public class MainActivity extends Activity {
 	 * @return 0:成功 -1:失败
 	 */
 	public int startRecordTask() {
-		if (recorderFront != null) {
+		if (MyApp.isCameraPreview && recorder != null) {
 			MyLog.d("Record Start");
 			setDirectory(Constant.Path.SDCARD_2); // 设置保存路径
 			// 设置录像静音
@@ -2096,16 +2076,12 @@ public class MainActivity extends Activity {
 
 	}
 
-	public void setupFront() {
-		releaseFront();
-		if (openCameraFront()) {
-			setupRecorderFront();
+	public void setup() {
+		releaseRecorder();
+		closeCamera();
+		if (openCamera()) {
+			setupRecorder();
 		}
-	}
-
-	public void releaseFront() {
-		releaseRecorderFront();
-		closeCameraFront();
 	}
 
 	private void sendKeyCode(final int keyCode) {

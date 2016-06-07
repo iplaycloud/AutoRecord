@@ -42,6 +42,9 @@ public interface Constant {
 
 		/** TTS播报,Extra:content(String) */
 		public static final String TTS_SPEAK = "tchip.intent.action.TTS_SPEAK";
+		
+		/** 发送键值 */
+		public static final String SEND_KEY = "tchip.intent.action.SEND_KEY";
 
 		/** 关掉录像：释放预览 */
 		public static final String RELEASE_RECORD = "tchip.intent.action.RELEASE_RECORD";
