@@ -183,14 +183,14 @@ public interface Constant {
 		 * 
 		 * MTK:9000 * 1000
 		 */
-		public static final int BIT_RATE_720P = 3500 * 1000;
+		public static final int BIT_RATE_720P = 8000 * 1000;
 
 		/**
 		 * 比特率1080P:
 		 * 
 		 * MTK:17000 * 1000
 		 */
-		public static final int BIT_RATE_1080P = 8000 * 1000;
+		public static final int BIT_RATE_1080P = 12000 * 1000;
 
 		/** 帧率 */
 		public static final int FRAME_RATE = 30;

@@ -1311,8 +1311,9 @@ public class MainActivity extends Activity {
 
 	private void refreshRecordButton() {
 		// 视频尺寸：公版默认720P，善领默认1080P
-		String videoSizeStr = sharedPreferences.getString("videoSize",
-				Constant.Module.isPublic ? "720" : "1080");
+		// String videoSizeStr = sharedPreferences.getString("videoSize",
+		// Constant.Module.isPublic ? "720" : "1080");
+		String videoSizeStr = sharedPreferences.getString("videoSize", "1080");
 		resolutionState = "1080".equals(videoSizeStr) ? Constant.Record.STATE_RESOLUTION_1080P
 				: Constant.Record.STATE_RESOLUTION_720P;
 
