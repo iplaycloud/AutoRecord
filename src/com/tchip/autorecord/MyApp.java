@@ -13,9 +13,6 @@ public class MyApp extends Application {
 	/** 应用出错:需要停止录像 */
 	public static boolean isAppException = false;
 
-	/** 是否处于低功耗待机状态 */
-	public static boolean isSleeping = false;
-
 	/** ACC是否连接 */
 	public static boolean isAccOn = true;
 

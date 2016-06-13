@@ -17,14 +17,12 @@ import com.tchip.autorecord.util.ProviderUtil;
 import com.tchip.autorecord.util.ProviderUtil.Name;
 import com.tchip.autorecord.util.SettingUtil;
 import com.tchip.autorecord.util.StorageUtil;
-import com.tchip.autorecord.view.AudioRecordDialog;
 import com.tchip.tachograph.TachographCallback;
 import com.tchip.tachograph.TachographRecorder;
 
 import android.app.Activity;
 import android.app.Instrumentation;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -149,7 +147,6 @@ public class MainActivity extends Activity {
 			new Thread(new AutoThread()).start(); // 序列任务线程
 		} else {
 			MyApp.isAccOn = false; // 同步ACC状态
-			MyApp.isSleeping = true; // ACC未连接,进入休眠
 			MyLog.v("[Main]ACC Check:OFF");
 		}
 		// 碰撞侦测服务
@@ -362,8 +359,9 @@ public class MainActivity extends Activity {
 				MyApp.isAccOn = false;
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
 				MyApp.isAccOn = true;
+				MyApp.shouldWakeRecord = true;
 			} else if (action.equals(Constant.Broadcast.GSENSOR_CRASH)) { // 停车守卫:侦测到碰撞广播触发
-				if (MyApp.isSleeping) {
+				if (!MyApp.isAccOn) {
 					MyLog.v("[GSENSOR_CRASH]Before State->shouldCrashRecord:"
 							+ MyApp.shouldCrashRecord
 							+ ",shouldStopWhenCrashVideoSave:"
@@ -385,7 +383,6 @@ public class MainActivity extends Activity {
 					// if (MyApp.isAccOn && !MyApp.isVideoReording) {
 					// MyApp.shouldMountRecord = true;
 					// }
-
 				} else if ("close_dvr".equals(command)) {
 					// if (MyApp.isVideoReording) {
 					// MyApp.shouldStopRecordFromVoice = true;
@@ -394,14 +391,8 @@ public class MainActivity extends Activity {
 					// sendKeyCode(KeyEvent.KEYCODE_HOME);
 				} else if ("take_photo".equals(command)) {
 					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
-
-					// sendKeyCode(KeyEvent.KEYCODE_HOME); // 发送Home键，回到主界面
-					// if (!powerManager.isScreenOn()) { // 确保屏幕点亮
-					// SettingUtil.lightScreen(getApplicationContext());
-					// }
 				} else if ("take_photo_wenxin".equals(command)) {
 					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
-
 				}
 			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
 				String path = intent.getExtras().getString("path");
@@ -438,7 +429,6 @@ public class MainActivity extends Activity {
 		@Override
 		public void run() {
 			try {
-				initialService();
 				StartCheckErrorFileThread(); // 检查并删除异常视频文件
 				// 自动录像:如果已经在录像则不处理
 				if (Constant.Record.autoRecord && !MyApp.isVideoReording) {
@@ -504,10 +494,10 @@ public class MainActivity extends Activity {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
 			case 1:
-				if (!MyApp.isSleeping) {
-					if (MyApp.shouldWakeRecord) {
+				if (MyApp.shouldWakeRecord) {
+					MyApp.shouldWakeRecord = false;
+					if (MyApp.isAccOn && !MyApp.isVideoReording) {
 						new Thread(new AutoThread()).start(); // 序列任务线程
-						MyApp.shouldWakeRecord = false;
 					}
 				}
 				if (MyApp.shouldMountRecord) {
@@ -516,6 +506,7 @@ public class MainActivity extends Activity {
 						new Thread(new RecordWhenMountThread()).start();
 					}
 				}
+
 				if (MyApp.shouldCrashRecord) { // 停车侦测录像
 					MyApp.shouldCrashRecord = false;
 					if (!MyApp.isVideoReording) {
@@ -751,19 +742,6 @@ public class MainActivity extends Activity {
 
 	};
 
-	/**
-	 * 初始化服务:
-	 * 
-	 * 1.碰撞侦测服务
-	 * 
-	 * 2.轨迹记录服务
-	 * 
-	 * 3.天气播报服务
-	 */
-	private void initialService() {
-
-	}
-
 	private void initialCameraSurface() {
 		surfaceView = (SurfaceView) findViewById(R.id.surfaceView);
 		surfaceView.setOnClickListener(new MyOnClickListener());
@@ -962,8 +940,6 @@ public class MainActivity extends Activity {
 						stopRecorder5Times(); // 停止录像
 						setInterval(("1".equals(videoTimeStr)) ? 1 * 60
 								: 3 * 60); // 重设视频分段
-
-						new Thread(new CloseScreenThread()).start(); // 熄灭屏幕
 					}
 				}
 
@@ -1121,7 +1097,7 @@ public class MainActivity extends Activity {
 
 			case R.id.imageVideoSize:
 			case R.id.textVideoSize:
-				if (!ClickUtil.isQuickClick(1500)) {
+				if (!ClickUtil.isQuickClick(3000)) {
 					// 切换分辨率录像停止，需要重置时间
 					MyApp.shouldVideoRecordWhenChangeSize = MyApp.isVideoReording;
 					MyApp.isVideoReording = false;
@@ -1221,7 +1197,7 @@ public class MainActivity extends Activity {
 	private void startRecord() {
 		try {
 			if (!MyApp.isVideoReording) {
-				if (MyApp.isSleeping || !MyApp.isAccOn) {
+				if (!MyApp.isAccOn) {
 					if (!ClickUtil.isHintSleepTooQuick(3000)) {
 						speakVoice(getResources().getString(
 								R.string.hint_stop_record_sleeping));
@@ -1418,7 +1394,7 @@ public class MainActivity extends Activity {
 		}
 		try {
 			MyLog.v("[Record] Camera.open");
-			camera = Camera.open(0);// Camera.open(0);
+			camera = Camera.open(0);
 			previewCamera();
 			return true;
 		} catch (Exception ex) {
@@ -1538,7 +1514,7 @@ public class MainActivity extends Activity {
 				} else {
 					if (!StorageUtil.isVideoCardExists()) {
 						// 如果是休眠状态，且不是停车侦测录像情况，避免线程执行过程中，ACC下电后仍然语音提醒“SD不存在”
-						if (MyApp.isSleeping
+						if (!MyApp.isAccOn
 								&& !MyApp.shouldStopWhenCrashVideoSave) {
 							return;
 						}
@@ -1711,30 +1687,6 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	public class CloseScreenThread implements Runnable {
-
-		@Override
-		public void run() {
-			try {
-				Thread.sleep(2500);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			if (!MyApp.isAccOn && powerManager.isScreenOn()) {
-				// sendKeyCode(KeyEvent.KEYCODE_POWER); // 熄屏
-				Intent intentLockScreen = new Intent();
-				ComponentName componentLockScreen = new ComponentName(
-						"com.tchip.lockscreen",
-						"com.tchip.lockscreen.MainActivity");
-				intentLockScreen.setComponent(componentLockScreen);
-				intentLockScreen.setAction("android.intent.action.VIEW");
-				intentLockScreen.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-				startActivity(intentLockScreen);
-			}
-		}
-
-	}
-
 	/** 设置保存路径 */
 	public int setDirectory(String dir) {
 		if (recorder != null) {
@@ -1750,9 +1702,9 @@ public class MainActivity extends Activity {
 				speakVoice(getResources().getString(
 						mute ? R.string.hint_video_mute_on
 								: R.string.hint_video_mute_off));
-				editor.putBoolean("videoMute", mute);
-				editor.commit();
 			}
+			editor.putBoolean("videoMute", mute);
+			editor.commit();
 			muteState = mute ? Constant.Record.STATE_MUTE
 					: Constant.Record.STATE_UNMUTE;
 			return recorder.setMute(mute);
