@@ -29,6 +29,7 @@
                 android:layout_centerHorizontal="true"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@null"
+                android:paddingBottom="@dimen/icon_image_padding_bottom"
                 android:src="@drawable/video_size_fhd" />
 
             <TextView
@@ -37,6 +38,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
+                android:layout_marginBottom="@dimen/icon_hint_margin_bottom"
                 android:text="@string/icon_hint_1080p"
                 android:textColor="@color/icon_hint_text_color"
                 android:textSize="@dimen/icon_hint_text_size" />
@@ -54,6 +56,7 @@
                 android:layout_centerHorizontal="true"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@null"
+                android:paddingBottom="@dimen/icon_image_padding_bottom"
                 android:src="@drawable/video_length_3m" />
 
             <TextView
@@ -62,6 +65,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
+                android:layout_marginBottom="@dimen/icon_hint_margin_bottom"
                 android:text="@string/icon_hint_3_minutes"
                 android:textColor="@color/icon_hint_text_color"
                 android:textSize="@dimen/icon_hint_text_size" />
@@ -80,6 +84,7 @@
                 android:layout_centerHorizontal="true"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@null"
+                android:paddingBottom="@dimen/icon_image_padding_bottom"
                 android:src="@drawable/video_unlock" />
 
             <TextView
@@ -88,6 +93,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
+                android:layout_marginBottom="4dp"
                 android:text="@string/icon_hint_unlock"
                 android:textColor="@color/icon_hint_text_color"
                 android:textSize="@dimen/icon_hint_text_size" />
@@ -112,6 +118,7 @@
                 android:layout_centerHorizontal="true"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@null"
+                android:paddingBottom="@dimen/icon_image_padding_bottom"
                 android:src="@drawable/video_unmute" />
 
             <TextView
@@ -120,6 +127,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
+                android:layout_marginBottom="3dp"
                 android:text="@string/icon_hint_unmute"
                 android:textColor="@color/icon_hint_text_color"
                 android:textSize="@dimen/icon_hint_text_size" />
@@ -153,6 +161,7 @@
                 android:layout_centerHorizontal="true"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@null"
+                android:paddingBottom="@dimen/icon_image_padding_bottom"
                 android:src="@drawable/camera_switch" />
 
             <TextView
@@ -161,6 +170,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_centerHorizontal="true"
+                android:layout_marginBottom="@dimen/icon_hint_margin_bottom"
                 android:text="@string/icon_hint_switch"
                 android:textColor="@color/icon_hint_text_color"
                 android:textSize="@dimen/icon_hint_text_size" />
