@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    coreApp="true"
     package="com.tchip.autorecord"
     android:versionCode="1"
-    android:versionName="2016.06.13-17:20" >
+    android:versionName="2016.06.14-10:05" >
 
     <uses-sdk
         android:minSdkVersion="21"
@@ -26,6 +27,7 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:largeHeap="true"
+        android:persistent="true"
         android:theme="@style/AppTheme" >
         <activity
             android:name="com.tchip.autorecord.ui.MainActivity"
