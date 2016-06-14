@@ -380,19 +380,19 @@ public class MainActivity extends Activity {
 			} else if (action.equals(Constant.Broadcast.SPEECH_COMMAND)) {
 				String command = intent.getExtras().getString("command");
 				if ("open_dvr".equals(command)) {
-					// if (MyApp.isAccOn && !MyApp.isVideoReording) {
-					// MyApp.shouldMountRecord = true;
-					// }
+					if (MyApp.isAccOn && !MyApp.isVideoReording) {
+						MyApp.shouldMountRecord = true;
+					}
 				} else if ("close_dvr".equals(command)) {
-					// if (MyApp.isVideoReording) {
-					// MyApp.shouldStopRecordFromVoice = true;
-					// }
-
-					// sendKeyCode(KeyEvent.KEYCODE_HOME);
-				} else if ("take_photo".equals(command)) {
-					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
+					if (MyApp.isVideoReording) {
+						MyApp.shouldStopRecordFromVoice = true;
+					}
+				} else if ("take_photo".equals(command)
+						|| "take_photo_wenxin".equals(command)) {
+					takePhoto();
+					// MyApp.shouldTakeVoicePhoto = true; // 语音拍照
 				} else if ("take_photo_wenxin".equals(command)) {
-					MyApp.shouldTakeVoicePhoto = true; // 语音拍照
+					// MyApp.shouldTakeVoicePhoto = true; // 语音拍照
 				}
 			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
 				String path = intent.getExtras().getString("path");
@@ -617,9 +617,6 @@ public class MainActivity extends Activity {
 			case 1:
 				try {
 					if (!MyApp.isVideoReording) {
-						if (!MyApp.isMainForeground) {
-							// sendKeyCode(KeyEvent.KEYCODE_HOME); // 回到主界面
-						}
 						startRecordTask();
 					}
 					MyLog.v("[Record]isVideoReording:" + MyApp.isVideoReording);
@@ -1061,9 +1058,6 @@ public class MainActivity extends Activity {
 		@Override
 		public void onClick(View v) {
 			switch (v.getId()) {
-			case R.id.surfaceView:
-				break;
-
 			case R.id.imageVideoState:
 				if (!ClickUtil.isQuickClick(2000)) {
 					if (MyApp.isVideoReording) {
@@ -1176,6 +1170,7 @@ public class MainActivity extends Activity {
 				}
 				break;
 
+			// case R.id.surfaceView:
 			case R.id.imagePhotoTake:
 				if (!ClickUtil.isQuickClick(1500)) {
 					takePhoto();
@@ -1300,9 +1295,6 @@ public class MainActivity extends Activity {
 
 	/** 绘制录像按钮 */
 	private void setupRecordViews() {
-		HintUtil.setRecordHintFloatWindowVisible(MainActivity.this,
-				MyApp.isVideoReording);
-
 		// 视频分辨率
 		if (resolutionState == Constant.Record.STATE_RESOLUTION_720P) {
 			imageVideoSize.setImageDrawable(getResources().getDrawable(
@@ -1940,8 +1932,8 @@ public class MainActivity extends Activity {
 	 * 
 	 * @return 0:成功 -1:失败
 	 */
-	public int startRecordTask() {
-		if (MyApp.isCameraPreview && recorder != null) {
+	public int startRecordTask() { // FIXME
+		if (!MyApp.isVideoReording && MyApp.isCameraPreview && recorder != null) {
 			MyLog.d("Record Start");
 			setDirectory(Constant.Path.SDCARD_2); // 设置保存路径
 			// 设置录像静音
