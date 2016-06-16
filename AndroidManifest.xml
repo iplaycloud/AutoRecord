@@ -2,8 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     coreApp="true"
     package="com.tchip.autorecord"
+    android:sharedUserId="android.uid.system"
     android:versionCode="1"
-    android:versionName="2016.06.16-10:00" >
+    android:versionName="2016.06.16-19:00" >
 
     <uses-sdk
         android:minSdkVersion="21"
@@ -17,8 +18,10 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW" />
+    <uses-permission android:name="android.permission.INJECT_EVENTS" />
 
     <application
         android:name="com.tchip.autorecord.MyApp"

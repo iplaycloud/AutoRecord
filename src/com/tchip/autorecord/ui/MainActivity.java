@@ -111,9 +111,6 @@ public class MainActivity extends Activity {
 	/** Intent是否是新的 */
 	private boolean isIntentInTime = false;
 
-	/** 启动录像后是否需要返回主页 */
-	// private boolean shouldBackHome = false;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -164,10 +161,6 @@ public class MainActivity extends Activity {
 		intentFilter.addAction(Constant.Broadcast.MEDIA_FORMAT);
 		intentFilter.addAction(Constant.Broadcast.GOING_SHUTDOWN);
 		intentFilter.addAction(Constant.Broadcast.RELEASE_RECORD);
-		// intentFilter.addAction(Intent.ACTION_MEDIA_EJECT);
-		// intentFilter.addAction(Intent.ACTION_MEDIA_BAD_REMOVAL);
-		// intentFilter.addAction(Intent.ACTION_MEDIA_UNMOUNTED);
-		// intentFilter.addAction(Intent.ACTION_MEDIA_MOUNTED);
 		registerReceiver(mainReceiver, intentFilter);
 	}
 
@@ -256,8 +249,7 @@ public class MainActivity extends Activity {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			sendBroadcast(new Intent(Constant.Broadcast.SEND_KEY).putExtra(
-					"keycode", KeyEvent.KEYCODE_HOME));
+			sendKeyCode(KeyEvent.KEYCODE_HOME);
 		}
 
 	}
@@ -361,22 +353,22 @@ public class MainActivity extends Activity {
 				MyApp.isAccOn = true;
 				MyApp.shouldWakeRecord = true;
 			} else if (action.equals(Constant.Broadcast.GSENSOR_CRASH)) { // 停车守卫:侦测到碰撞广播触发
-				if (!MyApp.isAccOn) {
-					MyLog.v("[GSENSOR_CRASH]Before State->shouldCrashRecord:"
-							+ MyApp.shouldCrashRecord
-							+ ",shouldStopWhenCrashVideoSave:"
-							+ MyApp.shouldStopWhenCrashVideoSave);
-
-					if (MyApp.shouldStopWhenCrashVideoSave) {
-						if (!MyApp.shouldCrashRecord && !MyApp.isVideoReording) {
-							MyApp.shouldCrashRecord = true;
-							MyApp.shouldStopWhenCrashVideoSave = true;
-						}
-					} else {
-						MyApp.shouldCrashRecord = true;
-						MyApp.shouldStopWhenCrashVideoSave = true;
-					}
-				}
+				// if (!MyApp.isAccOn) {
+				// MyLog.v("[GSENSOR_CRASH]Before State->shouldCrashRecord:"
+				// + MyApp.shouldCrashRecord
+				// + ",shouldStopWhenCrashVideoSave:"
+				// + MyApp.shouldStopWhenCrashVideoSave);
+				//
+				// if (MyApp.shouldStopWhenCrashVideoSave) {
+				// if (!MyApp.shouldCrashRecord && !MyApp.isVideoReording) {
+				// MyApp.shouldCrashRecord = true;
+				// MyApp.shouldStopWhenCrashVideoSave = true;
+				// }
+				// } else {
+				// MyApp.shouldCrashRecord = true;
+				// MyApp.shouldStopWhenCrashVideoSave = true;
+				// }
+				// }
 			} else if (action.equals(Constant.Broadcast.SPEECH_COMMAND)) {
 				String command = intent.getExtras().getString("command");
 				if ("open_dvr".equals(command)) {
@@ -390,9 +382,6 @@ public class MainActivity extends Activity {
 				} else if ("take_photo".equals(command)
 						|| "take_photo_wenxin".equals(command)) {
 					takePhoto();
-					// MyApp.shouldTakeVoicePhoto = true; // 语音拍照
-				} else if ("take_photo_wenxin".equals(command)) {
-					// MyApp.shouldTakeVoicePhoto = true; // 语音拍照
 				}
 			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
 				String path = intent.getExtras().getString("path");
@@ -512,9 +501,6 @@ public class MainActivity extends Activity {
 					if (!MyApp.isVideoReording) {
 						if (Constant.Record.parkVideoLock) { // 是否需要加锁
 							MyApp.isVideoLock = true;
-						}
-						if (!MyApp.isMainForeground) { // 发送Home键，回到主界面
-							// sendKeyCode(KeyEvent.KEYCODE_HOME);
 						}
 						new Thread(new RecordWhenCrashThread()).start();
 					}
@@ -661,7 +647,6 @@ public class MainActivity extends Activity {
 				try {
 					if (!MyApp.isVideoReording) {
 						if (!MyApp.isMainForeground) { // 发送Home键，回到主界面
-							// sendKeyCode(KeyEvent.KEYCODE_HOME);
 						}
 						setInterval(3 * 60); // 防止在分段一分钟的时候，停车守卫录出1分和0秒两段视频
 
@@ -1197,8 +1182,6 @@ public class MainActivity extends Activity {
 			if (!MyApp.isVideoReording) {
 				if (!MyApp.isAccOn) {
 					if (!ClickUtil.isHintSleepTooQuick(3000)) {
-						speakVoice(getResources().getString(
-								R.string.hint_stop_record_sleeping));
 						HintUtil.showToast(MainActivity.this, getResources()
 								.getString(R.string.hint_stop_record_sleeping));
 					}
@@ -1661,9 +1644,9 @@ public class MainActivity extends Activity {
 							R.string.hint_start_park_monitor_after_90));
 				}
 			}
-			if (powerManager.isScreenOn()) {
-				sendKeyCode(KeyEvent.KEYCODE_POWER); // 熄屏
-			}
+			// if (powerManager.isScreenOn()) {
+			// sendKeyCode(KeyEvent.KEYCODE_POWER); // 熄屏
+			// }
 		}
 	}
 
