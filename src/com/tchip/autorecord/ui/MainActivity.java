@@ -670,7 +670,6 @@ public class MainActivity extends Activity {
 							if (startRecordTask() == 0) {
 								setRecordState(true);
 							} else {
-								setRecordState(false);
 								MyLog.e("Start Record Failed");
 							}
 						}
@@ -925,6 +924,10 @@ public class MainActivity extends Activity {
 				this.removeMessages(1);
 				if (!ClickUtil.isPlusRecordTimeTooQuick(900)) {
 					secondCount++;
+					if (secondCount % 5 == 0) {
+						ProviderUtil.setValue(context, Name.REC_FRONT_STATE,
+								"1");
+					}
 				}
 				if (MyApp.shouldStopWhenCrashVideoSave && MyApp.isVideoReording) {
 					if (secondCount == Constant.Record.parkVideoLength) {
@@ -1472,7 +1475,6 @@ public class MainActivity extends Activity {
 					if (startRecordTask() == 0) {
 						setRecordState(true);
 					} else {
-						setRecordState(false);
 						MyLog.e("Start Record Failed");
 					}
 				}
@@ -1541,7 +1543,6 @@ public class MainActivity extends Activity {
 					if (startRecordTask() == 0) {
 						setRecordState(true);
 					} else {
-						setRecordState(false);
 						MyLog.e("Start Record Failed");
 					}
 				}
@@ -1913,8 +1914,6 @@ public class MainActivity extends Activity {
 									com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
 							if (MyApp.isCameraPreview && recorder.start() == 0) {
 								setRecordState(true);
-							} else {
-								setRecordState(false);
 							}
 						}
 

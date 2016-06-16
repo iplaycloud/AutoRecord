@@ -3,7 +3,7 @@
     coreApp="true"
     package="com.tchip.autorecord"
     android:versionCode="1"
-    android:versionName="2016.06.14-19:20" >
+    android:versionName="2016.06.16-10:00" >
 
     <uses-sdk
         android:minSdkVersion="21"

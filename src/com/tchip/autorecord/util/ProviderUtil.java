@@ -93,7 +93,6 @@ public class ProviderUtil {
 			cursor.close();
 		} else {
 		}
-		MyLog.v("[ProviderUtil]name:" + name + ",value:" + dbValue);
 		return dbValue;
 	}
 
@@ -106,7 +105,6 @@ public class ProviderUtil {
 		valuesUpdate.put("value", value);
 		int count = contentResolverUpdate.update(uriUpdate, valuesUpdate,
 				"name=?", new String[] { name }); // Update
-		MyLog.v("[ProviderUtil]Update count:" + count);
 		if (count == 0) {
 			Uri uriInsert = Uri
 					.parse("content://com.tchip.provider.AutoProvider/state/");
