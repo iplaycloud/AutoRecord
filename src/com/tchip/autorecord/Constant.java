@@ -185,7 +185,7 @@ public interface Constant {
 		 * 
 		 * X1:3500 * 1000
 		 */
-		public static final int BIT_RATE_720P = 9000 * 1000;
+		public static final int BIT_RATE_720P = 7000 * 1000;
 
 		/**
 		 * 比特率1080P:
@@ -194,7 +194,7 @@ public interface Constant {
 		 * 
 		 * X1:8000 * 1000
 		 */
-		public static final int BIT_RATE_1080P = 17000 * 1000;
+		public static final int BIT_RATE_1080P = 10000 * 1000;
 
 		/** 帧率 */
 		public static final int FRAME_RATE = 30;

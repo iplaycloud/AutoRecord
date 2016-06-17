@@ -47,7 +47,7 @@ public class SettingUtil {
 
 	/** 设置飞行模式 */
 	public static void setAirplaneMode(Context context, boolean setAirPlane) {
-		MyLog.v("[SettingUtil]setAirplaneMode:" + setAirPlane);
+		MyLog.v("SettingUtil.setAirplaneMode:" + setAirPlane);
 		Settings.Global.putInt(context.getContentResolver(),
 				Settings.Global.AIRPLANE_MODE_ON, setAirPlane ? 1 : 0);
 		// 广播飞行模式的改变，让相应的程序可以处理。
@@ -102,7 +102,7 @@ public class SettingUtil {
 		KeyguardLock kl = km.newKeyguardLock("ZMS"); // 参数是LogCat里用的Tag
 		kl.disableKeyguard();
 	}
-	
+
 	// ========== Below is OLD ================
 
 	/** Camera自动调节亮度节点，1：开 0：关;默认打开 */
@@ -112,7 +112,7 @@ public class SettingUtil {
 	/** 设置Camera自动调节亮度开关 */
 	public static void setAutoLight(Context context, boolean isAutoLightOn) {
 		SaveFileToNode(fileAutoLightSwitch, isAutoLightOn ? "1" : "0");
-		MyLog.v("[SettingUtil]setAutoLight:" + isAutoLightOn);
+		MyLog.v("SettingUtil.setAutoLight:" + isAutoLightOn);
 	}
 
 	/** 停车侦测开关节点，2：打开 3：关闭（默认） */
@@ -120,7 +120,7 @@ public class SettingUtil {
 			"/sys/devices/platform/mt-i2c.1/i2c-1/1-007f/back_car_status");
 
 	public static void setParkingMonitor(Context context, boolean isParkingOn) {
-		MyLog.v("[SettingUtil]setParkingMonitor:" + isParkingOn);
+		MyLog.v("SettingUtil.setParkingMonitor:" + isParkingOn);
 		SaveFileToNode(fileParkingMonitor, isParkingOn ? "2" : "3");
 
 		SharedPreferences sharedPreferences = context.getSharedPreferences(
@@ -179,10 +179,10 @@ public class SettingUtil {
 				return Integer.parseInt(strValue);
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
-				MyLog.e("[SettingUtil]getLCDValue: FileNotFoundException");
+				MyLog.e("SettingUtil.getLCDValue: FileNotFoundException");
 			} catch (IOException e) {
 				e.printStackTrace();
-				MyLog.e("[SettingUtil]getLCDValue: IOException");
+				MyLog.e("SettingUtil.getLCDValue: IOException");
 			}
 		}
 		return -5;
@@ -198,7 +198,7 @@ public class SettingUtil {
 	 * @param isEDogOn
 	 */
 	public static void setEDogEnable(boolean isEDogOn) {
-		MyLog.v("[SettingUtil]setEDogEnable:" + isEDogOn);
+		MyLog.v("SettingUtil.setEDogEnable:" + isEDogOn);
 		SaveFileToNode(fileEDogPower, isEDogOn ? "1" : "0");
 	}
 

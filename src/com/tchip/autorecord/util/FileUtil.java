@@ -50,9 +50,9 @@ public class FileUtil {
 
 		boolean isStorageLess = intFrontFree < Constant.Record.SD_MIN_FREE_STORAGE
 				|| intSdFree < Constant.Record.SD_MIN_FREE_STORAGE;
-		MyLog.v("[isStroageLess]" + isStorageLess + ",sdFree:" + sdFree
-				+ "\nfrontUse:" + frontUse + "\nfrontTotal:" + frontTotal
-				+ "\nfrontFree" + frontFree);
+		MyLog.v("isStroageLess:" + isStorageLess + ",sdFree:" + sdFree
+				+ ",frontUse:" + frontUse + ",frontTotal:" + frontTotal
+				+ ",frontFree" + frontFree);
 		return isStorageLess;
 	}
 
@@ -103,7 +103,7 @@ public class FileUtil {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			MyLog.e("获取文件大小:获取失败!");
+			MyLog.e("FileUtil.getFileOrFilesSize:FAIL");
 		}
 		return FormetFileSize(blockSize, sizeType);
 	}
@@ -126,7 +126,7 @@ public class FileUtil {
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
-			MyLog.e("获取文件大小:获取失败!");
+			MyLog.e("FileUtil.getAutoFileOrFilesSize:FAIL");
 		}
 		return FormetFileSize(blockSize);
 	}
@@ -147,7 +147,8 @@ public class FileUtil {
 			fis.close();
 		} else {
 			file.createNewFile();
-			MyLog.e("获取文件大小:文件不存在!");
+			MyLog.e("FileUtil.getFileSize:FAIL");
+
 		}
 		return size;
 	}

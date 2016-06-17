@@ -40,7 +40,7 @@ public class HintUtil {
 	 */
 	public static void setRecordHintFloatWindowVisible(Context context,
 			boolean isVisible) {
-		MyLog.v("[HintUtil]setRecordHintFloatWindowVisible:" + isVisible);
+		MyLog.v("HintUtil.setRecordHintFloatWindowVisible:" + isVisible);
 		if (isVisible) {
 			Intent intentFloatWindow = new Intent(context,
 					FloatWindowService.class);

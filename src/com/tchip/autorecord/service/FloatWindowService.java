@@ -26,7 +26,7 @@ public class FloatWindowService extends Service {
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		MyLog.i("onCreate");
+		MyLog.i("FloatWindowService.onCreate");
 		createFloatView();
 	}
 
@@ -40,8 +40,6 @@ public class FloatWindowService extends Service {
 		// 获取的是WindowManagerImpl.CompatModeWrapper
 		windowManager = (WindowManager) getApplication().getSystemService(
 				getApplication().WINDOW_SERVICE);
-		MyLog.i("windowManager--->" + windowManager);
-
 		wmParams.type = LayoutParams.TYPE_PHONE; // 设置Window Type
 		wmParams.format = PixelFormat.RGBA_8888; // 设置图片格式，效果为背景透明
 		// 设置浮动窗口不可聚焦（实现操作除浮动窗口外的其他可见窗口的操作）
@@ -68,8 +66,6 @@ public class FloatWindowService extends Service {
 		layoutFloat.measure(View.MeasureSpec.makeMeasureSpec(0,
 				View.MeasureSpec.UNSPECIFIED), View.MeasureSpec
 				.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-		MyLog.i("Width/2--->" + imageRecordingHint.getMeasuredWidth() / 2);
-		MyLog.i("Height/2--->" + imageRecordingHint.getMeasuredHeight() / 2);
 	}
 
 	@Override

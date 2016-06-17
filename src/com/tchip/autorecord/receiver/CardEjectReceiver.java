@@ -13,7 +13,7 @@ public class CardEjectReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		String action = intent.getAction();
-		MyLog.i("[AutoRecord.CardEjectReceiver]action:" + action);
+		MyLog.i("CardEjectReceiver.action:" + action);
 		if (action.equals(Intent.ACTION_MEDIA_EJECT)
 				|| action.equals(Intent.ACTION_MEDIA_BAD_REMOVAL)
 				|| action.equals(Intent.ACTION_MEDIA_UNMOUNTED)) {

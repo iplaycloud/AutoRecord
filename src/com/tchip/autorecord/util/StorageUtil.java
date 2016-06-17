@@ -54,7 +54,7 @@ public class StorageUtil {
 			String pathVideo = Constant.Path.RECORD_FRONT;
 			File fileVideo = new File(pathVideo);
 			boolean isSuccess = fileVideo.mkdirs();
-			MyLog.v("[StorageUtil]isVideoCardExists,mkdirs isSuccess:"
+			MyLog.v("StorageUtil.isVideoCardExists,mkdirs isSuccess:"
 					+ isSuccess);
 			File file = new File(pathVideo);
 			if (!file.exists()) {
@@ -63,17 +63,17 @@ public class StorageUtil {
 				isVideoCardExist = true;
 			}
 		} catch (Exception e) {
-			MyLog.e("[StorageUtil]isVideoCardExists:Catch Exception!");
+			MyLog.e("StorageUtil.isVideoCardExists:Catch Exception!");
 			isVideoCardExist = false;
 		}
-		MyLog.v("[StorageUtil]isVideoCardExists:" + isVideoCardExist);
+		MyLog.v("StorageUtil.isVideoCardExists:" + isVideoCardExist);
 		return isVideoCardExist;
 	}
 
 	/** 创建前后录像存储卡目录 */
 	public static void createRecordDirectory() {
 		boolean isSuccess = new File(Constant.Path.RECORD_FRONT).mkdirs();
-		MyLog.v("[StorageUtil]createRecordDirectory,mkdirs isSuccess:"
+		MyLog.v("StorageUtil.createRecordDirectory,mkdirs isSuccess:"
 				+ isSuccess);
 		if (Constant.Module.isRecordSingleCard) {
 			new File(Constant.Path.RECORD_BACK).mkdirs();
@@ -106,7 +106,7 @@ public class StorageUtil {
 				file.delete();
 			}
 		} catch (Exception e) {
-			MyLog.e("[StorageUtil]RecursionDeleteFile:Catch Exception!");
+			MyLog.e("StorageUtil.RecursionDeleteFile:Catch Exception!");
 		}
 	}
 
@@ -120,7 +120,7 @@ public class StorageUtil {
 					int numberChild = file.listFiles().length;
 					if (numberChild == 0) {
 						file.delete();
-						MyLog.v("[StorageUtil]Delete Empty Video Directory:"
+						MyLog.v("StorageUtil.Delete Empty Video Directory:"
 								+ file.getName() + ",Length:" + numberChild);
 					}
 				}
@@ -143,7 +143,7 @@ public class StorageUtil {
 	 */
 	public static boolean releaseRecordStorage(Context context) {
 		if (!StorageUtil.isVideoCardExists()) {
-			MyLog.e("[Storageutil]deleteOldestUnlockVideo:No Video Card");
+			MyLog.e("Storageutil.deleteOldestUnlockVideo:No Video Card");
 			return false;
 		}
 		try {
@@ -161,12 +161,12 @@ public class StorageUtil {
 					File file = new File(Constant.Path.RECORD_FRONT
 							+ oldestUnlockVideoName);
 					if (file.exists() && file.isFile()) {
-						MyLog.d("[StorageUtil]Delete Old Unlock Video:"
+						MyLog.d("StorageUtil.Delete Old Unlock Video:"
 								+ file.getName());
 						int i = 0;
 						while (!file.delete() && i < 3) {
 							i++;
-							MyLog.d("[StorageUtil]Delete Old Unlock Video:"
+							MyLog.d("StorageUtil.Delete Old Unlock Video:"
 									+ file.getName() + " Filed!!! Try:" + i);
 						}
 					}
@@ -175,7 +175,7 @@ public class StorageUtil {
 					int oldestVideoId = videoDb.getOldestVideoId();
 					if (oldestVideoId == -1) {
 						if (isStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
-							MyLog.e("[StorageUtil]Storage is full...");
+							MyLog.e("StorageUtil:Storage is full...");
 							String strNoStorage = context
 									.getResources()
 									.getString(
@@ -199,12 +199,12 @@ public class StorageUtil {
 						File file = new File(Constant.Path.RECORD_FRONT
 								+ oldestVideoName);
 						if (file.exists() && file.isFile()) {
-							MyLog.d("[StorageUtil]Delete Old lock Video:"
+							MyLog.d("StorageUtil.Delete Old lock Video:"
 									+ file.getName());
 							int i = 0;
 							while (!file.delete() && i < 5) {
 								i++;
-								MyLog.d("[StorageUtil]Delete Old lock Video:"
+								MyLog.d("StorageUtil.Delete Old lock Video:"
 										+ file.getName() + " Filed!!! Try:" + i);
 							}
 						}
@@ -217,7 +217,7 @@ public class StorageUtil {
 			/*
 			 * 异常原因：1.文件由用户手动删除
 			 */
-			MyLog.e("[StorageUtil]deleteOldestUnlockVideo:Catch Exception:"
+			MyLog.e("StorageUtil.deleteOldestUnlockVideo:Catch Exception:"
 					+ e.toString());
 			e.printStackTrace();
 			return true;
@@ -241,7 +241,7 @@ public class StorageUtil {
 						// Delete file start with dot but not the recording one
 						if (!MyApp.isVideoReording) {
 							file.delete();
-							MyLog.v("[StorageUtil]RecursionCheckFile-Delete Error File start with DOT:"
+							MyLog.v("StorageUtil.RecursionCheckFile-Delete Error File start with DOT:"
 									+ fileName);
 						}
 					} else {
@@ -249,7 +249,7 @@ public class StorageUtil {
 						if (!isVideoExist) {
 							// boolean isSuccess = file.delete();
 							boolean isSuccess = file.getAbsoluteFile().delete();
-							MyLog.v("[StorageUtil]RecursionCheckFile-Delete Error File:"
+							MyLog.v("StorageUtil.RecursionCheckFile-Delete Error File:"
 									+ file.getAbsolutePath()
 									+ ",canRead:"
 									+ file.canRead()
@@ -271,7 +271,7 @@ public class StorageUtil {
 					}
 				}
 			} catch (Exception e) {
-				MyLog.e("[StorageUtil]RecursionCheckFile-Catch Exception:"
+				MyLog.e("StorageUtil.RecursionCheckFile-Catch Exception:"
 						+ e.toString());
 			}
 
@@ -295,7 +295,7 @@ public class StorageUtil {
 				exif.setAttribute(ExifInterface.TAG_MODEL, "X2"); // 型号/机型
 				exif.saveAttributes();
 			} catch (Exception e) {
-				MyLog.e("[Android]Set Attribute Catch Exception:"
+				MyLog.e("writeImageExif.Set Attribute Catch Exception:"
 						+ e.toString());
 				e.printStackTrace();
 			}

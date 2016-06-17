@@ -12,8 +12,7 @@ public class ClickUtil {
 	public static boolean isQuickClick(int clickMinSpan) {
 		long time = System.currentTimeMillis();
 		long timeD = time - lastClickTime;
-		if (0 < timeD && timeD < clickMinSpan) {
-			MyLog.v("[ClickUtil]isQuickClick:Click Too Quickly!");
+		if (0 < timeD && timeD < clickMinSpan) { // Click Too Quickly
 			return true;
 		}
 		lastClickTime = time;
@@ -50,7 +49,6 @@ public class ClickUtil {
 		long time = System.currentTimeMillis();
 		long timeD = time - lastPlusRecordTime;
 		if (0 < timeD && timeD < runMinSpan) {
-			// MyLog.v("[ClickUtil]isPlusRecordTimeTooQuick,Run Too Quickly!");
 			return true;
 		}
 		lastPlusRecordTime = time;
@@ -79,6 +77,7 @@ public class ClickUtil {
 	public static boolean isIntentInTime(long sendTime) {
 		long nowTime = System.currentTimeMillis();
 		long duration = nowTime - sendTime;
+		MyLog.v("ClickUtil.sendTime:" + sendTime + ",nowTime:" + nowTime);
 		if (duration < 3000) {
 			return true;
 		} else {

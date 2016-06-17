@@ -97,6 +97,7 @@ public class ProviderUtil {
 	}
 
 	public static void setValue(Context context, String name, String value) {
+		MyLog.v("ProviderUtil.setValue.Name:" + name + ",value:" + value);
 		Uri uriUpdate = Uri
 				.parse("content://com.tchip.provider.AutoProvider/state/name/"
 						+ name);

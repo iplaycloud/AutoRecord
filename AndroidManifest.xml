@@ -4,7 +4,7 @@
     package="com.tchip.autorecord"
     android:sharedUserId="android.uid.system"
     android:versionCode="1"
-    android:versionName="2016.06.16-19:00" >
+    android:versionName="2016.06.17-17:50" >
 
     <uses-sdk
         android:minSdkVersion="21"
@@ -61,7 +61,6 @@
             </intent-filter>
         </receiver>
 
-        <service android:name="com.tchip.autorecord.service.BackFloatService" />
         <service android:name="com.tchip.autorecord.service.SensorWatchService" />
     </application>
 

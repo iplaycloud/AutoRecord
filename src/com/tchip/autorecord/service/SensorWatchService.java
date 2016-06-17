@@ -44,7 +44,7 @@ public class SensorWatchService extends Service {
 	public void onCreate() {
 		super.onCreate();
 		context = getApplicationContext();
-		MyLog.v("[SensorWatchService]onCreate");
+		MyLog.v("SensorWatchService.onCreate");
 
 		sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		// Using TYPE_ACCELEROMETER first if exit, then TYPE_GRAVITY
@@ -79,7 +79,7 @@ public class SensorWatchService extends Service {
 									R.string.hint_video_lock));
 							HintUtil.showToast(context, getResources()
 									.getString(R.string.hint_video_lock));
-							MyLog.v("[SensorWarchService] Crashed->VideoLock;LIMIT:"
+							MyLog.v("SensorWarchService.Crashed->VideoLock;LIMIT:"
 									+ LIMIT_X
 									+ ",X:"
 									+ valueX
@@ -114,7 +114,7 @@ public class SensorWatchService extends Service {
 	@Override
 	public void onDestroy() {
 		sensorManager.unregisterListener(sensorEventListener);
-		MyLog.v("[SensorWatchService]onDestroy");
+		MyLog.v("SensorWatchService.onDestroy");
 		super.onDestroy();
 	}
 

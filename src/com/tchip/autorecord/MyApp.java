@@ -173,7 +173,7 @@ public class MyApp extends Application {
 				crashSensitive = 2;
 			}
 		} catch (Exception e) {
-			MyLog.e("[MyApplication]initialCrashData: Catch Exception!"
+			MyLog.e("MyApp.initialCrashData: Catch Exception!"
 					+ e.getMessage());
 		}
 	}

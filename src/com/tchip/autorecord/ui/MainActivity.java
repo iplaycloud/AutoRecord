@@ -162,19 +162,6 @@ public class MainActivity extends Activity {
 		intentFilter.addAction(Constant.Broadcast.GOING_SHUTDOWN);
 		intentFilter.addAction(Constant.Broadcast.RELEASE_RECORD);
 		registerReceiver(mainReceiver, intentFilter);
-	}
-
-	@Override
-	protected void onResume() {
-		MyLog.v("[Main]onResume");
-		MyApp.isMainForeground = true;
-		try {
-			refreshRecordButton(); // 更新录像界面按钮状态
-			setupRecordViews();
-		} catch (Exception e) {
-			e.printStackTrace();
-			MyLog.e("[Main]onResume catch Exception:" + e.toString());
-		}
 
 		// 接收额外信息
 		Bundle extras = getIntent().getExtras();
@@ -182,23 +169,36 @@ public class MainActivity extends Activity {
 			String reason = extras.getString("reason");
 			long sendTime = extras.getLong("time");
 			isIntentInTime = ClickUtil.isIntentInTime(sendTime);
+			MyLog.v("isIntentInTime:" + isIntentInTime + ",reason:" + reason);
 			if (isIntentInTime) {
-				MyLog.v("reason:" + reason);
 				if ("autoui_oncreate".equals(reason) || "acc_on".equals(reason)) { // 回到主界面
 					MyApp.shouldMountRecord = true;
 					new Thread(new BackHomeThread()).start();
 				}
 			}
 		}
+	}
+
+	@Override
+	protected void onResume() {
+		MyLog.v("onResume");
+		MyApp.isMainForeground = true;
+		try {
+			refreshRecordButton(); // 更新录像界面按钮状态
+			setupRecordViews();
+		} catch (Exception e) {
+			e.printStackTrace();
+			MyLog.e("onResume catch Exception:" + e.toString());
+		}
+
 		super.onResume();
 	}
 
 	@Override
 	protected void onPause() {
-		MyLog.v("[Main]onPause");
+		MyLog.v("onPause");
 		MyApp.isMainForeground = false;
-		MyLog.v("[onPause]MyApplication.isVideoReording:"
-				+ MyApp.isVideoReording);
+		MyLog.v("MyApp.isVideoReording:" + MyApp.isVideoReording);
 
 		// ACC在的时候不频繁释放录像区域：ACC在的时候Suspend？
 		if (!MyApp.isAccOn && !MyApp.isVideoReording) {
@@ -209,13 +209,13 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onStop() {
-		MyLog.v("[Main]onStop");
+		MyLog.v("onStop");
 		super.onStop();
 	}
 
 	@Override
 	protected void onDestroy() {
-		MyLog.v("[Main]onDestroy");
+		MyLog.v("onDestroy");
 		// 释放录像区域
 		releaseRecorder();
 		closeCamera();
@@ -267,8 +267,6 @@ public class MainActivity extends Activity {
 			if (name.equals("state")) { // insert
 
 			} else { // update
-				MyLog.v("[AutoRecord.ContentObserver]onChange,selfChange:"
-						+ selfChange + ",Name:" + name);
 				if (Name.SET_DETECT_CRASH_STATE.equals(name)) {
 					String strDetectCrashState = ProviderUtil.getValue(context,
 							Name.SET_DETECT_CRASH_STATE);
@@ -328,7 +326,7 @@ public class MainActivity extends Activity {
 		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
 				this.getClass().getCanonicalName());
 		wakeLock.acquire(timeout);
-		MyLog.v("[SleepOnOff]WakeLock acquire, timeout:" + timeout);
+		MyLog.v("acquireWakeLock, timeout:" + timeout);
 	}
 
 	/** 返回HOME */
@@ -346,7 +344,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			MyLog.v("[AutoRecord.MainReceiver]action:" + action);
+			MyLog.v("MainReceiver.action:" + action);
 			if (action.equals(Constant.Broadcast.ACC_OFF)) {
 				MyApp.isAccOn = false;
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
@@ -393,6 +391,7 @@ public class MainActivity extends Activity {
 				MyApp.isGoingShutdown = true;
 			} else if (Constant.Broadcast.RELEASE_RECORD.equals(action)) { // 退出录像
 				releaseCameraZone();
+				finish();
 				android.os.Process.killProcess(android.os.Process.myPid());
 				System.exit(1);
 			}
@@ -428,7 +427,7 @@ public class MainActivity extends Activity {
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-				MyLog.e("[Main]AutoThread: Catch Exception!");
+				MyLog.e("AutoThread: Catch Exception!");
 			}
 		}
 	}
@@ -583,7 +582,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			MyLog.v("[Main]run RecordWhenMountThread");
+			MyLog.v("run RecordWhenMountThread");
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
@@ -605,9 +604,9 @@ public class MainActivity extends Activity {
 					if (!MyApp.isVideoReording) {
 						startRecordTask();
 					}
-					MyLog.v("[Record]isVideoReording:" + MyApp.isVideoReording);
+					MyLog.v("isVideoReording:" + MyApp.isVideoReording);
 				} catch (Exception e) {
-					MyLog.e("[EventRecord]recordWhenEventHappenHandler catch exception: "
+					MyLog.e("recordWhenMountHandler catch exception: "
 							+ e.toString());
 				}
 				break;
@@ -623,7 +622,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			MyLog.v("[Thread]run RecordWhenCrashThread");
+			MyLog.v("run RecordWhenCrashThread");
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
@@ -660,9 +659,8 @@ public class MainActivity extends Activity {
 						}
 					}
 					setupRecordViews();
-					MyLog.v("[Record]isVideoReording:" + MyApp.isVideoReording);
 				} catch (Exception e) {
-					MyLog.e("[EventRecord]recordWhenEventHappenHandler catch exception: "
+					MyLog.e("recordWhenCrashHandler catch exception: "
 							+ e.toString());
 				}
 				break;
@@ -807,7 +805,7 @@ public class MainActivity extends Activity {
 			}
 			new Thread(new UpdateRecordTimeThread()).start(); // 更新录制时间
 		} else {
-			MyLog.e("[Main]UpdateRecordTimeThread already run");
+			MyLog.e("UpdateRecordTimeThread already run");
 		}
 	}
 
@@ -909,7 +907,7 @@ public class MainActivity extends Activity {
 				this.removeMessages(1);
 				if (!ClickUtil.isPlusRecordTimeTooQuick(900)) {
 					secondCount++;
-					if (secondCount % 5 == 0) {
+					if (MyApp.isVideoReording && secondCount % 5 == 0) {
 						ProviderUtil.setValue(context, Name.REC_FRONT_STATE,
 								"1");
 					}
@@ -921,7 +919,7 @@ public class MainActivity extends Activity {
 						intervalState = "1".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_1MIN
 								: Constant.Record.STATE_INTERVAL_3MIN;
 
-						MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 1");
+						MyLog.v("UpdateRecordTimeHandler.stopRecorder() 1");
 						stopRecorder5Times(); // 停止录像
 						setInterval(("1".equals(videoTimeStr)) ? 1 * 60
 								: 3 * 60); // 重设视频分段
@@ -954,7 +952,7 @@ public class MainActivity extends Activity {
 
 			case 2: { // SD卡异常移除：停止录像
 				this.removeMessages(2);
-				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 2");
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 2");
 				stopRecorder5Times();
 				String strVideoCardEject = getResources().getString(
 						R.string.hint_sd_remove_badly);
@@ -986,7 +984,7 @@ public class MainActivity extends Activity {
 
 			case 5: { // 进入休眠，停止录像
 				this.removeMessages(5);
-				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 5");
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 5");
 				stopRecorder5Times();
 				this.removeMessages(5);
 			}
@@ -994,7 +992,7 @@ public class MainActivity extends Activity {
 
 			case 6: { // 语音命令：停止录像
 				this.removeMessages(6);
-				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 6");
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 6");
 				stopRecorder5Times();
 				this.removeMessages(6);
 			}
@@ -1002,7 +1000,7 @@ public class MainActivity extends Activity {
 
 			case 7: {
 				this.removeMessages(7);
-				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 7");
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 7");
 				stopRecorder5Times();
 				String strVideoCardFormat = getResources().getString(
 						R.string.hint_sd2_format);
@@ -1016,7 +1014,7 @@ public class MainActivity extends Activity {
 
 			case 8: { // 程序异常，停止录像
 				this.removeMessages(8);
-				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 8");
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 8");
 				stopRecorder5Times();
 				this.removeMessages(8);
 			}
@@ -1024,13 +1022,11 @@ public class MainActivity extends Activity {
 
 			case 9: { // 系统关机，停止录像
 				this.removeMessages(9);
-				MyLog.v("[UpdateRecordTimeHandler]stopRecorder() 9");
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 9");
 				stopRecorder5Times();
 				String strGoingShutdown = getResources().getString(
 						R.string.hint_going_shutdown);
 				HintUtil.showToast(MainActivity.this, strGoingShutdown);
-
-				MyLog.e("CardEjectReceiver:Going Shutdown");
 				speakVoice(strGoingShutdown);
 				this.removeMessages(9);
 			}
@@ -1189,14 +1185,13 @@ public class MainActivity extends Activity {
 					new Thread(new StartRecordThread()).start(); // 开始录像
 				}
 			} else {
-				MyLog.v("[startRecord]Already record yet");
+				MyLog.v("startRecord.Already record yet");
 			}
 			setupRecordViews();
-			MyLog.v("MyApplication.isVideoReording:" + MyApp.isVideoReording);
+			MyLog.v("MyApp.isVideoReording:" + MyApp.isVideoReording);
 		} catch (Exception e) {
 			e.printStackTrace();
-			MyLog.e("[MainActivity]startRecord catch exception: "
-					+ e.toString());
+			MyLog.e("startRecord catch exception: " + e.toString());
 		}
 	}
 
@@ -1247,7 +1242,7 @@ public class MainActivity extends Activity {
 				camera.stopPreview();
 			}
 			MyApp.shouldResetRecordWhenResume = true;
-			MyLog.v("[Record]releaseCameraZone");
+			MyLog.v("releaseCameraZone");
 			MyApp.isCameraPreview = false;
 		}
 	}
@@ -1344,7 +1339,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void surfaceCreated(SurfaceHolder holder) {
-			MyLog.v("[Record]surfaceCreated");
+			MyLog.v("surfaceCreated");
 			if (camera == null) {
 				surfaceHolder = holder;
 				setup();
@@ -1356,7 +1351,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void surfaceDestroyed(SurfaceHolder holder) {
-			MyLog.v("[Record]surfaceDestroyed");
+			MyLog.v("surfaceDestroyed");
 		}
 
 	}
@@ -1371,13 +1366,13 @@ public class MainActivity extends Activity {
 			closeCamera();
 		}
 		try {
-			MyLog.v("[Record] Camera.open");
+			MyLog.v("Open Camera 0");
 			camera = Camera.open(0);
 			previewCamera();
 			return true;
 		} catch (Exception ex) {
 			closeCamera();
-			MyLog.e("[Record]openCamera:Catch Exception!");
+			MyLog.e("openCamera:Catch Exception!");
 			return false;
 		}
 	}
@@ -1429,7 +1424,7 @@ public class MainActivity extends Activity {
 			return true;
 		} catch (Exception e) {
 			camera = null;
-			MyLog.e("[MainActivity]closeCamera:Catch Exception:" + e.toString());
+			MyLog.e("closeCamera:Catch Exception:" + e.toString());
 			return false;
 		}
 	}
@@ -1496,7 +1491,7 @@ public class MainActivity extends Activity {
 							return;
 						}
 						i++;
-						MyLog.e("[StartRecordThread]No SD:try " + i);
+						MyLog.e("StartRecordThread.No SD:try " + i);
 						try {
 							Thread.sleep(2000);
 						} catch (InterruptedException e) {
@@ -1549,7 +1544,6 @@ public class MainActivity extends Activity {
 			HintUtil.showToast(context, strNoSD);
 			speakVoice(strNoSD);
 		} else {
-			MyLog.v("[noVideoSDHint]No ACC,Do not hint");
 		}
 	}
 
@@ -1564,9 +1558,10 @@ public class MainActivity extends Activity {
 				if (MyApp.shouldStopWhenCrashVideoSave) {
 					MyApp.shouldStopWhenCrashVideoSave = false;
 				}
-				setRecordState(false);
 			} catch (Exception e) {
 				e.printStackTrace();
+			} finally {
+				setRecordState(false);
 			}
 		}
 	}
@@ -1745,7 +1740,7 @@ public class MainActivity extends Activity {
 			recorder.setVideoOverlap(0);
 			recorder.prepare();
 		} catch (Exception e) {
-			MyLog.e("[MainActivity]setupRecorder: Catch Exception!");
+			MyLog.e("setupRecorder: Catch Exception!");
 		}
 
 	}
@@ -1761,7 +1756,7 @@ public class MainActivity extends Activity {
 				MyLog.d("Record Release");
 			}
 		} catch (Exception e) {
-			MyLog.e("[MainActivity]releaseRecorder: Catch Exception!");
+			MyLog.e("releaseRecorder: Catch Exception!");
 		}
 	}
 
@@ -1839,7 +1834,7 @@ public class MainActivity extends Activity {
 					videoDb.addDriveVideo(driveVideo);
 
 					StartCheckErrorFileThread(); // 执行onFileSave时，此file已经不隐藏，下个正在录的为隐藏
-					MyLog.v("[onFileSave]videoLock:" + videoLock
+					MyLog.v("onFileSave.videoLock:" + videoLock
 							+ ", isVideoLockSecond:" + MyApp.isVideoLockSecond);
 				} else { // 图片
 					HintUtil.showToast(MainActivity.this, getResources()
@@ -1857,10 +1852,10 @@ public class MainActivity extends Activity {
 
 				sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
 						Uri.parse("file://" + path))); // 更新Media Database
-				MyLog.d("[onFileSave]Type=" + type + ",Save path:" + path);
+				MyLog.d("onFileSave.Type=" + type + ",Save path:" + path);
 			} catch (Exception e) {
 				e.printStackTrace();
-				MyLog.e("[Main]onFileSave catch Exception:" + e.toString());
+				MyLog.e("onFileSave.catch Exception:" + e.toString());
 			}
 		}
 
@@ -1869,7 +1864,7 @@ public class MainActivity extends Activity {
 			if (type == 1) {
 				MyApp.nowRecordVideoName = path.split("/")[5];
 			}
-			MyLog.v("[onFileStart]Path:" + path);
+			MyLog.v("onFileStart.Path:" + path);
 		}
 
 	}
@@ -1980,7 +1975,7 @@ public class MainActivity extends Activity {
 
 	/** 检查并删除异常视频文件：SD存在但数据库中不存在的文件 */
 	private void StartCheckErrorFileThread() {
-		MyLog.v("[CheckErrorFile]isVideoChecking:" + isVideoChecking);
+		MyLog.v("CheckErrorFile.isVideoChecking:" + isVideoChecking);
 		if (!isVideoChecking) {
 			new Thread(new CheckVideoThread()).start();
 		}
@@ -1993,11 +1988,11 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			MyLog.v("[CheckVideoThread]START:" + DateUtil.getTimeStr("mm:ss"));
+			MyLog.v("CheckVideoThread.START:" + DateUtil.getTimeStr("mm:ss"));
 			isVideoChecking = true;
 			File file = new File(Constant.Path.RECORD_FRONT);
 			StorageUtil.RecursionCheckFile(MainActivity.this, file);
-			MyLog.v("[CheckVideoThread]END:" + DateUtil.getTimeStr("mm:ss"));
+			MyLog.v("CheckVideoThread.END:" + DateUtil.getTimeStr("mm:ss"));
 			isVideoChecking = false;
 		}
 
