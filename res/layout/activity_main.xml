@@ -5,18 +5,24 @@
     android:background="#000000"
     tools:context="${relativePackage}.${activityClass}" >
 
+    <SurfaceView
+        android:id="@+id/surfaceViewBack"
+        android:layout_width="@dimen/surface_width"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true" />
+
+    <SurfaceView
+        android:id="@+id/surfaceViewFront"
+        android:layout_width="@dimen/surface_width"
+        android:layout_height="match_parent"
+        android:layout_alignParentRight="true" />
+
     <!-- Front Layout -->
 
     <RelativeLayout
         android:id="@+id/layoutFront"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
-
-        <SurfaceView
-            android:id="@+id/surfaceViewFront"
-            android:layout_width="@dimen/surface_width"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true" />
 
         <RelativeLayout
             android:layout_width="@dimen/side_shadow_width"
@@ -185,7 +191,7 @@
         </RelativeLayout>
 
         <TextView
-            android:id="@+id/textRecordTime"
+            android:id="@+id/textFrontTime"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
@@ -219,6 +225,77 @@
         android:layout_height="match_parent"
         android:visibility="gone" >
 
+        <RelativeLayout
+            android:layout_width="@dimen/side_shadow_width"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:background="@drawable/side_shadow" >
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="@dimen/side_shadow_width"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/side_shadow" >
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/icon_area_height"
+                android:layout_centerInParent="true" >
+
+                <ImageButton
+                    android:id="@+id/imageBackState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null"
+                    android:src="@drawable/video_start" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/icon_area_height"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="@dimen/icon_area_margin_top_bottom" >
+
+                <TextView
+                    android:id="@+id/textBackTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="@dimen/record_time_margin_top"
+                    android:shadowColor="#000000"
+                    android:shadowDx="1.5"
+                    android:shadowDy="1.5"
+                    android:shadowRadius="2.5"
+                    android:text="@string/default_record_time"
+                    android:textColor="#ffffff"
+                    android:textSize="@dimen/record_time_text_size"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/imageBackSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null"
+                    android:paddingBottom="@dimen/icon_image_padding_bottom"
+                    android:src="@drawable/camera_switch" />
+
+                <TextView
+                    android:id="@+id/textBackSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="@dimen/icon_hint_margin_bottom"
+                    android:text="@string/icon_hint_switch"
+                    android:textColor="@color/icon_hint_text_color"
+                    android:textSize="@dimen/icon_hint_text_size" />
+            </RelativeLayout>
+        </RelativeLayout>
     </RelativeLayout>
 
 </RelativeLayout>

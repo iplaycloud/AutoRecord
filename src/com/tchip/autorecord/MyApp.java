@@ -47,10 +47,14 @@ public class MyApp extends Application {
 	public static boolean shouldSendPathToDSA = false;
 
 	/** 前录是否正在录像 */
-	public static boolean isFrontReording = false;
+	public static boolean isFrontRecording = false;
+	/** 后录是否正在录像 */
+	public static boolean isBackRecording = false;
 
 	/** 前录录像预览窗口是否初始化 */
 	public static boolean isFrontPreview = false;
+	
+	public static boolean isBackPreview = false;
 
 	/** 更新录像时间线程是否正在运行 */
 	public static boolean isUpdateTimeThreadRun = false;
@@ -86,8 +90,6 @@ public class MyApp extends Application {
 	public static int crashSensitive = Constant.GravitySensor.SENSITIVE_DEFAULT;
 
 	private SharedPreferences sharedPreferences;
-
-	public static boolean shouldResetRecordWhenResume = false;
 
 	/** 是否初次启动 */
 	public static boolean isFirstLaunch = true;

@@ -201,6 +201,11 @@ public interface Constant {
 
 		/** 帧率 */
 		public static final int FRONT_FRAME_1080P = 30;
+		
+		
+		public static final int BACK_BITRATE = 3000 * 1000;
+		/** 帧率 */
+		public static final int BACK_FRAME = 25;
 
 		// 分辨率
 		public static final int STATE_RESOLUTION_720P = 0;

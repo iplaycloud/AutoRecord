@@ -24,8 +24,10 @@
     <string name="hint_photo_save">照片已保存</string>
     <string name="hint_storage_full_and_delete_lock">空间不足，将清理加锁视频</string>
     <string name="hint_storage_full_cause_by_other">空间不足，请清理存储卡2</string>
-    <string name="hint_record_start">开始录像</string>
-    <string name="hint_record_stop">停止录像</string>
+    <string name="hint_front_record_start">开始前录</string>
+    <string name="hint_front_record_stop">停止前录</string>
+    <string name="hint_back_record_start">开始后录</string>
+    <string name="hint_back_record_stop">停止后录</string>
     <string name="hint_not_record">未录像</string>
     <string name="default_record_time">00 : 00</string>
     <string name="short_record">REC</string>

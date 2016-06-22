@@ -135,7 +135,7 @@ public class DateUtil {
 	 * 获取格式化系统时间
 	 * 
 	 * @param patten
-	 *            格式，如："mm:ss"
+	 *            格式，如："yyyy-MM-dd-HH-mm-ss"
 	 * @return
 	 */
 	public static String getTimeStr(String patten) {
