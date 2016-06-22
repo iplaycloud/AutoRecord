@@ -155,7 +155,7 @@ public interface Constant {
 
 	public static final class Record {
 		/** 是否开机自动录像 */
-		public static final boolean autoRecord = true;
+		public static final boolean autoRecordFront = true;
 
 		/** 默认是否静音 */
 		public static final boolean muteDefault = Module.isPublic;
@@ -185,7 +185,10 @@ public interface Constant {
 		 * 
 		 * X1:3500 * 1000
 		 */
-		public static final int BIT_RATE_720P = 7000 * 1000;
+		public static final int FRONT_BITRATE_720P = 7000 * 1000;
+		
+		/** 帧率 */
+		public static final int FRONT_FRAME_720P = 30;
 
 		/**
 		 * 比特率1080P:
@@ -194,10 +197,10 @@ public interface Constant {
 		 * 
 		 * X1:8000 * 1000
 		 */
-		public static final int BIT_RATE_1080P = 10000 * 1000;
+		public static final int FRONT_BITRATE_1080P = 10000 * 1000;
 
 		/** 帧率 */
-		public static final int FRAME_RATE = 30;
+		public static final int FRONT_FRAME_1080P = 30;
 
 		// 分辨率
 		public static final int STATE_RESOLUTION_720P = 0;
@@ -308,11 +311,10 @@ public interface Constant {
 
 		/** 前录存储路径 */
 		public static String RECORD_FRONT = "/storage/sdcard2/DrivingRecord/VideoFront/";
-
 		public static String IMAGE = "/storage/sdcard2/DrivingRecord/Image/";
 
 		/** 后录存储路径 */
-		public static String RECORD_BACK = "/storage/sdcard2/tachograph_back/";
+		public static String RECORD_BACK = "/storage/sdcard2/DrivingRecord/VideoBack/";
 
 		/** 字体目录 */
 		public static final String FONT = "fonts/";

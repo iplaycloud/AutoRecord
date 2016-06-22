@@ -239,7 +239,7 @@ public class StorageUtil {
 						&& !fileName.endsWith(".tmp")) {
 					if (fileName.startsWith(".")) {
 						// Delete file start with dot but not the recording one
-						if (!MyApp.isVideoReording) {
+						if (!MyApp.isFrontReording) {
 							file.delete();
 							MyLog.v("StorageUtil.RecursionCheckFile-Delete Error File start with DOT:"
 									+ fileName);

@@ -46,20 +46,20 @@ public class MyApp extends Application {
 	/** ACC拍照后,在onFileSave中传Path给DSA */
 	public static boolean shouldSendPathToDSA = false;
 
-	/** 是否正在记录轨迹 */
-	public static boolean isRouteRecord = false;
+	/** 前录是否正在录像 */
+	public static boolean isFrontReording = false;
 
-	/** 是否正在录像 */
-	public static boolean isVideoReording = false;
+	/** 前录录像预览窗口是否初始化 */
+	public static boolean isFrontPreview = false;
 
 	/** 更新录像时间线程是否正在运行 */
 	public static boolean isUpdateTimeThreadRun = false;
 
 	/** 当前视频片段是否加锁 */
-	public static boolean isVideoLock = false;
+	public static boolean isFrontLock = false;
 
 	/** 第二段视频加锁 */
-	public static boolean isVideoLockSecond = false;
+	public static boolean isFrontLockSecond = false;
 
 	/** 侦测到碰撞 */
 	public static boolean isCrashed = false;
@@ -78,9 +78,6 @@ public class MyApp extends Application {
 
 	/** 系统准备关机 */
 	public static boolean isGoingShutdown = false;
-
-	/** 蓝牙是否正在播放音乐 */
-	public static boolean isBTPlayMusic = false;
 
 	/** 碰撞侦测开关:默认打开 */
 	public static boolean isCrashOn = Constant.GravitySensor.DEFAULT_ON;
@@ -105,9 +102,6 @@ public class MyApp extends Application {
 	public static String nowRecordVideoName = "";
 
 	public static String writeImageExifPath = "NULL";
-
-	/** 录像预览窗口是否初始化 */
-	public static boolean isCameraPreview = false;
 
 	private Context context;
 
@@ -173,8 +167,7 @@ public class MyApp extends Application {
 				crashSensitive = 2;
 			}
 		} catch (Exception e) {
-			MyLog.e("MyApp.initialCrashData: Catch Exception!"
-					+ e.getMessage());
+			MyLog.e("MyApp.initialCrashData: Catch Exception!" + e.getMessage());
 		}
 	}
 
