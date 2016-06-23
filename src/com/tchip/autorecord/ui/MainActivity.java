@@ -1122,36 +1122,6 @@ public class MainActivity extends Activity {
 
 	// ***** ***** ***** ***** ***** FRONT CAMERA START
 
-	private int secondFrontCount = -1;
-
-	/**
-	 * 录制时间秒钟复位:
-	 * 
-	 * 1.停止录像{@link #stopRecorder()}
-	 * 
-	 * 2.录像过程中更改录像分辨率
-	 * 
-	 * 3.录像过程中更改静音状态
-	 * 
-	 * 4.视频保存失败{@link #onError(int)}
-	 * 
-	 * 5.开始录像{@link #startRecordTask()}
-	 * 
-	 */
-	private void resetFrontTimeText() {
-		secondFrontCount = -1;
-		textFrontTime.setText("00 : 00");
-	}
-
-	/** 开启录像跑秒线程 */
-	private void startUpdateFrontTimeThread() {
-		if (!MyApp.isUpdateFrontTimeRun) {
-			new Thread(new UpdateFrontTimeThread()).start(); // 更新录制时间
-		} else {
-			MyLog.e("UpdateRecordTimeThread already run");
-		}
-	}
-
 	class FrontCallBack implements Callback {
 
 		@Override
@@ -1388,6 +1358,36 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	private int secondFrontCount = -1;
+
+	/**
+	 * 录制时间秒钟复位:
+	 * 
+	 * 1.停止录像{@link #stopRecorder()}
+	 * 
+	 * 2.录像过程中更改录像分辨率
+	 * 
+	 * 3.录像过程中更改静音状态
+	 * 
+	 * 4.视频保存失败{@link #onError(int)}
+	 * 
+	 * 5.开始录像{@link #startRecordTask()}
+	 * 
+	 */
+	private void resetFrontTimeText() {
+		secondFrontCount = -1;
+		textFrontTime.setText("00 : 00");
+	}
+
+	/** 开启录像跑秒线程 */
+	private void startUpdateFrontTimeThread() {
+		if (!MyApp.isUpdateFrontTimeRun) {
+			new Thread(new UpdateFrontTimeThread()).start(); // 更新录制时间
+		} else {
+			MyLog.e("UpdateRecordTimeThread already run");
+		}
+	}
+
 	public class UpdateFrontTimeThread implements Runnable {
 
 		@Override
@@ -1462,7 +1462,7 @@ public class MainActivity extends Activity {
 			switch (msg.what) {
 			case 1: { // 处理停车守卫录像
 				this.removeMessages(1);
-				if (!ClickUtil.isPlusRecordTimeTooQuick(900)) {
+				if (!ClickUtil.isPlusFrontTimeTooQuick(900)) {
 					secondFrontCount++;
 					if (MyApp.isFrontRecording && secondFrontCount % 5 == 0) {
 						ProviderUtil.setValue(context, Name.REC_FRONT_STATE,
@@ -2091,6 +2091,212 @@ public class MainActivity extends Activity {
 		textBackTime.setText("00 : 00");
 	}
 
+	/** 开启录像跑秒线程 */
+	private void startUpdateBackTimeThread() {
+		if (!MyApp.isUpdateBackTimeRun) {
+			new Thread(new UpdateBackTimeThread()).start(); // 更新录制时间
+		} else {
+			MyLog.e("UpdateBackTimeThread already run");
+		}
+	}
+
+	public class UpdateBackTimeThread implements Runnable {
+
+		@Override
+		public void run() {
+			// 解决录像时，快速点击录像按钮两次，线程叠加跑秒过快的问题
+			do {
+				MyApp.isUpdateBackTimeRun = true;
+				if (MyApp.isCrashed) {
+					Message messageVideoLock = new Message();
+					messageVideoLock.what = 4;
+					updateBackTimeHandler.sendMessage(messageVideoLock);
+				}
+				if (MyApp.isAppException) { // 程序异常,停止录像
+					MyApp.isAppException = false;
+					MyLog.e("App exception, stop record!");
+					Message messageException = new Message();
+					messageException.what = 8;
+					updateBackTimeHandler.sendMessage(messageException);
+					return;
+				} else if (MyApp.isVideoCardEject) { // 录像时视频SD卡拔出停止录像
+					MyLog.e("SD card remove badly or power unconnected, stop record!");
+					Message messageEject = new Message();
+					messageEject.what = 2;
+					updateBackTimeHandler.sendMessage(messageEject);
+					return;
+				} else if (MyApp.isVideoCardFormat) { // 录像SD卡格式化
+					MyApp.isVideoCardFormat = false;
+					MyLog.e("SD card is format, stop record!");
+					Message messageFormat = new Message();
+					messageFormat.what = 7;
+					updateBackTimeHandler.sendMessage(messageFormat);
+					return;
+				} else if (MyApp.isGoingShutdown) {
+					MyApp.isGoingShutdown = false;
+					MyLog.e("Going shutdown, stop record!");
+					Message messageFormat = new Message();
+					messageFormat.what = 9;
+					updateBackTimeHandler.sendMessage(messageFormat);
+					return;
+				} else if (!MyApp.isAccOn
+						&& !MyApp.shouldStopWhenCrashVideoSave) { // ACC下电停止录像
+					MyLog.e("Stop Record:isSleeping = true");
+					Message messageSleep = new Message();
+					messageSleep.what = 5;
+					updateBackTimeHandler.sendMessage(messageSleep);
+					return;
+				} else if (MyApp.shouldStopRecordFromVoice) {
+					MyApp.shouldStopRecordFromVoice = false;
+					Message messageStopRecordFromVoice = new Message();
+					messageStopRecordFromVoice.what = 6;
+					updateBackTimeHandler
+							.sendMessage(messageStopRecordFromVoice);
+					return;
+				} else {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					Message messageSecond = new Message();
+					messageSecond.what = 1;
+					updateBackTimeHandler.sendMessage(messageSecond);
+				}
+			} while (MyApp.isBackRecording);
+			MyApp.isUpdateBackTimeRun = false;
+		}
+
+	}
+
+	final Handler updateBackTimeHandler = new Handler() {
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case 1: { // 处理停车守卫录像
+				this.removeMessages(1);
+				if (!ClickUtil.isPlusBackTimeTooQuick(900)) {
+					secondBackCount++;
+					if (MyApp.isBackRecording && secondBackCount % 9 == 0) {
+						ProviderUtil
+								.setValue(context, Name.REC_BACK_STATE, "1");
+					}
+				}
+				if (MyApp.shouldStopWhenCrashVideoSave && MyApp.isBackRecording) {
+					if (secondBackCount == Constant.Record.parkVideoLength) {
+						String videoTimeStr = sharedPreferences.getString(
+								"videoTime", "3");
+						intervalState = "1".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_1MIN
+								: Constant.Record.STATE_INTERVAL_3MIN;
+
+						MyLog.v("UpdateRecordTimeHandler.stopRecorder() 1");
+						stopBackRecorder5Times(); // 停止录像
+						setBackInterval(("1".equals(videoTimeStr)) ? 1 * 60
+								: 3 * 60); // 重设视频分段
+					}
+				}
+
+				switch (intervalState) { // 重置时间
+				case Constant.Record.STATE_INTERVAL_3MIN:
+					if (secondBackCount >= 180) {
+						secondBackCount = 0;
+						acquireWakeLock(185 * 1000);
+					}
+					break;
+
+				case Constant.Record.STATE_INTERVAL_1MIN:
+					if (secondBackCount >= 60) {
+						secondBackCount = 0;
+						acquireWakeLock(65 * 1000);
+					}
+					break;
+
+				default:
+					break;
+				}
+				textBackTime.setText(DateUtil
+						.getFormatTimeBySecond(secondBackCount));
+				this.removeMessages(1);
+			}
+				break;
+
+			case 2: { // SD卡异常移除：停止录像
+				this.removeMessages(2);
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 2");
+				stopBackRecorder5Times();
+				String strVideoCardEject = getResources().getString(
+						R.string.hint_sd_remove_badly);
+				HintUtil.showToast(MainActivity.this, strVideoCardEject);
+
+				MyLog.e("CardEjectReceiver:Video SD Removed");
+				speakVoice(strVideoCardEject);
+				this.removeMessages(2);
+			}
+				break;
+
+			case 4: {
+				this.removeMessages(4);
+				MyApp.isCrashed = false;
+				// 碰撞后判断是否需要加锁第二段视频
+				if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
+					if (secondBackCount > 45) {
+						// MyApp.isBackLockSecond = true;
+					}
+				} else if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
+					if (secondBackCount > 165) {
+						// MyApp.isBackLockSecond = true;
+					}
+				}
+				setupBackViews();
+				this.removeMessages(4);
+			}
+				break;
+
+			case 5: { // 进入休眠，停止录像
+				this.removeMessages(5);
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 5");
+				stopBackRecorder5Times();
+				this.removeMessages(5);
+			}
+				break;
+
+			case 6: { // 语音命令：停止录像
+				this.removeMessages(6);
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 6");
+				stopBackRecorder5Times();
+				this.removeMessages(6);
+			}
+				break;
+
+			case 7: {
+				this.removeMessages(7);
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 7");
+				stopBackRecorder5Times();
+				this.removeMessages(7);
+			}
+				break;
+
+			case 8: { // 程序异常，停止录像
+				this.removeMessages(8);
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 8");
+				stopBackRecorder5Times();
+				this.removeMessages(8);
+			}
+				break;
+
+			case 9: { // 系统关机，停止录像
+				this.removeMessages(9);
+				MyLog.v("UpdateRecordTimeHandler.stopRecorder() 9");
+				stopBackRecorder5Times();
+				this.removeMessages(9);
+			}
+				break;
+
+			default:
+				break;
+			}
+		}
+	};
+
 	/**
 	 * 打开摄像头
 	 * 
@@ -2422,18 +2628,16 @@ public class MainActivity extends Activity {
 		if (isVideoRecord) {
 			if (!MyApp.isBackRecording) {
 				MyApp.isBackRecording = true;
-				// TODO
 				textBackTime.setVisibility(View.VISIBLE);
-				// startUpdateRecordTimeThread();
+				startUpdateBackTimeThread();
 				setupBackViews();
 			}
 		} else {
 			if (MyApp.isBackRecording) {
 				MyApp.isBackRecording = false;
-				// TODO
 				textBackTime.setVisibility(View.INVISIBLE);
 				resetBackTimeText();
-				// MyApp.isUpdateTimeThreadRun = false;
+				MyApp.isUpdateBackTimeRun = false;
 				setupBackViews();
 			}
 		}

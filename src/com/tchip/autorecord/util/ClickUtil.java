@@ -43,15 +43,27 @@ public class ClickUtil {
 		return false;
 	}
 
-	private static long lastPlusRecordTime;
+	private static long lastPlusFrontTime;
 
-	public static boolean isPlusRecordTimeTooQuick(int runMinSpan) {
+	public static boolean isPlusFrontTimeTooQuick(int runMinSpan) {
 		long time = System.currentTimeMillis();
-		long timeD = time - lastPlusRecordTime;
+		long timeD = time - lastPlusFrontTime;
 		if (0 < timeD && timeD < runMinSpan) {
 			return true;
 		}
-		lastPlusRecordTime = time;
+		lastPlusFrontTime = time;
+		return false;
+	}
+	
+	private static long lastPlusBackTime;
+
+	public static boolean isPlusBackTimeTooQuick(int runMinSpan) {
+		long time = System.currentTimeMillis();
+		long timeD = time - lastPlusBackTime;
+		if (0 < timeD && timeD < runMinSpan) {
+			return true;
+		}
+		lastPlusBackTime = time;
 		return false;
 	}
 
