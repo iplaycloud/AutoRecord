@@ -39,19 +39,33 @@ public class StorageUtil {
 	}
 
 	/** 录像SD卡是否存在 */
-	public static boolean isVideoCardExists() {
+	public static boolean isFrontCardExist() {
 		boolean isVideoCardExist = false;
-
-		// String pathVideoCard = Constant.Path.SDCARD_2;
-		// File file = new File(pathVideoCard);
-		// if (!file.exists()) {
-		// isVideoCardExist = false;
-		// } else {
-		// isVideoCardExist = true;
-		// }
-
 		try {
 			String pathVideo = Constant.Path.RECORD_FRONT;
+			File fileVideo = new File(pathVideo);
+			boolean isSuccess = fileVideo.mkdirs();
+			MyLog.v("StorageUtil.isVideoCardExists,mkdirs isSuccess:"
+					+ isSuccess);
+			File file = new File(pathVideo);
+			if (!file.exists()) {
+				isVideoCardExist = false;
+			} else {
+				isVideoCardExist = true;
+			}
+		} catch (Exception e) {
+			MyLog.e("StorageUtil.isVideoCardExists:Catch Exception!");
+			isVideoCardExist = false;
+		}
+		MyLog.v("StorageUtil.isVideoCardExists:" + isVideoCardExist);
+		return isVideoCardExist;
+	}
+	
+	/** 录像SD卡是否存在 */
+	public static boolean isBackCardExist() {
+		boolean isVideoCardExist = false;
+		try {
+			String pathVideo = Constant.Path.RECORD_BACK;
 			File fileVideo = new File(pathVideo);
 			boolean isSuccess = fileVideo.mkdirs();
 			MyLog.v("StorageUtil.isVideoCardExists,mkdirs isSuccess:"
@@ -141,8 +155,8 @@ public class StorageUtil {
 	 * 
 	 * 2.文件保存回调{@link MainActivity#onFileSave}
 	 */
-	public static boolean releaseRecordStorage(Context context) {
-		if (!StorageUtil.isVideoCardExists()) {
+	public static boolean releaseFrontStorage(Context context) {
+		if (!StorageUtil.isFrontCardExist()) {
 			MyLog.e("Storageutil.deleteOldestUnlockVideo:No Video Card");
 			return false;
 		}

@@ -38,7 +38,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -191,6 +190,7 @@ public class MainActivity extends Activity {
 		try {
 			refreshFrontButton(); // 更新录像界面按钮状态
 			setupFrontViews();
+			setupBackViews();
 		} catch (Exception e) {
 			e.printStackTrace();
 			MyLog.e("onResume catch Exception:" + e.toString());
@@ -1111,7 +1111,7 @@ public class MainActivity extends Activity {
 						MyLog.v("[onClick]stopRecorder()");
 						stopFrontRecorder5Times();
 					} else {
-						if (StorageUtil.isVideoCardExists()) {
+						if (StorageUtil.isFrontCardExist()) {
 							speakVoice(getResources().getString(
 									R.string.hint_front_record_start));
 							startRecordFront();
@@ -1130,7 +1130,7 @@ public class MainActivity extends Activity {
 						MyLog.v("[onClick]stopRecorder()");
 						stopBackRecorder5Times();
 					} else {
-						if (StorageUtil.isVideoCardExists()) {
+						if (StorageUtil.isBackCardExist()) {
 							speakVoice(getResources().getString(
 									R.string.hint_back_record_start));
 							startRecordBack();
@@ -1779,7 +1779,7 @@ public class MainActivity extends Activity {
 				if (MyApp.isFrontRecording) {
 					i = 5;
 				} else {
-					if (!StorageUtil.isVideoCardExists()) {
+					if (!StorageUtil.isFrontCardExist()) {
 						// 如果是休眠状态，且不是停车侦测录像情况，避免线程执行过程中，ACC下电后仍然语音提醒“SD不存在”
 						if (!MyApp.isAccOn
 								&& !MyApp.shouldStopWhenCrashVideoSave) {
@@ -2021,7 +2021,7 @@ public class MainActivity extends Activity {
 
 	/** 拍照 */
 	public int takePhoto() {
-		if (!StorageUtil.isVideoCardExists()) { // 判断SD卡2是否存在，需要耗费一定时间
+		if (!StorageUtil.isFrontCardExist()) { // 判断SD卡2是否存在，需要耗费一定时间
 			noVideoSDHint(); // SDCard不存在
 			return -1;
 		} else if (recorderFront != null) {
@@ -2038,7 +2038,7 @@ public class MainActivity extends Activity {
 		if (recorderFront != null) {
 			if (!MyApp.isAccOffPhotoTaking) {
 				MyApp.isAccOffPhotoTaking = true;
-				if (StorageUtil.isVideoCardExists()) {
+				if (StorageUtil.isFrontCardExist()) {
 					setFrontDirectory(Constant.Path.SDCARD_2); // 如果录像卡不存在，则会保存到内部存储
 				}
 				HintUtil.playAudio(getApplicationContext(),
@@ -2060,7 +2060,7 @@ public class MainActivity extends Activity {
 	/** 语音拍照 */
 	public void takePhotoWhenVoiceCommand() {
 		if (recorderFront != null) {
-			if (StorageUtil.isVideoCardExists()) { // 如果录像卡不存在，则会保存到内部存储
+			if (StorageUtil.isFrontCardExist()) { // 如果录像卡不存在，则会保存到内部存储
 				setFrontDirectory(Constant.Path.SDCARD_2);
 			}
 
@@ -2476,7 +2476,7 @@ public class MainActivity extends Activity {
 			case 1: // 前录
 				this.removeMessages(1);
 				final boolean isDeleteFrontSuccess = StorageUtil
-						.releaseRecordStorage(context);
+						.releaseFrontStorage(context);
 				mMainHandler.post(new Runnable() {
 
 					@Override
@@ -2532,7 +2532,7 @@ public class MainActivity extends Activity {
 			case 1:
 				this.removeMessages(1);
 				final boolean isDeleteSuccess = StorageUtil
-						.releaseRecordStorage(context);
+						.releaseFrontStorage(context);
 				mMainHandler.post(new Runnable() {
 
 					@Override
