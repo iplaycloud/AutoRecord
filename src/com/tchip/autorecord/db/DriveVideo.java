@@ -6,18 +6,21 @@ public class DriveVideo {
 	String _name; // 视频名称
 	int _lock; // 视频是否锁定
 	int _resolution; // 视频分辨率
+	int _which; // 0-前录 1-后录
 
-	public DriveVideo(String name, int lock, int resolution) {
+	public DriveVideo(String name, int lock, int resolution, int which) {
 		_name = name;
 		_lock = lock;
 		_resolution = resolution;
+		_which = which;
 	}
 
-	public DriveVideo(int id, String name, int lock, int resolution) {
+	public DriveVideo(int id, String name, int lock, int resolution, int which) {
 		_id = id;
 		_name = name;
 		_lock = lock;
 		_resolution = resolution;
+		_which = which;
 	}
 
 	public int getId() {
@@ -50,6 +53,14 @@ public class DriveVideo {
 
 	public void setResolution(int resolution) {
 		_resolution = resolution;
+	}
+
+	public int getWhich() {
+		return _which;
+	}
+
+	public void setWhich(int which) {
+		_which = which;
 	}
 
 }

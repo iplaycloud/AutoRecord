@@ -12,7 +12,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class DriveVideoDbHelper extends SQLiteOpenHelper {
-	private static final int DATABASE_VERSION = 1;
+	private static final int DATABASE_VERSION = 2;
 	private static final String DATABASE_NAME = "video_db";
 
 	private static final String VIDEO_TABLE_NAME = "video";
@@ -20,6 +20,7 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 	private static final String VIDEO_COL_NAME = "name"; // 视频文件名称，如：2015-07-01_105536.mp4
 	private static final String VIDEO_COL_LOCK = "lock"; // 是否加锁：0-否 1-是
 	private static final String VIDEO_COL_RESOLUTION = "resolution"; // 视频分辨率：720/1080
+	private static final String VIDEO_COL_WHICH = "which"; // 0-前置 1-后置
 
 	private static final String[] VIDEO_COL_PROJECTION = new String[] {
 			VIDEO_COL_ID, VIDEO_COL_NAME, VIDEO_COL_LOCK, VIDEO_COL_RESOLUTION, };
@@ -34,7 +35,8 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 		String createRouteTableSql = "CREATE TABLE " + VIDEO_TABLE_NAME + " ("
 				+ VIDEO_COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ VIDEO_COL_NAME + " TEXT," + VIDEO_COL_LOCK + " INTEGER,"
-				+ VIDEO_COL_RESOLUTION + " INTEGER" + ");";
+				+ VIDEO_COL_RESOLUTION + " INTEGER," + VIDEO_COL_WHICH
+				+ " INTEGER" + ");";
 		db.execSQL(createRouteTableSql);
 	}
 
@@ -55,6 +57,7 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 		values.put(VIDEO_COL_NAME, driveVideo.getName());
 		values.put(VIDEO_COL_LOCK, driveVideo.getLock());
 		values.put(VIDEO_COL_RESOLUTION, driveVideo.getResolution());
+		values.put(VIDEO_COL_WHICH, driveVideo.getWhich());
 
 		// Insert to database
 		long rowId = db.insert(VIDEO_TABLE_NAME, null, values);
@@ -77,7 +80,8 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 			cursor.moveToFirst();
 
 		DriveVideo driveVideo = new DriveVideo(cursor.getInt(0),
-				cursor.getString(1), cursor.getInt(2), cursor.getInt(3));
+				cursor.getString(1), cursor.getInt(2), cursor.getInt(3),
+				cursor.getInt(4));
 
 		db.close();
 		cursor.close();
@@ -97,7 +101,8 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 			cursor.moveToFirst();
 
 		DriveVideo driveVideo = new DriveVideo(cursor.getInt(0),
-				cursor.getString(1), cursor.getInt(2), cursor.getInt(3));
+				cursor.getString(1), cursor.getInt(2), cursor.getInt(3),
+				cursor.getInt(4));
 
 		db.close();
 		cursor.close();
@@ -170,7 +175,8 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 		if (cursor.moveToFirst()) {
 			do {
 				DriveVideo driveVideo = new DriveVideo(cursor.getInt(0),
-						cursor.getString(1), cursor.getInt(2), cursor.getInt(3));
+						cursor.getString(1), cursor.getInt(2),
+						cursor.getInt(3), cursor.getInt(4));
 				driveVideoList.add(driveVideo);
 			} while (cursor.moveToNext());
 		}
@@ -279,6 +285,29 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 		}
 	}
 
+	/** 0-前置 ；1-后置 */
+	public String getVideoWhichById(int id) {
+		String sqlLine = "SELECT * FROM " + VIDEO_TABLE_NAME + " WHERE "
+				+ VIDEO_COL_ID + "=?";
+		String selection[] = new String[] { String.valueOf(id) };
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor = db.rawQuery(sqlLine, selection);
+		if (cursor.getCount() > 0) {
+			cursor.moveToFirst();
+			String videoWhich = cursor.getString(cursor
+					.getColumnIndex(VIDEO_COL_WHICH));
+
+			db.close();
+			cursor.close();
+
+			return videoWhich;
+		} else {
+			db.close();
+			cursor.close();
+			return "0";
+		}
+	}
+
 	public int updateDriveVideo(DriveVideo driveVideo) {
 		SQLiteDatabase db = this.getWritableDatabase();
 
@@ -286,6 +315,7 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 		values.put(VIDEO_COL_NAME, driveVideo.getName());
 		values.put(VIDEO_COL_LOCK, driveVideo.getLock());
 		values.put(VIDEO_COL_RESOLUTION, driveVideo.getResolution());
+		values.put(VIDEO_COL_WHICH, driveVideo.getWhich());
 
 		return db.update(VIDEO_TABLE_NAME, values, VIDEO_COL_ID + "=?",
 				new String[] { String.valueOf(driveVideo.getId()) });

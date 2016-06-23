@@ -60,7 +60,7 @@ public class StorageUtil {
 		MyLog.v("StorageUtil.isVideoCardExists:" + isVideoCardExist);
 		return isVideoCardExist;
 	}
-	
+
 	/** 录像SD卡是否存在 */
 	public static boolean isBackCardExist() {
 		boolean isVideoCardExist = false;
@@ -172,11 +172,18 @@ public class StorageUtil {
 				if (oldestUnlockVideoId != -1) {
 					String oldestUnlockVideoName = videoDb
 							.getVideNameById(oldestUnlockVideoId);
-					File file = new File(Constant.Path.RECORD_FRONT
-							+ oldestUnlockVideoName);
+					File file;
+					if ("1.".equals(videoDb
+							.getVideoWhichById(oldestUnlockVideoId))) { // 后录文件
+						file = new File(Constant.Path.RECORD_BACK
+								+ oldestUnlockVideoName);
+					} else { // 前录文件
+						file = new File(Constant.Path.RECORD_FRONT
+								+ oldestUnlockVideoName);
+					}
 					if (file.exists() && file.isFile()) {
 						MyLog.d("StorageUtil.Delete Old Unlock Video:"
-								+ file.getName());
+								+ file.getPath());
 						int i = 0;
 						while (!file.delete() && i < 3) {
 							i++;
@@ -210,13 +217,20 @@ public class StorageUtil {
 						HintUtil.showToast(context, strStorageFull);
 						String oldestVideoName = videoDb
 								.getVideNameById(oldestVideoId);
-						File file = new File(Constant.Path.RECORD_FRONT
-								+ oldestVideoName);
+						File file;
+						if ("1.".equals(videoDb
+								.getVideoWhichById(oldestUnlockVideoId))) { // 后录文件
+							file = new File(Constant.Path.RECORD_BACK
+									+ oldestVideoName);
+						} else { // 前录文件
+							file = new File(Constant.Path.RECORD_FRONT
+									+ oldestVideoName);
+						}
 						if (file.exists() && file.isFile()) {
-							MyLog.d("StorageUtil.Delete Old lock Video:"
-									+ file.getName());
+							MyLog.d("StorageUtil.Delete Old Unlock Video:"
+									+ file.getPath());
 							int i = 0;
-							while (!file.delete() && i < 5) {
+							while (!file.delete() && i < 3) {
 								i++;
 								MyLog.d("StorageUtil.Delete Old lock Video:"
 										+ file.getName() + " Filed!!! Try:" + i);
@@ -253,7 +267,7 @@ public class StorageUtil {
 						&& !fileName.endsWith(".tmp")) {
 					if (fileName.startsWith(".")) {
 						// Delete file start with dot but not the recording one
-						if (!MyApp.isFrontRecording) {
+						if (!MyApp.isFrontRecording && !MyApp.isBackRecording) {
 							file.delete();
 							MyLog.v("StorageUtil.RecursionCheckFile-Delete Error File start with DOT:"
 									+ fileName);

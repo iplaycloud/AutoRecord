@@ -2216,16 +2216,7 @@ public class MainActivity extends Activity {
 	/** 设置录像静音，需要已经初始化recorderBack */
 	private int setBackMute(boolean mute, boolean isFromUser) {
 		if (recorderBack != null) {
-			if (isFromUser) {
-				speakVoice(getResources().getString(
-						mute ? R.string.hint_video_mute_on
-								: R.string.hint_video_mute_off));
-			}
-			editor.putBoolean("videoMute", mute);
-			editor.commit();
-			muteState = mute ? Constant.Record.STATE_MUTE
-					: Constant.Record.STATE_UNMUTE;
-			return recorderBack.setMute(mute);
+			return recorderBack.setMute(false);
 		}
 		return -1;
 	}
@@ -2338,19 +2329,9 @@ public class MainActivity extends Activity {
 			recorderBack.setMediaFileDirectory(
 					TachographCallback.FILE_TYPE_IMAGE, "Image");
 			recorderBack.setClientName(this.getPackageName());
-			if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
-				recorderBack.setVideoSize(1920, 1080);
-				recorderBack
-						.setVideoFrameRate(Constant.Record.FRONT_FRAME_1080P);
-				recorderBack
-						.setVideoBiteRate(Constant.Record.FRONT_BITRATE_1080P);
-			} else {
-				recorderBack.setVideoSize(1280, 720);
-				recorderBack
-						.setVideoFrameRate(Constant.Record.FRONT_FRAME_720P);
-				recorderBack
-						.setVideoBiteRate(Constant.Record.FRONT_BITRATE_720P);
-			}
+			recorderBack.setVideoSize(640, 480); // 720, 480 = 640, 480
+			recorderBack.setVideoFrameRate(Constant.Record.BACK_FRAME);
+			recorderBack.setVideoBiteRate(Constant.Record.BACK_BITRATE);
 			if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
 				recorderBack.setVideoSeconds(1 * 60);
 			} else {
@@ -2466,7 +2447,7 @@ public class MainActivity extends Activity {
 					}
 					setupFrontViews(); // 更新录制按钮状态
 					DriveVideo driveVideo = new DriveVideo(videoName,
-							videoLock, videoResolution);
+							videoLock, videoResolution, 0);
 					videoDb.addDriveVideo(driveVideo);
 
 					StartCheckErrorFileThread(); // 执行onFileSave时，此file已经不隐藏，下个正在录的为隐藏
@@ -2567,7 +2548,7 @@ public class MainActivity extends Activity {
 
 					setupBackViews(); // 更新录制按钮状态
 					DriveVideo driveVideo = new DriveVideo(videoName,
-							videoLock, videoResolution);
+							videoLock, videoResolution, 1);
 					videoDb.addDriveVideo(driveVideo);
 
 					StartCheckErrorFileThread(); // 执行onFileSave时，此file已经不隐藏，下个正在录的为隐藏
@@ -2643,11 +2624,9 @@ public class MainActivity extends Activity {
 
 					@Override
 					public void run() {
-
 						if (MyApp.isBackPreview && recorderBack.start() == 0) {
 							setBackState(true);
 						}
-
 					}
 				});
 				this.removeMessages(2);
