@@ -42,7 +42,7 @@ public interface Constant {
 
 		/** TTS播报,Extra:content(String) */
 		public static final String TTS_SPEAK = "tchip.intent.action.TTS_SPEAK";
-		
+
 		/** 发送键值 */
 		public static final String SEND_KEY = "tchip.intent.action.SEND_KEY";
 
@@ -186,7 +186,7 @@ public interface Constant {
 		 * X1:3500 * 1000
 		 */
 		public static final int FRONT_BITRATE_720P = 7000 * 1000;
-		
+
 		/** 帧率 */
 		public static final int FRONT_FRAME_720P = 30;
 
@@ -201,11 +201,10 @@ public interface Constant {
 
 		/** 帧率 */
 		public static final int FRONT_FRAME_1080P = 30;
-		
-		
-		public static final int BACK_BITRATE = 3000 * 1000;
+
+		public static final int BACK_BITRATE = 2000 * 1000;
 		/** 帧率 */
-		public static final int BACK_FRAME = 24;
+		public static final int BACK_FRAME = 24; // 24,30
 
 		// 分辨率
 		public static final int STATE_RESOLUTION_720P = 0;
