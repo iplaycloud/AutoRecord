@@ -89,9 +89,7 @@ public class StorageUtil {
 		boolean isSuccess = new File(Constant.Path.RECORD_FRONT).mkdirs();
 		MyLog.v("StorageUtil.createRecordDirectory,mkdirs isSuccess:"
 				+ isSuccess);
-		if (Constant.Module.isRecordSingleCard) {
-			new File(Constant.Path.RECORD_BACK).mkdirs();
-		}
+		new File(Constant.Path.RECORD_BACK).mkdirs();
 	}
 
 	/**
@@ -124,30 +122,6 @@ public class StorageUtil {
 		}
 	}
 
-	/** 删除空视频文件夹 **/
-	public static void deleteEmptyVideoDirectory() {
-		File fileRoot = new File(Constant.Path.RECORD_FRONT);
-		if (fileRoot.exists()) {
-			File[] listFileDate = fileRoot.listFiles();
-			for (File file : listFileDate) {
-				if (file.isDirectory()) {
-					int numberChild = file.listFiles().length;
-					if (numberChild == 0) {
-						file.delete();
-						MyLog.v("StorageUtil.Delete Empty Video Directory:"
-								+ file.getName() + ",Length:" + numberChild);
-					}
-				}
-			}
-		}
-	}
-
-	/** SD卡空间不足 */
-	public static boolean isStorageLess() {
-		return Constant.Module.isRecordSingleCard ? FileUtil
-				.isStorageLessSingle() : FileUtil.isStorageLessDouble();
-	}
-
 	/**
 	 * 删除最旧视频，调用此函数的地方：
 	 * 
@@ -165,19 +139,17 @@ public class StorageUtil {
 			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context);
 			// AudioRecordDialog audioRecordDialog = new
 			// AudioRecordDialog(context);
-			StorageUtil.deleteEmptyVideoDirectory();
-			while (isStorageLess()) {
+			while (FileUtil.isFrontStorageLess()) {
 				int oldestUnlockVideoId = videoDb.getOldestUnlockVideoId();
 				// 删除较旧未加锁视频文件
 				if (oldestUnlockVideoId != -1) {
 					String oldestUnlockVideoName = videoDb
 							.getVideNameById(oldestUnlockVideoId);
 					File file;
-					if ("1.".equals(videoDb
-							.getVideoWhichById(oldestUnlockVideoId))) { // 后录文件
+					if (oldestUnlockVideoName.endsWith("_1.mp4")) { // 后录
 						file = new File(Constant.Path.RECORD_BACK
 								+ oldestUnlockVideoName);
-					} else { // 前录文件
+					} else {
 						file = new File(Constant.Path.RECORD_FRONT
 								+ oldestUnlockVideoName);
 					}
@@ -195,7 +167,110 @@ public class StorageUtil {
 				} else {
 					int oldestVideoId = videoDb.getOldestVideoId();
 					if (oldestVideoId == -1) {
-						if (isStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
+						if (FileUtil.isFrontStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
+							MyLog.e("StorageUtil:Storage is full...");
+							String strNoStorage = context
+									.getResources()
+									.getString(
+											R.string.hint_storage_full_cause_by_other);
+							HintUtil.showToast(context, strNoStorage);
+
+							// audioRecordDialog.showErrorDialog(strNoStorage);
+							// MyApp.speakVoice(strNoStorage);
+							return false;
+						}
+					} else {
+						// 提示用户清理空间，删除较旧的视频（加锁）
+						String strStorageFull = context
+								.getResources()
+								.getString(
+										R.string.hint_storage_full_and_delete_lock);
+						// MyApp.speakVoice(strStorageFull);
+						HintUtil.showToast(context, strStorageFull);
+						String oldestVideoName = videoDb
+								.getVideNameById(oldestVideoId);
+						File file;
+						if ("1.".equals(videoDb
+								.getVideoWhichById(oldestUnlockVideoId))) { // 后录文件
+							file = new File(Constant.Path.RECORD_BACK
+									+ oldestVideoName);
+						} else { // 前录文件
+							file = new File(Constant.Path.RECORD_FRONT
+									+ oldestVideoName);
+						}
+						if (file.exists() && file.isFile()) {
+							MyLog.d("StorageUtil.Delete Old Unlock Video:"
+									+ file.getPath());
+							int i = 0;
+							while (!file.delete() && i < 3) {
+								i++;
+								MyLog.d("StorageUtil.Delete Old lock Video:"
+										+ file.getName() + " Filed!!! Try:" + i);
+							}
+						}
+						videoDb.deleteDriveVideoById(oldestVideoId); // 删除数据库记录
+					}
+				}
+			}
+			return true;
+		} catch (Exception e) {
+			/*
+			 * 异常原因：1.文件由用户手动删除
+			 */
+			MyLog.e("StorageUtil.deleteOldestUnlockVideo:Catch Exception:"
+					+ e.toString());
+			e.printStackTrace();
+			return true;
+		}
+	}
+
+	/**
+	 * 删除最旧视频，调用此函数的地方：
+	 * 
+	 * 1.开启录像 {@link MainActivity#startRecordTask}
+	 * 
+	 * 2.文件保存回调{@link MainActivity#onFileSave}
+	 */
+	public static boolean releaseBackStorage(Context context) {
+		if (!StorageUtil.isBackCardExist()) {
+			MyLog.e("Storageutil.deleteOldestUnlockVideo:No Video Card");
+			return false;
+		}
+		try {
+			// 视频数据库
+			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context);
+			// AudioRecordDialog audioRecordDialog = new
+			// AudioRecordDialog(context);
+			while (FileUtil.isBackStorageLess()) {
+				int oldestUnlockVideoId = videoDb.getOldestUnlockVideoId();
+				// 删除较旧未加锁视频文件
+				if (oldestUnlockVideoId != -1) {
+					String oldestUnlockVideoName = videoDb
+							.getVideNameById(oldestUnlockVideoId);
+					File file;
+					if (oldestUnlockVideoName.endsWith("_1.mp4")) { // 后录
+						file = new File(Constant.Path.RECORD_BACK
+								+ oldestUnlockVideoName);
+					} else {
+						file = new File(Constant.Path.RECORD_FRONT
+								+ oldestUnlockVideoName);
+					}
+
+					if (file.exists() && file.isFile()) {
+						MyLog.d("StorageUtil.Delete Old Unlock Video:"
+								+ file.getPath());
+						int i = 0;
+						while (!file.delete() && i < 3) {
+							i++;
+							MyLog.d("StorageUtil.Delete Old Unlock Video:"
+									+ file.getName() + " Filed!!! Try:" + i);
+						}
+					}
+					videoDb.deleteDriveVideoById(oldestUnlockVideoId); // 删除数据库记录
+				} else {
+					int oldestVideoId = videoDb.getOldestVideoId();
+					if (oldestVideoId == -1) {
+						if (FileUtil.isFrontStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
 							MyLog.e("StorageUtil:Storage is full...");
 							String strNoStorage = context
 									.getResources()

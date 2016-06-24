@@ -33,44 +33,48 @@ public class FileUtil {
 	 * 后录路径：/storage/sdcard2/tachograph_back/DrivingRecord/unlock/
 	 * 
 	 */
-	public static boolean isStorageLessSingle() {
+	public static boolean isFrontStorageLess() {
 		// float sdTotal =
 		// StorageUtil.getSDTotalSize(Constant.Path.RECORD_SDCARD); // SD卡总空间
 		float sdFree = StorageUtil
 				.getSDAvailableSize(Constant.Path.RECORD_SDCARD); // SD剩余空间
 		float frontUse = (float) FileUtil.getTotalSizeOfFilesInDir(new File(
 				Constant.Path.RECORD_FRONT)); // 前置已用空间
-
 		float backUse = (float) FileUtil.getTotalSizeOfFilesInDir(new File(
 				Constant.Path.RECORD_BACK)); // 后置已用空间
-		float frontTotal = (sdFree + frontUse + backUse) * 4 / 5; // 前置归属空间
+
+		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
+		float frontTotal = recordTotal * 4 / 5; // 前置归属空间
 		float frontFree = frontTotal - frontUse; // 前置剩余空间
 		int intFrontFree = (int) frontFree;
 		int intSdFree = (int) sdFree;
 
-		boolean isStorageLess = intFrontFree < Constant.Record.SD_MIN_FREE_STORAGE
-				|| intSdFree < Constant.Record.SD_MIN_FREE_STORAGE;
-		MyLog.v("isStroageLess:" + isStorageLess + ",sdFree:" + sdFree
-				+ ",frontUse:" + frontUse + ",frontTotal:" + frontTotal
-				+ ",frontFree" + frontFree);
+		boolean isStorageLess = intFrontFree < Constant.Record.FRONT_MIN_FREE_STORAGE
+				|| intSdFree < Constant.Record.FRONT_MIN_FREE_STORAGE;
+		MyLog.v("FileUtil.isFrontStorageLess:" + isStorageLess);
 		return isStorageLess;
 	}
 
-	/**
-	 * [双录到两张SD卡]空间是否不足，需要删除旧视频
-	 * 
-	 * 前录路径：/storage/sdcard2/tachograph/ *.mp4
-	 * 
-	 * 后录路径：/storage/sdcard2/tachograph_back/DrivingRecord/unlock/
-	 * 
-	 */
-	public static boolean isStorageLessDouble() {
-		// float sdTotal = StorageUtil.getSDTotalSize(sdcardPath); // SD卡总空间
+	public static boolean isBackStorageLess() {
+		// float sdTotal =
+		// StorageUtil.getSDTotalSize(Constant.Path.RECORD_SDCARD); // SD卡总空间
 		float sdFree = StorageUtil
-				.getSDAvailableSize(Constant.Path.RECORD_SDCARD);
+				.getSDAvailableSize(Constant.Path.RECORD_SDCARD); // SD剩余空间
+		float frontUse = (float) FileUtil.getTotalSizeOfFilesInDir(new File(
+				Constant.Path.RECORD_FRONT)); // 前置已用空间
+		float backUse = (float) FileUtil.getTotalSizeOfFilesInDir(new File(
+				Constant.Path.RECORD_BACK)); // 后置已用空间
+
+		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
+		float backTotal = recordTotal * 1 / 5; // 后置归属空间
+		float backFree = backTotal - backUse; // 后置剩余空间
+		int intBackFree = (int) backFree;
 		int intSdFree = (int) sdFree;
-		MyLog.v("[StorageUtil]isStroageLess, sdFree:" + intSdFree);
-		return intSdFree < Constant.Record.SD_MIN_FREE_STORAGE;
+
+		boolean isStorageLess = intBackFree < Constant.Record.BACK_MIN_FREE_STORAGE
+				|| intSdFree < Constant.Record.FRONT_MIN_FREE_STORAGE;
+		MyLog.v("FileUtil.isBackStorageLess:" + isStorageLess);
+		return isStorageLess;
 	}
 
 	// ****************************************Below is OLD

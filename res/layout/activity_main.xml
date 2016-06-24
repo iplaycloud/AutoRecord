@@ -6,18 +6,24 @@
     tools:context="${relativePackage}.${activityClass}" >
 
     <RelativeLayout
-        android:layout_width="@dimen/surface_width"
+        android:layout_width="@dimen/surface_front_width"
         android:layout_height="match_parent"
         android:layout_centerInParent="true" >
 
         <SurfaceView
             android:id="@+id/surfaceViewFront"
-            android:layout_width="@dimen/surface_width"
+            android:layout_width="@dimen/surface_front_width"
             android:layout_height="match_parent" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="@dimen/surface_front_width"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true" >
 
         <SurfaceView
             android:id="@+id/surfaceViewBack"
-            android:layout_width="@dimen/surface_width"
+            android:layout_width="@dimen/surface_front_width"
             android:layout_height="match_parent" />
     </RelativeLayout>
 

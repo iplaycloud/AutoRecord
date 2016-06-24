@@ -11,6 +11,7 @@ import com.tchip.autorecord.db.DriveVideoDbHelper;
 import com.tchip.autorecord.service.SensorWatchService;
 import com.tchip.autorecord.util.ClickUtil;
 import com.tchip.autorecord.util.DateUtil;
+import com.tchip.autorecord.util.FileUtil;
 import com.tchip.autorecord.util.HintUtil;
 import com.tchip.autorecord.util.MyLog;
 import com.tchip.autorecord.util.ProviderUtil;
@@ -791,7 +792,7 @@ public class MainActivity extends Activity {
 			case R.id.imageFrontLock:
 			case R.id.textFrontLock:
 				if (!ClickUtil.isQuickClick(1000)) {
-					if (MyApp.isFrontRecording) {
+					if (MyApp.isFrontRecording || MyApp.isBackRecording) {
 						lockOrUnlockFrontVideo();
 					} else {
 						HintUtil.showToast(MainActivity.this, getResources()
@@ -893,7 +894,7 @@ public class MainActivity extends Activity {
 				layoutBack.setVisibility(View.VISIBLE);
 				surfaceViewBack
 						.setLayoutParams(new RelativeLayout.LayoutParams(854,
-								480));
+								480)); // 640,480
 				surfaceViewFront
 						.setLayoutParams(new RelativeLayout.LayoutParams(1, 1));
 				layoutFront.setVisibility(View.GONE);
@@ -1026,8 +1027,8 @@ public class MainActivity extends Activity {
 
 			case 2:
 				this.removeMessages(2);
-				// final boolean isDeleteSuccess = StorageUtil
-				// .releaseBackStorage(context);
+				final boolean isDeleteBackSuccess = StorageUtil
+						.releaseBackStorage(context);
 				mMainHandler.post(new Runnable() {
 
 					@Override
@@ -1068,6 +1069,22 @@ public class MainActivity extends Activity {
 				});
 				this.removeMessages(1);
 				break;
+
+			case 2:
+				this.removeMessages(2);
+				final boolean isDeleteBackSuccess = StorageUtil
+						.releaseBackStorage(context);
+				mMainHandler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						if (isDeleteBackSuccess) {
+						}
+
+					}
+				});
+				this.removeMessages(2);
+				break;
 			}
 		}
 
@@ -1099,8 +1116,8 @@ public class MainActivity extends Activity {
 		public void run() {
 			MyLog.v("CheckVideoThread.START:" + DateUtil.getTimeStr("mm:ss"));
 			isVideoChecking = true;
-			File file = new File(Constant.Path.RECORD_FRONT);
-			StorageUtil.RecursionCheckFile(MainActivity.this, file);
+			File dirRecord = new File(Constant.Path.RECORD_DIRECTORY);
+			StorageUtil.RecursionCheckFile(MainActivity.this, dirRecord);
 			MyLog.v("CheckVideoThread.END:" + DateUtil.getTimeStr("mm:ss"));
 			isVideoChecking = false;
 		}
@@ -1256,7 +1273,7 @@ public class MainActivity extends Activity {
 			messageReleaseWhenStartRecord.what = 1;
 			releaseStorageWhenStartRecordHandler
 					.sendMessage(messageReleaseWhenStartRecord);
-			if (!StorageUtil.isStorageLess()) {
+			if (!FileUtil.isFrontStorageLess()) {
 				return 0;
 			} else {
 				return -1;
@@ -1464,7 +1481,7 @@ public class MainActivity extends Activity {
 				this.removeMessages(1);
 				if (!ClickUtil.isPlusFrontTimeTooQuick(900)) {
 					secondFrontCount++;
-					if (MyApp.isFrontRecording && secondFrontCount % 5 == 0) {
+					if (MyApp.isFrontRecording && secondFrontCount % 10 == 0) {
 						ProviderUtil.setValue(context, Name.REC_FRONT_STATE,
 								"1");
 					}
@@ -1914,7 +1931,7 @@ public class MainActivity extends Activity {
 			recorderFront.setCamera(cameraFront);
 			// 前缀，后缀
 			recorderFront.setMediaFilenameFixs(
-					TachographCallback.FILE_TYPE_VIDEO, "", "");
+					TachographCallback.FILE_TYPE_VIDEO, "", "_0");
 			recorderFront.setMediaFilenameFixs(
 					TachographCallback.FILE_TYPE_SHARE_VIDEO, "", "");
 			recorderFront.setMediaFilenameFixs(
@@ -2083,9 +2100,7 @@ public class MainActivity extends Activity {
 
 	private int secondBackCount = -1;
 
-	/**
-	 * 录制时间秒钟复位:
-	 */
+	/** 录制时间秒钟复位 */
 	private void resetBackTimeText() {
 		secondBackCount = -1;
 		textBackTime.setText("00 : 00");
@@ -2176,7 +2191,7 @@ public class MainActivity extends Activity {
 				this.removeMessages(1);
 				if (!ClickUtil.isPlusBackTimeTooQuick(900)) {
 					secondBackCount++;
-					if (MyApp.isBackRecording && secondBackCount % 9 == 0) {
+					if (MyApp.isBackRecording && secondBackCount % 10 == 0) {
 						ProviderUtil
 								.setValue(context, Name.REC_BACK_STATE, "1");
 					}
@@ -2297,11 +2312,7 @@ public class MainActivity extends Activity {
 		}
 	};
 
-	/**
-	 * 打开摄像头
-	 * 
-	 * @return
-	 */
+	/** 打开摄像头 */
 	private boolean openBackCamera() {
 		if (cameraBack != null) {
 			closeBackCamera();
@@ -2440,7 +2451,7 @@ public class MainActivity extends Activity {
 			messageReleaseWhenStartRecord.what = 2;
 			releaseStorageWhenStartRecordHandler
 					.sendMessage(messageReleaseWhenStartRecord);
-			if (!StorageUtil.isStorageLess()) {
+			if (!FileUtil.isBackStorageLess()) {
 				return 0;
 			} else {
 				return -1;
@@ -2491,11 +2502,11 @@ public class MainActivity extends Activity {
 		MyLog.v("preview Back Camera");
 		try {
 			cameraBack.lock();
-			if (Constant.Module.useSystemCameraParam) { // 设置系统Camera参数
-				Camera.Parameters para = cameraBack.getParameters();
-				para.unflatten(Constant.Record.CAMERA_PARAMS);
-				cameraBack.setParameters(para);
-			}
+			// if (Constant.Module.useSystemCameraParam) { // 设置系统Camera参数
+			// Camera.Parameters para = cameraBack.getParameters();
+			// para.unflatten(Constant.Record.CAMERA_PARAMS);
+			// cameraBack.setParameters(para);
+			// }
 			cameraBack.setPreviewDisplay(surfaceHolderBack);
 			// camera.setDisplayOrientation(180);
 			cameraBack.startPreview();
@@ -2547,7 +2558,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			// StartCheckErrorFileThread();
+			StartCheckErrorFileThread();
 			int i = 0;
 			while (i < 5) {
 				if (MyApp.isBackRecording) {
@@ -2616,7 +2627,7 @@ public class MainActivity extends Activity {
 	/** 设置录像静音，需要已经初始化recorderBack */
 	private int setBackMute(boolean mute, boolean isFromUser) {
 		if (recorderBack != null) {
-			return recorderBack.setMute(false);
+			return recorderBack.setMute(true);
 		}
 		return -1;
 	}
@@ -2706,7 +2717,7 @@ public class MainActivity extends Activity {
 			recorderBack.setCamera(cameraBack);
 			// 前缀，后缀
 			recorderBack.setMediaFilenameFixs(
-					TachographCallback.FILE_TYPE_VIDEO, "", "");
+					TachographCallback.FILE_TYPE_VIDEO, "", "_1");
 			recorderBack.setMediaFilenameFixs(
 					TachographCallback.FILE_TYPE_SHARE_VIDEO, "", "");
 			recorderBack.setMediaFilenameFixs(

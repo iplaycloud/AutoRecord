@@ -4,7 +4,8 @@
     <dimen name="side_shadow_width">106dp</dimen>
     <dimen name="record_time_text_size">25sp</dimen>
     <dimen name="record_time_margin_top">5dp</dimen>
-    <dimen name="surface_width">569dp</dimen>
+    <dimen name="surface_front_width">569dp</dimen>
+    <dimen name="surface_back_width">427dp</dimen>
 
     <!-- Icon + Text -->
     <dimen name="icon_area_height">70dp</dimen>

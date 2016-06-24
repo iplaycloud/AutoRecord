@@ -72,7 +72,8 @@ public class SensorWatchService extends Service {
 					}
 					if (isCrash) {
 						// 当前录制视频加锁
-						if (MyApp.isFrontRecording && !MyApp.isFrontLock) {
+						if ((MyApp.isFrontRecording || MyApp.isBackRecording)
+								&& !MyApp.isFrontLock) {
 							MyApp.isFrontLock = true;
 							MyApp.isCrashed = true;
 							speakVoice(getResources().getString(

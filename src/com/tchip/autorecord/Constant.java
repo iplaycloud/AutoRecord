@@ -139,16 +139,16 @@ public interface Constant {
 		public static final boolean DEFAULT_ON = true;
 
 		/** 碰撞侦测默认灵敏度Level */
-		public static final float VALUE = 10.0f;
+		public static final float VALUE = 10.0f; // 10.0f
 
 		public static final int SENSITIVE_LOW = 0;
 		public static final int SENSITIVE_MIDDLE = 1;
 		public static final int SENSITIVE_HIGH = 2;
 		public static final int SENSITIVE_DEFAULT = SENSITIVE_MIDDLE;
 
-		public static final float VALUE_LOW = VALUE * 1.8f;
-		public static final float VALUE_MIDDLE = VALUE * 1.5f;
-		public static final float VALUE_HIGH = VALUE * 1.2f;
+		public static final float VALUE_LOW = VALUE * 2.1f; // 1.8f
+		public static final float VALUE_MIDDLE = VALUE * 1.8f; // 1.5f
+		public static final float VALUE_HIGH = VALUE * 1.5f; // 1.2f
 		public static final float VALUE_DEFAULT = VALUE_MIDDLE;
 
 	}
@@ -173,7 +173,9 @@ public interface Constant {
 		public static final int autoRecordDelay = 3500;
 
 		/** 循环录像保留空间(单位：字节B) */
-		public static final long SD_MIN_FREE_STORAGE = 400 * 1024 * 1024; // 400M
+		public static final long FRONT_MIN_FREE_STORAGE = 400 * 1024 * 1024; // 400M
+
+		public static final long BACK_MIN_FREE_STORAGE = 100 * 1024 * 1024; // 100M
 
 		/** 比特率240P */
 		public static final int BIT_RATE_240P = 120 * 1000;
@@ -185,7 +187,7 @@ public interface Constant {
 		 * 
 		 * X1:3500 * 1000
 		 */
-		public static final int FRONT_BITRATE_720P = 7000 * 1000;
+		public static final int FRONT_BITRATE_720P = 5000 * 1000;
 
 		/** 帧率 */
 		public static final int FRONT_FRAME_720P = 30;
@@ -200,11 +202,12 @@ public interface Constant {
 		public static final int FRONT_BITRATE_1080P = 10000 * 1000;
 
 		/** 帧率 */
-		public static final int FRONT_FRAME_1080P = 30;
+		public static final int FRONT_FRAME_1080P = 24;
 
-		public static final int BACK_BITRATE = 2000 * 1000;
+		public static final int BACK_BITRATE = 600 * 1000; // 2000 * 1000
 		/** 帧率 */
-		public static final int BACK_FRAME = 24; // 24,30
+		// 5>49(2M),15>26(2M)>49(0.5M),24>43(2M),30(NotOK:8,10,12,18)
+		public static final int BACK_FRAME = 15;
 
 		// 分辨率
 		public static final int STATE_RESOLUTION_720P = 0;
@@ -288,9 +291,6 @@ public interface Constant {
 		/** 是否是公版软件 */
 		public static final boolean isPublic = true;
 
-		/** 双录是否录制到单卡 */
-		public static final boolean isRecordSingleCard = true;
-
 		/** 是否提示90s后启动停车守卫 */
 		public static final boolean hintParkingMonitor = !isPublic;
 
@@ -313,6 +313,7 @@ public interface Constant {
 		/** 录像存储卡路径 */
 		public static String RECORD_SDCARD = SDCARD_2 + File.separator;// "/storage/sdcard2/";
 
+		public static String RECORD_DIRECTORY = "/storage/sdcard2/DrivingRecord/";
 		/** 前录存储路径 */
 		public static String RECORD_FRONT = "/storage/sdcard2/DrivingRecord/VideoFront/";
 		public static String IMAGE = "/storage/sdcard2/DrivingRecord/Image/";
