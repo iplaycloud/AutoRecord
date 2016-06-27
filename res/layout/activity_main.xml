@@ -25,6 +25,15 @@
             android:id="@+id/surfaceViewBack"
             android:layout_width="@dimen/surface_front_width"
             android:layout_height="match_parent" />
+        
+        <ImageView
+            android:id="@+id/imageBackCarLine"
+            android:visibility="gone"
+            android:contentDescription="@null"
+            android:src="@drawable/back_car_line"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
     </RelativeLayout>
 
     <!-- Back Layout -->

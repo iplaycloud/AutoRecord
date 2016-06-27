@@ -47,6 +47,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -91,6 +92,7 @@ public class MainActivity extends Activity {
 	private SurfaceView surfaceViewBack;
 	private SurfaceHolder surfaceHolderBack;
 	private TachographRecorder recorderBack;
+	private ImageView imageBackCarLine;
 
 	/** Intent是否是新的 */
 	private boolean isIntentInTime = false;
@@ -205,7 +207,6 @@ public class MainActivity extends Activity {
 		if (null != strBackState && strBackState.trim().length() > 0) {
 			switchCameraTo(Integer.parseInt(strBackState));
 		}
-
 		super.onResume();
 	}
 
@@ -368,8 +369,9 @@ public class MainActivity extends Activity {
 				MyApp.isAccOn = true;
 				MyApp.shouldWakeRecord = true;
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
-
+				imageBackCarLine.setVisibility(View.VISIBLE);
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
+				imageBackCarLine.setVisibility(View.GONE);
 				backToHome(); // FIXME
 			} else if (action.equals(Constant.Broadcast.GSENSOR_CRASH)) { // 停车守卫:侦测到碰撞广播触发
 				// TODO
@@ -699,6 +701,7 @@ public class MainActivity extends Activity {
 		MyOnClickListener myOnClickListener = new MyOnClickListener();
 		layoutBack = (RelativeLayout) findViewById(R.id.layoutBack);
 		layoutBack.setVisibility(View.GONE);
+		imageBackCarLine = (ImageView) findViewById(R.id.imageBackCarLine);
 		initialBackSurface(); // 后置
 
 		layoutFront = (RelativeLayout) findViewById(R.id.layoutFront);
@@ -941,6 +944,7 @@ public class MainActivity extends Activity {
 
 			layoutFront.setVisibility(View.VISIBLE);
 			layoutBack.setVisibility(View.GONE);
+			imageBackCarLine.setVisibility(View.GONE);
 			break;
 
 		case 1:
@@ -950,6 +954,15 @@ public class MainActivity extends Activity {
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
 			layoutFront.setVisibility(View.GONE);
+
+			String strBackState = ProviderUtil.getValue(context,
+					Name.BACK_CAR_STATE);
+			if (null != strBackState && strBackState.trim().length() > 0
+					&& "1".equals(strBackState)) {
+				imageBackCarLine.setVisibility(View.VISIBLE);
+			} else {
+				imageBackCarLine.setVisibility(View.GONE);
+			}
 			break;
 
 		default:
