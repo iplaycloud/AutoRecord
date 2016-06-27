@@ -162,6 +162,8 @@ public class MainActivity extends Activity {
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(Constant.Broadcast.ACC_ON);
 		intentFilter.addAction(Constant.Broadcast.ACC_OFF);
+		intentFilter.addAction(Constant.Broadcast.BACK_CAR_ON);
+		intentFilter.addAction(Constant.Broadcast.BACK_CAR_OFF);
 		intentFilter.addAction(Constant.Broadcast.GSENSOR_CRASH);
 		intentFilter.addAction(Constant.Broadcast.SPEECH_COMMAND);
 		intentFilter.addAction(Constant.Broadcast.MEDIA_FORMAT);
@@ -197,6 +199,11 @@ public class MainActivity extends Activity {
 		} catch (Exception e) {
 			e.printStackTrace();
 			MyLog.e("onResume catch Exception:" + e.toString());
+		}
+		String strBackState = ProviderUtil.getValue(context,
+				Name.BACK_CAR_STATE);
+		if (null != strBackState && strBackState.trim().length() > 0) {
+			switchCameraTo(Integer.parseInt(strBackState));
 		}
 
 		super.onResume();
@@ -343,7 +350,7 @@ public class MainActivity extends Activity {
 	private void backToHome() {
 		Intent intent = new Intent(Intent.ACTION_MAIN);
 		intent.addCategory(Intent.CATEGORY_HOME);
-		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		// intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		startActivity(intent);
 	}
 
@@ -360,7 +367,12 @@ public class MainActivity extends Activity {
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
 				MyApp.isAccOn = true;
 				MyApp.shouldWakeRecord = true;
+			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
+
+			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
+				backToHome(); // FIXME
 			} else if (action.equals(Constant.Broadcast.GSENSOR_CRASH)) { // 停车守卫:侦测到碰撞广播触发
+				// TODO
 				// if (!MyApp.isAccOn) {
 				// MyLog.v("[GSENSOR_CRASH]Before State->shouldCrashRecord:"
 				// + MyApp.shouldCrashRecord
@@ -772,20 +784,33 @@ public class MainActivity extends Activity {
 
 			case R.id.imageBackState:
 				if (!ClickUtil.isQuickClick(2000)) {
-					if (MyApp.isBackRecording) {
-						speakVoice(getResources().getString(
-								R.string.hint_back_record_stop));
-						MyLog.v("[onClick]stopRecorder()");
-						stopBackRecorder5Times();
-					} else {
-						if (StorageUtil.isBackCardExist()) {
+					String strBackEnable = ProviderUtil.getValue(context,
+							Name.REC_BACK_ENABLE);
+					if (null != strBackEnable
+							&& strBackEnable.trim().length() > 0
+							&& "1".equals(strBackEnable)) {
+						if (MyApp.isBackRecording) {
 							speakVoice(getResources().getString(
-									R.string.hint_back_record_start));
-							startRecordBack();
+									R.string.hint_back_record_stop));
+							MyLog.v("[onClick]stopRecorder()");
+							stopBackRecorder5Times();
 						} else {
-							noVideoSDHint();
+							if (StorageUtil.isBackCardExist()) {
+								speakVoice(getResources().getString(
+										R.string.hint_back_record_start));
+								startRecordBack();
+							} else {
+								noVideoSDHint();
+							}
 						}
+					} else {
+						HintUtil.showToast(
+								context,
+								getResources()
+										.getString(
+												R.string.hint_enable_back_in_engineer_mode));
 					}
+
 				}
 				break;
 
@@ -891,31 +916,44 @@ public class MainActivity extends Activity {
 
 			case R.id.imageFrontSwitch:
 			case R.id.textFrontSwitch:
-				layoutBack.setVisibility(View.VISIBLE);
-				surfaceViewBack
-						.setLayoutParams(new RelativeLayout.LayoutParams(854,
-								480)); // 640,480
-				surfaceViewFront
-						.setLayoutParams(new RelativeLayout.LayoutParams(1, 1));
-				layoutFront.setVisibility(View.GONE);
+				switchCameraTo(1);
 				break;
 
 			case R.id.imageBackSwitch:
 			case R.id.textBackSwitch:
-				surfaceViewFront
-						.setLayoutParams(new RelativeLayout.LayoutParams(854,
-								480));
-				surfaceViewBack
-						.setLayoutParams(new RelativeLayout.LayoutParams(1, 1));
-
-				layoutFront.setVisibility(View.VISIBLE);
-				layoutBack.setVisibility(View.GONE);
-
+				switchCameraTo(0);
 				break;
 
 			default:
 				break;
 			}
+		}
+	}
+
+	/** 切换前后摄像画面 */
+	private void switchCameraTo(int camera) {
+		switch (camera) {
+		case 0:
+			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(
+					854, 480));
+			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(1,
+					1));
+
+			layoutFront.setVisibility(View.VISIBLE);
+			layoutBack.setVisibility(View.GONE);
+			break;
+
+		case 1:
+			layoutBack.setVisibility(View.VISIBLE);
+			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
+					854, 480)); // 640,480
+			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
+					1));
+			layoutFront.setVisibility(View.GONE);
+			break;
+
+		default:
+			break;
 		}
 	}
 

@@ -27,6 +27,7 @@
     <string name="hint_front_record_start">开始前录</string>
     <string name="hint_front_record_stop">停止前录</string>
     <string name="hint_back_record_start">开始后录</string>
+    <string name="hint_enable_back_in_engineer_mode">请在工程模式激活后录</string>
     <string name="hint_back_record_stop">停止后录</string>
     <string name="hint_not_record">未录像</string>
     <string name="default_record_time">00 : 00</string>

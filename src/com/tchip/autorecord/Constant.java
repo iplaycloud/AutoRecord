@@ -33,6 +33,11 @@ public interface Constant {
 
 		/** ACC下电 */
 		public static final String ACC_OFF = "com.tchip.ACC_OFF";
+		
+        /** 倒车开始 */
+        public static final String BACK_CAR_ON = "com.tchip.KEY_BACK_CAR_ON";
+        /** 倒车结束 */
+        public static final String BACK_CAR_OFF = "com.tchip.KEY_BACK_CAR_OFF";
 
 		/** 通知设置打开GPS */
 		public static final String GPS_ON = "tchip.intent.action.GPS_ON";

@@ -15,6 +15,12 @@ public class ProviderUtil {
 		/** ACC状态:0-OFF 1-ON */
 		public static final String ACC_STATE = "acc_state";
 
+		/** 倒车状态 */
+		public static final String BACK_CAR_STATE = "back_car_state";
+
+		/** 是否开启后录 */
+		public static final String REC_BACK_ENABLE = "rec_back_enable";
+
 		/** 后录录像状态:0-未录像，1-录像 */
 		public static final String REC_BACK_STATE = "rec_back_state";
 
