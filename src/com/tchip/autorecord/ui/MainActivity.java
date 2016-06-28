@@ -18,6 +18,7 @@ import com.tchip.autorecord.util.ProviderUtil;
 import com.tchip.autorecord.util.ProviderUtil.Name;
 import com.tchip.autorecord.util.SettingUtil;
 import com.tchip.autorecord.util.StorageUtil;
+import com.tchip.autorecord.view.BackLineView;
 import com.tchip.tachograph.TachographCallback;
 import com.tchip.tachograph.TachographRecorder;
 
@@ -48,6 +49,7 @@ import android.view.WindowManager;
 import android.view.SurfaceHolder.Callback;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -93,7 +95,6 @@ public class MainActivity extends Activity {
 	private SurfaceView surfaceViewBack;
 	private SurfaceHolder surfaceHolderBack;
 	private TachographRecorder recorderBack;
-	private ImageView imageBackCarLine;
 
 	/** Intent是否是新的 */
 	private boolean isIntentInTime = false;
@@ -388,10 +389,10 @@ public class MainActivity extends Activity {
 				MyApp.shouldWakeRecord = true;
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
 				acquireFullWakeLock();
-				imageBackCarLine.setVisibility(View.VISIBLE);
+				setBackLineVisible(true);
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
 				releaseFullWakeLock();
-				imageBackCarLine.setVisibility(View.GONE);
+				setBackLineVisible(false);
 				backToHome(); // FIXME
 			} else if (action.equals(Constant.Broadcast.GSENSOR_CRASH)) { // 停车守卫:侦测到碰撞广播触发
 				// TODO
@@ -721,7 +722,6 @@ public class MainActivity extends Activity {
 		MyOnClickListener myOnClickListener = new MyOnClickListener();
 		layoutBack = (RelativeLayout) findViewById(R.id.layoutBack);
 		layoutBack.setVisibility(View.GONE);
-		imageBackCarLine = (ImageView) findViewById(R.id.imageBackCarLine);
 		initialBackSurface(); // 后置
 
 		layoutFront = (RelativeLayout) findViewById(R.id.layoutFront);
@@ -780,6 +780,17 @@ public class MainActivity extends Activity {
 		imageVideoMute.setOnClickListener(myOnClickListener);
 		textVideoMute = (TextView) findViewById(R.id.textVideoMute);
 		textVideoMute.setOnClickListener(myOnClickListener);
+	}
+
+	private void setBackLineVisible(boolean isVisible) {
+		LinearLayout layoutBackLine = (LinearLayout) findViewById(R.id.layoutBackLine);
+		if (isVisible) {
+			BackLineView backLineView = new BackLineView(this);
+			backLineView.invalidate(); // 通知view组件重绘
+			layoutBackLine.addView(backLineView);
+		} else {
+			layoutBackLine.removeAllViews();
+		}
 	}
 
 	class MyOnClickListener implements View.OnClickListener {
@@ -964,7 +975,7 @@ public class MainActivity extends Activity {
 
 			layoutFront.setVisibility(View.VISIBLE);
 			layoutBack.setVisibility(View.GONE);
-			imageBackCarLine.setVisibility(View.GONE);
+			setBackLineVisible(false);
 			break;
 
 		case 1:
@@ -979,9 +990,9 @@ public class MainActivity extends Activity {
 					Name.BACK_CAR_STATE);
 			if (null != strBackState && strBackState.trim().length() > 0
 					&& "1".equals(strBackState)) {
-				imageBackCarLine.setVisibility(View.VISIBLE);
+				setBackLineVisible(true);
 			} else {
-				imageBackCarLine.setVisibility(View.GONE);
+				setBackLineVisible(false);
 			}
 			break;
 
