@@ -58,7 +58,8 @@ public class MainActivity extends Activity {
 	private Editor editor;
 	private DriveVideoDbHelper videoDb;
 	private PowerManager powerManager;
-	private WakeLock wakeLock;
+	private WakeLock partialWakeLock;
+	private WakeLock fullWakeLock;
 
 	// 前置
 	private RelativeLayout layoutFront;
@@ -126,6 +127,10 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		context = getApplicationContext();
 		powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE); // 获取屏幕状态
+		fullWakeLock = powerManager.newWakeLock(
+				PowerManager.ACQUIRE_CAUSES_WAKEUP
+						| PowerManager.FULL_WAKE_LOCK, this.getClass()
+						.getCanonicalName() + "full");
 
 		sharedPreferences = getSharedPreferences(Constant.MySP.NAME,
 				Context.MODE_PRIVATE);
@@ -340,11 +345,24 @@ public class MainActivity extends Activity {
 	 * 
 	 * ON_AFTER_RELEASE
 	 */
-	private void acquireWakeLock(long timeout) {
-		wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-				this.getClass().getCanonicalName());
-		wakeLock.acquire(timeout);
-		MyLog.v("acquireWakeLock, timeout:" + timeout);
+	private void acquirePartialWakeLock(long timeout) {
+		partialWakeLock = powerManager.newWakeLock(
+				PowerManager.PARTIAL_WAKE_LOCK, this.getClass()
+						.getCanonicalName());
+		partialWakeLock.acquire(timeout);
+		MyLog.v("acquirePartialWakeLock, timeout:" + timeout);
+	}
+
+	private void acquireFullWakeLock() {
+		if (!fullWakeLock.isHeld()) {
+			fullWakeLock.acquire();
+		}
+	}
+
+	private void releaseFullWakeLock() {
+		if (fullWakeLock.isHeld()) {
+			fullWakeLock.release();
+		}
 	}
 
 	/** 返回HOME */
@@ -369,8 +387,10 @@ public class MainActivity extends Activity {
 				MyApp.isAccOn = true;
 				MyApp.shouldWakeRecord = true;
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
+				acquireFullWakeLock();
 				imageBackCarLine.setVisibility(View.VISIBLE);
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
+				releaseFullWakeLock();
 				imageBackCarLine.setVisibility(View.GONE);
 				backToHome(); // FIXME
 			} else if (action.equals(Constant.Broadcast.GSENSOR_CRASH)) { // 停车守卫:侦测到碰撞广播触发
@@ -1535,6 +1555,7 @@ public class MainActivity extends Activity {
 					if (MyApp.isFrontRecording && secondFrontCount % 10 == 0) {
 						ProviderUtil.setValue(context, Name.REC_FRONT_STATE,
 								"1");
+						acquirePartialWakeLock(10 * 1000);
 					}
 				}
 				if (MyApp.shouldStopWhenCrashVideoSave
@@ -1556,14 +1577,12 @@ public class MainActivity extends Activity {
 				case Constant.Record.STATE_INTERVAL_3MIN:
 					if (secondFrontCount >= 180) {
 						secondFrontCount = 0;
-						acquireWakeLock(185 * 1000);
 					}
 					break;
 
 				case Constant.Record.STATE_INTERVAL_1MIN:
 					if (secondFrontCount >= 60) {
 						secondFrontCount = 0;
-						acquireWakeLock(65 * 1000);
 					}
 					break;
 
@@ -2245,6 +2264,7 @@ public class MainActivity extends Activity {
 					if (MyApp.isBackRecording && secondBackCount % 10 == 0) {
 						ProviderUtil
 								.setValue(context, Name.REC_BACK_STATE, "1");
+						acquirePartialWakeLock(10 * 1000);
 					}
 				}
 				if (MyApp.shouldStopWhenCrashVideoSave && MyApp.isBackRecording) {
@@ -2265,14 +2285,12 @@ public class MainActivity extends Activity {
 				case Constant.Record.STATE_INTERVAL_3MIN:
 					if (secondBackCount >= 180) {
 						secondBackCount = 0;
-						acquireWakeLock(185 * 1000);
 					}
 					break;
 
 				case Constant.Record.STATE_INTERVAL_1MIN:
 					if (secondBackCount >= 60) {
 						secondBackCount = 0;
-						acquireWakeLock(65 * 1000);
 					}
 					break;
 

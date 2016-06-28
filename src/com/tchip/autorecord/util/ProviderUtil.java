@@ -93,7 +93,7 @@ public class ProviderUtil {
 						+ name);
 		ContentResolver contentResolver = context.getContentResolver();
 		Cursor cursor = contentResolver.query(uri, null, null, null, null);
-		if (cursor.getCount() > 0) {
+		if (cursor != null && cursor.getCount() > 0) {
 			cursor.moveToFirst();
 			dbValue = cursor.getString(cursor.getColumnIndex("value"));
 			cursor.close();
@@ -104,23 +104,28 @@ public class ProviderUtil {
 
 	public static void setValue(Context context, String name, String value) {
 		MyLog.v("ProviderUtil.setValue.Name:" + name + ",value:" + value);
-		Uri uriUpdate = Uri
-				.parse("content://com.tchip.provider.AutoProvider/state/name/"
-						+ name);
-		ContentResolver contentResolverUpdate = context.getContentResolver();
-		ContentValues valuesUpdate = new ContentValues();
-		valuesUpdate.put("value", value);
-		int count = contentResolverUpdate.update(uriUpdate, valuesUpdate,
-				"name=?", new String[] { name }); // Update
-		if (count == 0) {
-			Uri uriInsert = Uri
-					.parse("content://com.tchip.provider.AutoProvider/state/");
-			ContentResolver contentResolverInsert = context
+		try {
+			Uri uriUpdate = Uri
+					.parse("content://com.tchip.provider.AutoProvider/state/name/"
+							+ name);
+			ContentResolver contentResolverUpdate = context
 					.getContentResolver();
-			ContentValues valuesInsert = new ContentValues();
-			valuesInsert.put("name", name);
-			valuesInsert.put("value", value);
-			contentResolverInsert.insert(uriInsert, valuesInsert); // Insert
+			ContentValues valuesUpdate = new ContentValues();
+			valuesUpdate.put("value", value);
+			int count = contentResolverUpdate.update(uriUpdate, valuesUpdate,
+					"name=?", new String[] { name }); // Update
+			if (count == 0) {
+				Uri uriInsert = Uri
+						.parse("content://com.tchip.provider.AutoProvider/state/");
+				ContentResolver contentResolverInsert = context
+						.getContentResolver();
+				ContentValues valuesInsert = new ContentValues();
+				valuesInsert.put("name", name);
+				valuesInsert.put("value", value);
+				contentResolverInsert.insert(uriInsert, valuesInsert); // Insert
+			}
+		} catch (Exception e) {
+			MyLog.e("ProviderUtil.setValue Exception:" + e.toString());
 		}
 	}
 
