@@ -258,7 +258,7 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			backToHome();
+			sendKeyCode(KeyEvent.KEYCODE_HOME);
 			return true;
 		} else
 			return super.onKeyDown(keyCode, event);
@@ -366,14 +366,6 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	/** 返回HOME */
-	private void backToHome() {
-		Intent intent = new Intent(Intent.ACTION_MAIN);
-		intent.addCategory(Intent.CATEGORY_HOME);
-		// intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		startActivity(intent);
-	}
-
 	private MainReceiver mainReceiver;
 
 	public class MainReceiver extends BroadcastReceiver {
@@ -393,7 +385,6 @@ public class MainActivity extends Activity {
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
 				releaseFullWakeLock();
 				setBackLineVisible(false);
-				backToHome(); // FIXME
 			} else if (action.equals(Constant.Broadcast.GSENSOR_CRASH)) { // 停车守卫:侦测到碰撞广播触发
 				// TODO
 				// if (!MyApp.isAccOn) {
