@@ -790,6 +790,21 @@ public class MainActivity extends Activity {
 		imageBackLineEdit.setOnClickListener(myOnClickListener);
 		imageBackLineReset = (ImageButton) findViewById(R.id.imageBackLineReset);
 		imageBackLineReset.setOnClickListener(myOnClickListener);
+
+		String strBackLineShow = ProviderUtil.getValue(context,
+				Name.BACK_LINE_SHOW);
+		if (null != strBackLineShow && strBackLineShow.trim().length() > 0
+				&& "0".equals(strBackLineShow)) {
+			imageBackLineShow.setImageDrawable(getResources().getDrawable(
+					R.drawable.back_line_hide, null));
+			imageBackLineEdit.setVisibility(View.GONE);
+			imageBackLineReset.setVisibility(View.GONE);
+		} else {
+			imageBackLineShow.setImageDrawable(getResources().getDrawable(
+					R.drawable.back_line_show, null));
+			imageBackLineEdit.setVisibility(View.VISIBLE);
+			imageBackLineReset.setVisibility(View.VISIBLE);
+		}
 	}
 
 	private void setBackLineVisible(boolean isVisible) {
@@ -1034,7 +1049,7 @@ public class MainActivity extends Activity {
 		switch (camera) {
 		case 0:
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(
-					854, 480));
+					1184, 480));
 			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
 
@@ -1046,7 +1061,7 @@ public class MainActivity extends Activity {
 		case 1:
 			layoutBack.setVisibility(View.VISIBLE);
 			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
-					854, 480)); // 640,480
+					1184, 480)); // 854,480
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
 			layoutFront.setVisibility(View.GONE);
@@ -1688,6 +1703,7 @@ public class MainActivity extends Activity {
 			case 4: {
 				this.removeMessages(4);
 				MyApp.isCrashed = false;
+				setupFrontViews();
 				// 碰撞后判断是否需要加锁第二段视频
 				if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
 					if (secondFrontCount > 45) {
@@ -1698,7 +1714,6 @@ public class MainActivity extends Activity {
 						MyApp.isFrontLockSecond = true;
 					}
 				}
-				setupFrontViews();
 				this.removeMessages(4);
 			}
 				break;
