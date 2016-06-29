@@ -161,6 +161,7 @@ public interface Constant {
 	public static final class Record {
 		/** 是否开机自动录像 */
 		public static final boolean autoRecordFront = true;
+		public static final boolean autoRecordBack = true;
 
 		/** 默认是否静音 */
 		public static final boolean muteDefault = Module.isPublic;

@@ -23,7 +23,8 @@ public class MyApp extends Application {
 	public static boolean isWakeConfirm = false;
 
 	/** 插入录像卡：需要启动录像 */
-	public static boolean shouldMountRecord = false;
+	public static boolean shouldMountRecordFront = false;
+	public static boolean shouldMountRecordBack = false;
 
 	/** 休眠唤醒：需要启动录像 */
 	public static boolean shouldWakeRecord = false;
@@ -38,7 +39,8 @@ public class MyApp extends Application {
 	public static boolean shouldTakeVoicePhoto = false;
 
 	/** 语音停止录像 */
-	public static boolean shouldStopRecordFromVoice = false;
+	public static boolean shouldStopFrontFromVoice = false;
+	public static boolean shouldStopBackFromVoice = false;
 
 	/** ACC下电:拍照 */
 	public static boolean shouldTakePhotoWhenAccOff = false;
@@ -62,9 +64,11 @@ public class MyApp extends Application {
 
 	/** 当前视频片段是否加锁 */
 	public static boolean isFrontLock = false;
+	public static boolean isBackLock = false;
 
 	/** 第二段视频加锁 */
 	public static boolean isFrontLockSecond = false;
+	public static boolean isBackLockSecond = false;
 
 	/** 侦测到碰撞 */
 	public static boolean isCrashed = false;

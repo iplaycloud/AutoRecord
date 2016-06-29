@@ -20,16 +20,16 @@ public class CardEjectReceiver extends BroadcastReceiver {
 			if ("/storage/sdcard2".equals(intent.getData().getPath())) {
 				MyApp.isVideoCardEject = true;
 			}
-			// 规避播放音乐时拔SD,media-server died,从而导致主界面录像预览卡死问题
-			// 但会导致播放网络音乐拔SD卡,同样关掉酷我
-			// KWAPI.createKWAPI(context, "auto").exitAPP(context);
-			// context.sendBroadcast(new Intent("com.tchip.KILL_APP").putExtra(
-			// "value", "music_kuwo"));
 		} else if (action.equals(Intent.ACTION_MEDIA_MOUNTED)) {
-			if ("/storage/sdcard2".equals(intent.getData().getPath())) {
+			if ("/storage/sdcard2".equals(intent.getData().getPath())) { // 插入录像卡自动录像
 				StorageUtil.createRecordDirectory();
-				if (MyApp.isAccOn && !MyApp.isFrontRecording) {
-					MyApp.shouldMountRecord = true; // 插入录像卡自动录像
+				if (MyApp.isAccOn) {
+					if (!MyApp.isFrontRecording) {
+						MyApp.shouldMountRecordFront = true;
+					}
+					if (!MyApp.isBackRecording) {
+						MyApp.shouldMountRecordBack = true;
+					}
 				}
 				MyApp.isVideoCardEject = false;
 				MyApp.isVideoCardFormat = false;
