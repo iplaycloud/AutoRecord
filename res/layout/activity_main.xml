@@ -57,10 +57,39 @@
             android:visibility="gone" />
 
         <RelativeLayout
+            android:id="@+id/layoutBackLineControl"
             android:layout_width="@dimen/side_shadow_width"
             android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:background="@drawable/side_shadow" >
+            android:layout_alignParentLeft="true" >
+
+            <ImageButton
+                android:id="@+id/imageBackLineShow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:src="@drawable/back_line_show" />
+
+            <ImageButton
+                android:id="@+id/imageBackLineEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imageBackLineShow"
+                android:layout_centerHorizontal="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:src="@drawable/back_line_edit" />
+
+            <ImageButton
+                android:id="@+id/imageBackLineReset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/imageBackLineEdit"
+                android:layout_centerHorizontal="true"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:src="@drawable/back_line_reset" />
         </RelativeLayout>
 
         <RelativeLayout

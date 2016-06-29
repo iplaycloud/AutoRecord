@@ -95,6 +95,13 @@ public class MainActivity extends Activity {
 	private SurfaceView surfaceViewBack;
 	private SurfaceHolder surfaceHolderBack;
 	private TachographRecorder recorderBack;
+	// 倒车线控制
+	private LinearLayout layoutBackLine;
+	private BackLineView backLineView;
+	private RelativeLayout layoutBackLineControl;
+	private ImageButton imageBackLineShow;
+	private ImageButton imageBackLineEdit;
+	private ImageButton imageBackLineReset;
 
 	/** Intent是否是新的 */
 	private boolean isIntentInTime = false;
@@ -771,16 +778,59 @@ public class MainActivity extends Activity {
 		imageVideoMute.setOnClickListener(myOnClickListener);
 		textVideoMute = (TextView) findViewById(R.id.textVideoMute);
 		textVideoMute.setOnClickListener(myOnClickListener);
+
+		// 倒车线
+		layoutBackLine = (LinearLayout) findViewById(R.id.layoutBackLine);
+		backLineView = new BackLineView(this);
+		layoutBackLineControl = (RelativeLayout) findViewById(R.id.layoutBackLineControl);
+		layoutBackLineControl.setVisibility(View.GONE);
+		imageBackLineShow = (ImageButton) findViewById(R.id.imageBackLineShow);
+		imageBackLineShow.setOnClickListener(myOnClickListener);
+		imageBackLineEdit = (ImageButton) findViewById(R.id.imageBackLineEdit);
+		imageBackLineEdit.setOnClickListener(myOnClickListener);
+		imageBackLineReset = (ImageButton) findViewById(R.id.imageBackLineReset);
+		imageBackLineReset.setOnClickListener(myOnClickListener);
 	}
 
 	private void setBackLineVisible(boolean isVisible) {
-		LinearLayout layoutBackLine = (LinearLayout) findViewById(R.id.layoutBackLine);
 		if (isVisible) {
-			BackLineView backLineView = new BackLineView(this);
-			backLineView.invalidate(); // 通知view组件重绘
-			layoutBackLine.addView(backLineView);
+			layoutBackLineControl.setVisibility(View.VISIBLE);
+			String strBackLineShow = ProviderUtil.getValue(context,
+					Name.BACK_LINE_SHOW);
+			if (null != strBackLineShow && strBackLineShow.trim().length() > 0
+					&& "0".equals(strBackLineShow)) {
+				layoutBackLine.removeAllViews();
+			} else {
+				backLineView.invalidate(); // 通知view组件重绘
+				layoutBackLine.removeAllViews();
+				layoutBackLine.addView(backLineView);
+			}
 		} else {
+			layoutBackLineControl.setVisibility(View.GONE);
 			layoutBackLine.removeAllViews();
+		}
+	}
+
+	/** 更新倒车线控制图标 */
+	private void updateBackLineControlView() {
+		String strBackLineShow = ProviderUtil.getValue(context,
+				Name.BACK_LINE_SHOW);
+		if (null != strBackLineShow && strBackLineShow.trim().length() > 0
+				&& "0".equals(strBackLineShow)) {
+			imageBackLineShow.setImageDrawable(getResources().getDrawable(
+					R.drawable.back_line_hide, null));
+			layoutBackLine.removeAllViews();
+			imageBackLineEdit.setVisibility(View.GONE);
+			imageBackLineReset.setVisibility(View.GONE);
+		} else {
+			imageBackLineShow.setImageDrawable(getResources().getDrawable(
+					R.drawable.back_line_show, null));
+			backLineView.invalidate(); // 通知view组件重绘
+			layoutBackLine.removeAllViews();
+			layoutBackLine.addView(backLineView);
+
+			imageBackLineEdit.setVisibility(View.VISIBLE);
+			imageBackLineReset.setVisibility(View.VISIBLE);
 		}
 	}
 
@@ -947,6 +997,30 @@ public class MainActivity extends Activity {
 			case R.id.imageBackSwitch:
 			case R.id.textBackSwitch:
 				switchCameraTo(0);
+				break;
+
+			case R.id.imageBackLineShow:
+				String strBackLineShow = ProviderUtil.getValue(context,
+						Name.BACK_LINE_SHOW);
+				if (null != strBackLineShow
+						&& strBackLineShow.trim().length() > 0
+						&& "1".equals(strBackLineShow)) {
+					ProviderUtil.setValue(context, Name.BACK_LINE_SHOW, "0");
+				} else {
+					ProviderUtil.setValue(context, Name.BACK_LINE_SHOW, "1");
+				}
+				updateBackLineControlView();
+				break;
+
+			case R.id.imageBackLineEdit:
+				boolean isModifyMode = backLineView.getModifyMode();
+				backLineView.setModifyMode(!isModifyMode);
+				backLineView.invalidate();
+				break;
+
+			case R.id.imageBackLineReset:
+				backLineView.clearPonitConfig();
+				backLineView.invalidate();
 				break;
 
 			default:

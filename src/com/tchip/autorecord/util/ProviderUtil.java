@@ -18,6 +18,9 @@ public class ProviderUtil {
 		/** 倒车状态 */
 		public static final String BACK_CAR_STATE = "back_car_state";
 
+		/** 倒车线是否显示 */
+		public static final String BACK_LINE_SHOW = "back_line_show";
+
 		/** 是否开启后录 */
 		public static final String REC_BACK_ENABLE = "rec_back_enable";
 
