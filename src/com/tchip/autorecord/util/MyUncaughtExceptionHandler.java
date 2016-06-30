@@ -16,6 +16,7 @@ import java.util.Map;
 
 import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.R;
+import com.tchip.autorecord.util.ProviderUtil.Name;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -68,9 +69,7 @@ public class MyUncaughtExceptionHandler implements UncaughtExceptionHandler {
 		Thread.setDefaultUncaughtExceptionHandler(this);
 	}
 
-	/**
-	 * 当UncaughtException发生时会转入该函数来处理
-	 */
+	/** 当UncaughtException发生时会转入该函数来处理 */
 	@Override
 	public void uncaughtException(Thread thread, Throwable ex) {
 		MyApp.isAppException = true;
@@ -78,6 +77,9 @@ public class MyUncaughtExceptionHandler implements UncaughtExceptionHandler {
 			// 如果用户没有处理则让系统默认的异常处理器来处理
 			mDefaultHandler.uncaughtException(thread, ex);
 		} else {
+			// Reset Record State
+			ProviderUtil.setValue(context, Name.REC_FRONT_STATE, "0");
+			ProviderUtil.setValue(context, Name.REC_BACK_STATE, "0");
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {

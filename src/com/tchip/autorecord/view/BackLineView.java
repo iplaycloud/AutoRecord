@@ -166,20 +166,29 @@ public class BackLineView extends View {
 	private void loadPointConfig() {
 		point1[0] = sharedPreferences.getInt("point1x", point1[0]);
 		point1[1] = sharedPreferences.getInt("point1y", point1[1]);
-		point2[0] = sharedPreferences.getInt("point2x", point2[0]);
-		point2[1] = sharedPreferences.getInt("point2y", point2[1]);
-		point3[0] = sharedPreferences.getInt("point3x", point3[0]);
-		point3[1] = sharedPreferences.getInt("point3y", point3[1]);
 		point4[0] = sharedPreferences.getInt("point4x", point4[0]);
 		point4[1] = sharedPreferences.getInt("point4y", point4[1]);
+
 		point5[0] = sharedPreferences.getInt("point5x", point5[0]);
 		point5[1] = sharedPreferences.getInt("point5y", point5[1]);
-		point6[0] = sharedPreferences.getInt("point6x", point6[0]);
-		point6[1] = sharedPreferences.getInt("point6y", point6[1]);
-		point7[0] = sharedPreferences.getInt("point7x", point7[0]);
-		point7[1] = sharedPreferences.getInt("point7y", point7[1]);
 		point8[0] = sharedPreferences.getInt("point8x", point8[0]);
 		point8[1] = sharedPreferences.getInt("point8y", point8[1]);
+
+		point2[1] = sharedPreferences.getInt("point2y", point2[1]);
+		point2[0] = (point2[1] - point1[1]) * (point1[0] - point4[0])
+				/ (point1[1] - point4[1]) + point1[0];
+
+		point3[1] = sharedPreferences.getInt("point3y", point3[1]);
+		point3[0] = (point3[1] - point1[1]) * (point1[0] - point4[0])
+				/ (point1[1] - point4[1]) + point1[0];
+
+		point6[1] = sharedPreferences.getInt("point6y", point6[1]);
+		point6[0] = (point6[1] - point5[1]) * (point5[0] - point8[0])
+				/ (point5[1] - point8[1]) + point5[0];
+
+		point7[1] = sharedPreferences.getInt("point7y", point7[1]);
+		point7[0] = (point7[1] - point5[1]) * (point5[0] - point8[0])
+				/ (point5[1] - point8[1]) + point5[0];
 	}
 
 	public void clearPonitConfig() {
@@ -203,69 +212,160 @@ public class BackLineView extends View {
 	}
 
 	private void setPointLocation(int point, int x, int y) {
-		if (x < 50) { // x:0-1184
-			x = 50;
-		} else if (x > 1134) {
-			x = 1134;
+		if (x < 150) { // x:0-1184
+			x = 150;
+		} else if (x > 1034) {
+			x = 1034;
 		}
-		if (y < 20) { // y:0-480
-			y = 20;
+		if (y < 50) { // y:0-480
+			y = 50;
 		}
 		switch (point) {
 		case 1:
-			point1[0] = x;
-			point1[1] = y;
-			editor.putInt("point1x", x);
-			editor.putInt("point1y", y);
+			if (x < point8[0] - POINT_HINT_RADIUS * 2) {
+				point1[0] = x;
+				editor.putInt("point1x", x);
+			} else {
+				point1[0] = point8[0] - POINT_HINT_RADIUS * 2;
+				editor.putInt("point1x", point8[0] - POINT_HINT_RADIUS * 2);
+			}
+			if (y > 450) {
+				point1[1] = y;
+				editor.putInt("point1y", y);
+			} else {
+				point1[1] = 450;
+				editor.putInt("point1y", 450);
+			}
 			break;
 
 		case 2:
-			point2[0] = x;
-			point2[1] = y;
-			editor.putInt("point2x", x);
-			editor.putInt("point2y", y);
+			if (y > point1[1] - POINT_HINT_RADIUS * 2) {
+				point2[0] = x;
+				point2[1] = point1[1] - POINT_HINT_RADIUS * 2;
+				editor.putInt("point2x", x);
+				editor.putInt("point2y", point1[1] - POINT_HINT_RADIUS * 2);
+			} else if (y > point3[1] + POINT_HINT_RADIUS * 2 && y < point1[1]) {
+				point2[0] = x;
+				point2[1] = y;
+				editor.putInt("point2x", x);
+				editor.putInt("point2y", y);
+			} else {
+				point2[0] = x;
+				point2[1] = point3[1] + POINT_HINT_RADIUS * 2;
+				editor.putInt("point2x", x);
+				editor.putInt("point2y", point3[1] + POINT_HINT_RADIUS * 2);
+			}
 			break;
 
 		case 3:
-			point3[0] = x;
-			point3[1] = y;
-			editor.putInt("point3x", x);
-			editor.putInt("point3y", y);
+			if (y < point4[1] + POINT_HINT_RADIUS * 2) {
+				point3[0] = x;
+				point3[1] = point4[1] + POINT_HINT_RADIUS * 2;
+				editor.putInt("point3x", x);
+				editor.putInt("point3y", point4[1] + POINT_HINT_RADIUS * 2);
+			} else if (y > point2[1] - POINT_HINT_RADIUS * 2) {
+				point3[0] = x;
+				point3[1] = point2[1] - POINT_HINT_RADIUS * 2;
+				editor.putInt("point3x", x);
+				editor.putInt("point3y", point2[1] - POINT_HINT_RADIUS * 2);
+			} else {
+				point3[0] = x;
+				point3[1] = y;
+				editor.putInt("point3x", x);
+				editor.putInt("point3y", y);
+			}
 			break;
 
 		case 4:
-			point4[0] = x;
-			point4[1] = y;
-			editor.putInt("point4x", x);
-			editor.putInt("point4y", y);
+			if (y > point3[1] - POINT_HINT_RADIUS * 2) {
+				point4[1] = point3[1] - POINT_HINT_RADIUS * 2;
+				editor.putInt("point4y", point3[1] - POINT_HINT_RADIUS * 2);
+			} else {
+				point4[1] = y;
+				editor.putInt("point4y", y);
+			}
+
+			if (x > point5[0] - POINT_HINT_RADIUS * 2) {
+				point4[0] = x;
+				editor.putInt("point4x", point5[0] - POINT_HINT_RADIUS * 2);
+			} else {
+				point4[0] = x;
+				editor.putInt("point4x", x);
+			}
 			break;
 
 		case 5:
-			point5[0] = x;
-			point5[1] = y;
-			editor.putInt("point5x", x);
-			editor.putInt("point5y", y);
+			if (y > point6[1] - POINT_HINT_RADIUS * 2) {
+				point5[1] = point6[1] - POINT_HINT_RADIUS * 2;
+				editor.putInt("point5y", point6[1] - POINT_HINT_RADIUS * 2);
+			} else {
+				point5[1] = y;
+				editor.putInt("point5y", y);
+			}
+
+			if (x < point4[0] + POINT_HINT_RADIUS * 2) {
+				point5[0] = x;
+				editor.putInt("point5x", point4[0] + POINT_HINT_RADIUS * 2);
+			} else {
+				point5[0] = x;
+				editor.putInt("point5x", x);
+			}
+
 			break;
 
 		case 6:
-			point6[0] = x;
-			point6[1] = y;
-			editor.putInt("point6x", x);
-			editor.putInt("point6y", y);
+			if (y < point5[1] + POINT_HINT_RADIUS * 2) {
+				point6[0] = x;
+				point6[1] = point5[1] + POINT_HINT_RADIUS * 2;
+				editor.putInt("point6x", x);
+				editor.putInt("point6y", point5[1] + POINT_HINT_RADIUS * 2);
+			} else if (y > point7[1] - POINT_HINT_RADIUS * 2) {
+				point6[0] = x;
+				point6[1] = point7[1] - POINT_HINT_RADIUS * 2;
+				editor.putInt("point6x", x);
+				editor.putInt("point6y", point7[1] - POINT_HINT_RADIUS * 2);
+			} else {
+				point6[0] = x;
+				point6[1] = y;
+				editor.putInt("point6x", x);
+				editor.putInt("point6y", y);
+			}
 			break;
 
 		case 7:
-			point7[0] = x;
-			point7[1] = y;
-			editor.putInt("point7x", x);
-			editor.putInt("point7y", y);
+			if (y > point8[1] - POINT_HINT_RADIUS * 2) {
+				point7[0] = x;
+				point7[1] = point8[1] - POINT_HINT_RADIUS * 2;
+				editor.putInt("point7x", x);
+				editor.putInt("point7y", point8[1] - POINT_HINT_RADIUS * 2);
+			} else if (y > point6[1] + POINT_HINT_RADIUS * 2 && y < point8[1]) {
+				point7[0] = x;
+				point7[1] = y;
+				editor.putInt("point7x", x);
+				editor.putInt("point7y", y);
+			} else {
+				point7[0] = x;
+				point7[1] = point6[1] + POINT_HINT_RADIUS * 2;
+				editor.putInt("point7x", x);
+				editor.putInt("point7y", point6[1] + POINT_HINT_RADIUS * 2);
+			}
 			break;
 
 		case 8:
-			point8[0] = x;
-			point8[1] = y;
-			editor.putInt("point8x", x);
-			editor.putInt("point8y", y);
+			if (x > point1[0] + POINT_HINT_RADIUS * 2) {
+				point8[0] = x;
+				editor.putInt("point8x", x);
+			} else {
+				point8[0] = point1[0] + POINT_HINT_RADIUS * 2;
+				editor.putInt("point8x", point1[0] + POINT_HINT_RADIUS * 2);
+			}
+			if (y > 450) {
+				point8[1] = y;
+				editor.putInt("point8y", y);
+			} else {
+				point8[1] = 450;
+				editor.putInt("point8y", 450);
+			}
 			break;
 
 		default:

@@ -266,7 +266,7 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
-			sendKeyCode(KeyEvent.KEYCODE_HOME);
+			sendHomeKey();
 			return true;
 		} else
 			return super.onKeyDown(keyCode, event);
@@ -281,9 +281,20 @@ public class MainActivity extends Activity {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			sendKeyCode(KeyEvent.KEYCODE_HOME);
+
+			sendHomeKey();
 		}
 
+	}
+
+	private void sendHomeKey() {
+		String strBackState = ProviderUtil.getValue(context,
+				Name.BACK_CAR_STATE);
+		if (null != strBackState && strBackState.trim().length() > 0
+				&& "1".equals(strBackState)) { // 倒车不返回主页
+		} else {
+			sendKeyCode(KeyEvent.KEYCODE_HOME);
+		}
 	}
 
 	/** ContentProvder监听 */
@@ -914,6 +925,7 @@ public class MainActivity extends Activity {
 
 			imageBackLineEdit.setVisibility(View.VISIBLE);
 			imageBackLineReset.setVisibility(View.VISIBLE);
+			acquireFullWakeLock(); // 处理开机时已经在倒车情形
 		}
 	}
 
