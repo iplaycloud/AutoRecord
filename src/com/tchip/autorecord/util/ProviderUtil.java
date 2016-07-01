@@ -86,6 +86,10 @@ public class ProviderUtil {
 
 		/** 停车守卫开关:0,1 */
 		public static final String SET_PARK_MONITOR_STATE = "set_park_monitor_state";
+		
+		/** 停车守卫 */
+		public static final String PARK_REC_STATE = "park_rec_state";
+
 
 	}
 
