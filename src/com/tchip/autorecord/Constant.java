@@ -176,7 +176,7 @@ public interface Constant {
 		public static final boolean parkDefaultOn = true;
 
 		/** 开机自动录像延时 */
-		public static final int autoRecordDelay = 3500;
+		public static final int autoRecordDelay = 1500; // 3500
 
 		/** 循环录像保留空间(单位：字节B) */
 		public static final long FRONT_MIN_FREE_STORAGE = 400 * 1024 * 1024; // 400M

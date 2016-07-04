@@ -211,28 +211,59 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * 获取最旧且未加锁视频ID
+	 * 获取最旧且未加锁视频ID(Front)
 	 * 
 	 * @return
 	 */
-	public int getOldestUnlockVideoId() {
+	public int getOldestUnlockFrontVideoId() {
 		String sqlLine = "SELECT * FROM " + VIDEO_TABLE_NAME + " WHERE "
 				+ VIDEO_COL_LOCK + "=?";
 		String selection[] = new String[] { "0" };
 		SQLiteDatabase db = this.getReadableDatabase();
 		Cursor cursor = db.rawQuery(sqlLine, selection);
-		if (cursor.getCount() > 0) {
-			cursor.moveToFirst();
-			int id = cursor.getInt(cursor.getColumnIndex(VIDEO_COL_ID));
-
+		if (cursor.moveToFirst()) {
+			int id = -1;
+			String videoName = "";
+			do {
+				id = cursor.getInt(cursor.getColumnIndex(VIDEO_COL_ID));
+				videoName = cursor.getString(cursor
+						.getColumnIndex(VIDEO_COL_NAME));
+			} while (!videoName.endsWith("_0.mp4") && cursor.moveToNext());
 			db.close();
 			cursor.close();
-
 			return id;
 		} else {
 			db.close();
 			cursor.close();
+			return -1;
+		}
+	}
 
+	/**
+	 * 获取最旧且未加锁视频ID(Back)
+	 * 
+	 * @return
+	 */
+	public int getOldestUnlockBackVideoId() {
+		String sqlLine = "SELECT * FROM " + VIDEO_TABLE_NAME + " WHERE "
+				+ VIDEO_COL_LOCK + "=?";
+		String selection[] = new String[] { "0" };
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor = db.rawQuery(sqlLine, selection);
+		if (cursor.moveToFirst()) {
+			int id = -1;
+			String videoName = "";
+			do {
+				id = cursor.getInt(cursor.getColumnIndex(VIDEO_COL_ID));
+				videoName = cursor.getString(cursor
+						.getColumnIndex(VIDEO_COL_NAME));
+			} while (!videoName.endsWith("_1.mp4") && cursor.moveToNext());
+			db.close();
+			cursor.close();
+			return id;
+		} else {
+			db.close();
+			cursor.close();
 			return -1;
 		}
 	}

@@ -171,7 +171,7 @@ public class MainActivity extends Activity {
 					Name.PARK_REC_STATE);
 			if (null != strParkRecord && strParkRecord.trim().length() > 0
 					&& "1".equals(strParkRecord)) {
-				// TODO:开始停车守卫录像
+				acquirePartialWakeLock(10 * 1000);
 				new Thread(new AutoThread()).start(); // 序列任务线程
 			}
 		}
@@ -376,7 +376,6 @@ public class MainActivity extends Activity {
 				PowerManager.PARTIAL_WAKE_LOCK, this.getClass()
 						.getCanonicalName());
 		partialWakeLock.acquire(timeout);
-		MyLog.v("acquirePartialWakeLock, timeout:" + timeout);
 	}
 
 	private void acquireFullWakeLock() {
@@ -1357,11 +1356,9 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			MyLog.v("CheckVideoThread.START:" + DateUtil.getTimeStr("mm:ss"));
 			isVideoChecking = true;
 			File dirRecord = new File(Constant.Path.RECORD_DIRECTORY);
 			StorageUtil.RecursionCheckFile(MainActivity.this, dirRecord);
-			MyLog.v("CheckVideoThread.END:" + DateUtil.getTimeStr("mm:ss"));
 			isVideoChecking = false;
 		}
 
@@ -2970,7 +2967,7 @@ public class MainActivity extends Activity {
 		 * 
 		 * @param path
 		 *            视频：/storage/sdcard2/DrivingRecord/VideoFront/2016-05-
-		 *            04_155010.mp4
+		 *            04_155010_0.mp4
 		 *            图片:/storage/sdcard2/DrivingRecord/Image/2015-
 		 *            07-01_105536.jpg
 		 */
@@ -3002,8 +2999,6 @@ public class MainActivity extends Activity {
 					videoDb.addDriveVideo(driveVideo);
 
 					StartCheckErrorFileThread(); // 执行onFileSave时，此file已经不隐藏，下个正在录的为隐藏
-					MyLog.v("onFileSave.videoLock:" + videoLock
-							+ ", isVideoLockSecond:" + MyApp.isFrontLockSecond);
 				} else { // 图片
 					HintUtil.showToast(MainActivity.this, getResources()
 							.getString(R.string.hint_photo_save));
@@ -3079,7 +3074,7 @@ public class MainActivity extends Activity {
 		 * 
 		 * @param path
 		 *            视频：/storage/sdcard2/DrivingRecord/VideoBack/2016-05-
-		 *            04_155010.mp4
+		 *            04_155010_1.mp4
 		 */
 		@Override
 		public void onFileSave(int type, String path) {
@@ -3091,8 +3086,7 @@ public class MainActivity extends Activity {
 							.sendMessage(messageDeleteUnlockVideo);
 
 					String videoName = path.split("/")[5];
-					int videoResolution = (resolutionState == Constant.Record.STATE_RESOLUTION_720P) ? 720
-							: 1080;
+					int videoResolution = 640;
 					int videoLock = 0;
 
 					setupBackViews(); // 更新录制按钮状态

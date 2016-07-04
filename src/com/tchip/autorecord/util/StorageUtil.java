@@ -5,6 +5,7 @@ import java.io.File;
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.R;
+import com.tchip.autorecord.db.DriveVideo;
 import com.tchip.autorecord.db.DriveVideoDbHelper;
 
 import android.content.Context;
@@ -140,7 +141,7 @@ public class StorageUtil {
 			// AudioRecordDialog audioRecordDialog = new
 			// AudioRecordDialog(context);
 			while (FileUtil.isFrontStorageLess()) {
-				int oldestUnlockVideoId = videoDb.getOldestUnlockVideoId();
+				int oldestUnlockVideoId = videoDb.getOldestUnlockFrontVideoId();
 				// 删除较旧未加锁视频文件
 				if (oldestUnlockVideoId != -1) {
 					String oldestUnlockVideoName = videoDb
@@ -242,7 +243,7 @@ public class StorageUtil {
 			// AudioRecordDialog audioRecordDialog = new
 			// AudioRecordDialog(context);
 			while (FileUtil.isBackStorageLess()) {
-				int oldestUnlockVideoId = videoDb.getOldestUnlockVideoId();
+				int oldestUnlockVideoId = videoDb.getOldestUnlockBackVideoId();
 				// 删除较旧未加锁视频文件
 				if (oldestUnlockVideoId != -1) {
 					String oldestUnlockVideoName = videoDb
@@ -351,15 +352,11 @@ public class StorageUtil {
 						boolean isVideoExist = videoDb.isVideoExist(fileName);
 						if (!isVideoExist) {
 							// boolean isSuccess = file.delete();
-							boolean isSuccess = file.getAbsoluteFile().delete();
-							MyLog.v("StorageUtil.RecursionCheckFile-Delete Error File:"
-									+ file.getAbsolutePath()
-									+ ",canRead:"
-									+ file.canRead()
-									+ ",canWrite:"
-									+ file.canWrite()
-									+ ",isSuccess:"
-									+ isSuccess);
+							DriveVideo driveVideo = new DriveVideo(fileName, 0,
+									555, 0);
+							videoDb.addDriveVideo(driveVideo);
+							MyLog.v("StorageUtil.RecursionCheckFile-Insert Video To DB:"
+									+ file.getAbsolutePath());
 						}
 					}
 					return;
