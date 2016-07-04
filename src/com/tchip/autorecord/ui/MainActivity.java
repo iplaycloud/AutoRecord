@@ -66,6 +66,7 @@ public class MainActivity extends Activity {
 	private RelativeLayout layoutFront;
 	private TextView textFrontTime; // 时间跑秒
 	private ImageButton imageFrontState; // 录像按钮
+	private RelativeLayout layoutLock;
 	private ImageButton imageFrontLock; // 加锁按钮
 	private TextView textFrontLock;
 	private ImageButton imageFrontSwitch; // 前后切换
@@ -86,6 +87,7 @@ public class MainActivity extends Activity {
 
 	// 后置
 	private RelativeLayout layoutBack;
+	private RelativeLayout layoutBackRecord;
 	private TextView textBackTime;
 	private ImageButton imageBackState;
 	private ImageButton imageBackSwitch;
@@ -439,11 +441,7 @@ public class MainActivity extends Activity {
 			} else if (Constant.Broadcast.GOING_SHUTDOWN.equals(action)) {
 				MyApp.isGoingShutdown = true;
 			} else if (Constant.Broadcast.RELEASE_RECORD.equals(action)) { // 退出录像
-				releaseFrontCameraZone();
-				releaseBackCameraZone();
-				finish();
-				android.os.Process.killProcess(android.os.Process.myPid());
-				System.exit(1);
+				killAutoRecord();
 			}
 		}
 	}
@@ -784,6 +782,7 @@ public class MainActivity extends Activity {
 		MyOnClickListener myOnClickListener = new MyOnClickListener();
 		layoutBack = (RelativeLayout) findViewById(R.id.layoutBack);
 		layoutBack.setVisibility(View.GONE);
+		layoutBackRecord = (RelativeLayout) findViewById(R.id.layoutBackRecord);
 		initialBackSurface(); // 后置
 
 		layoutFront = (RelativeLayout) findViewById(R.id.layoutFront);
@@ -805,6 +804,7 @@ public class MainActivity extends Activity {
 		imageBackState.setOnClickListener(myOnClickListener);
 
 		// 锁定
+		layoutLock = (RelativeLayout) findViewById(R.id.layoutLock);
 		imageFrontLock = (ImageButton) findViewById(R.id.imageFrontLock);
 		imageFrontLock.setOnClickListener(myOnClickListener);
 		textFrontLock = (TextView) findViewById(R.id.textFrontLock);
@@ -873,6 +873,8 @@ public class MainActivity extends Activity {
 
 	private void setBackLineVisible(boolean isVisible) {
 		if (isVisible) {
+			layoutBackRecord.setVisibility(View.GONE);
+			layoutLock.setVisibility(View.GONE);
 			layoutBackLineControl.setVisibility(View.VISIBLE);
 			String strBackLineShow = ProviderUtil.getValue(context,
 					Name.BACK_LINE_SHOW);
@@ -885,6 +887,8 @@ public class MainActivity extends Activity {
 				layoutBackLine.addView(backLineView);
 			}
 		} else {
+			layoutBackRecord.setVisibility(View.VISIBLE);
+			layoutLock.setVisibility(View.VISIBLE);
 			layoutBackLineControl.setVisibility(View.GONE);
 			layoutBackLine.removeAllViews();
 		}
@@ -1535,41 +1539,29 @@ public class MainActivity extends Activity {
 
 	/** 启动录像 */
 	private void startRecordBack() {
-		if (!MyApp.isBackRecording) {
-			if (!MyApp.isAccOn) {
-				String strParkRecord = ProviderUtil.getValue(context,
-						Name.PARK_REC_STATE);
-				if (null != strParkRecord && strParkRecord.trim().length() > 0
-						&& "1".equals(strParkRecord)) {
+		try {
+			if (!MyApp.isBackRecording) {
+				if (!MyApp.isAccOn) {
+					String strParkRecord = ProviderUtil.getValue(context,
+							Name.PARK_REC_STATE);
+					if (null != strParkRecord
+							&& strParkRecord.trim().length() > 0
+							&& "1".equals(strParkRecord)) {
+						if (startBackRecord() == 0) {
+							setBackState(true);
+						} else {
+							MyLog.e("Back.Start Record Failed");
+						}
+					}
+				} else {
 					if (startBackRecord() == 0) {
 						setBackState(true);
 					} else {
 						MyLog.e("Back.Start Record Failed");
 					}
 				}
-			} else {
-				if (startBackRecord() == 0) {
-					setBackState(true);
-				} else {
-					MyLog.e("Back.Start Record Failed");
-				}
+				setupBackViews();
 			}
-			setupBackViews();
-		}
-
-		try {
-			if (!MyApp.isBackRecording) {
-				// if (!MyApp.isAccOn) {
-				// if (!ClickUtil.isHintSleepTooQuick(3000)) {
-				// HintUtil.showToast(MainActivity.this, getResources()
-				// .getString(R.string.hint_stop_record_sleeping));
-				// }
-				// } else {
-				// new Thread(new StartBackRecordThread()).start(); // 开始录像
-				// }
-			} else {
-			}
-
 			MyLog.v("MyApp.isBackReording:" + MyApp.isBackRecording);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2016,9 +2008,11 @@ public class MainActivity extends Activity {
 				if (!ClickUtil.isPlusFrontTimeTooQuick(900)) {
 					secondFrontCount++;
 					if (MyApp.isFrontRecording && secondFrontCount % 10 == 0) {
-						ProviderUtil.setValue(context, Name.REC_FRONT_STATE,
-								"1");
 						acquirePartialWakeLock(10 * 1000);
+						if (secondFrontCount % 30 == 0) {
+							ProviderUtil.setValue(context,
+									Name.REC_FRONT_STATE, "1");
+						}
 					}
 				}
 
@@ -2154,9 +2148,11 @@ public class MainActivity extends Activity {
 				if (!ClickUtil.isPlusBackTimeTooQuick(900)) {
 					secondBackCount++;
 					if (MyApp.isBackRecording && secondBackCount % 10 == 0) {
-						ProviderUtil
-								.setValue(context, Name.REC_BACK_STATE, "1");
 						acquirePartialWakeLock(10 * 1000);
+						if (secondBackCount % 30 == 0) {
+							ProviderUtil.setValue(context, Name.REC_BACK_STATE,
+									"1");
+						}
 					}
 				}
 				if (!MyApp.isAccOn) {
@@ -2559,6 +2555,16 @@ public class MainActivity extends Activity {
 				setFrontState(false);
 			}
 		}
+		// 处理停车录像过程中，拔卡停止录像或者手动停止录像情况
+		if (!MyApp.isAccOn && !MyApp.isBackRecording) {
+			String strParkRecord = ProviderUtil.getValue(context,
+					Name.PARK_REC_STATE);
+			if (null != strParkRecord && strParkRecord.trim().length() > 0
+					&& "0".equals(strParkRecord)) {
+			} else {
+				ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
+			}
+		}
 	}
 
 	/** 停止录像x5 */
@@ -2576,6 +2582,16 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 			} finally {
 				setBackState(false);
+			}
+		}
+		// 处理停车录像过程中，拔卡停止录像或者手动停止录像情况
+		if (!MyApp.isAccOn && !MyApp.isFrontRecording) {
+			String strParkRecord = ProviderUtil.getValue(context,
+					Name.PARK_REC_STATE);
+			if (null != strParkRecord && strParkRecord.trim().length() > 0
+					&& "0".equals(strParkRecord)) {
+			} else {
+				ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
 			}
 		}
 	}
@@ -2620,6 +2636,15 @@ public class MainActivity extends Activity {
 				// e.printStackTrace();
 			}
 		}
+	}
+
+	/** 关闭录像程序 */
+	private void killAutoRecord() {
+		releaseFrontCameraZone();
+		releaseBackCameraZone();
+		finish();
+		android.os.Process.killProcess(android.os.Process.myPid());
+		System.exit(1);
 	}
 
 	/** 释放Camera */

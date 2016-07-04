@@ -55,42 +55,45 @@ public class SensorWatchService extends Service {
 		sensorEventListener = new SensorEventListener() {
 			@Override
 			public void onSensorChanged(SensorEvent event) {
-				if (MyApp.isAccOn && MyApp.isCrashOn) {
-					LIMIT_X = LIMIT_Y = LIMIT_Z = SettingUtil
-							.getGravityVauleBySensitive(MyApp.crashSensitive);
-					valueX = event.values[AXIS_X];
-					valueY = event.values[AXIS_Y];
-					valueZ = event.values[AXIS_Z];
+				if (MyApp.isAccOn) {
+					if (MyApp.isCrashOn) {
+						LIMIT_X = LIMIT_Y = LIMIT_Z = SettingUtil
+								.getGravityVauleBySensitive(MyApp.crashSensitive);
+						valueX = event.values[AXIS_X];
+						valueY = event.values[AXIS_Y];
+						valueZ = event.values[AXIS_Z];
 
-					if (valueX > LIMIT_X || valueX < -LIMIT_X) {
-						crashFlag[0] = 1;
-						isCrash = true;
-					}
-					if (valueZ > LIMIT_Z || valueZ < -LIMIT_Z) {
-						crashFlag[2] = 1;
-						isCrash = true;
-					}
-					if (isCrash) {
-						// 当前录制视频加锁
-						if ((MyApp.isFrontRecording || MyApp.isBackRecording)
-								&& !MyApp.isFrontLock) {
-							MyApp.isFrontLock = true;
-							MyApp.isCrashed = true;
-							speakVoice(getResources().getString(
-									R.string.hint_video_lock));
-							HintUtil.showToast(context, getResources()
-									.getString(R.string.hint_video_lock));
-							MyLog.v("SensorWarchService.Crashed->VideoLock;LIMIT:"
-									+ LIMIT_X
-									+ ",X:"
-									+ valueX
-									+ ",Y:"
-									+ valueY
-									+ ",Z:" + valueZ);
+						if (valueX > LIMIT_X || valueX < -LIMIT_X) {
+							crashFlag[0] = 1;
+							isCrash = true;
 						}
-						// 重置碰撞标志位
-						isCrash = false;
+						if (valueZ > LIMIT_Z || valueZ < -LIMIT_Z) {
+							crashFlag[2] = 1;
+							isCrash = true;
+						}
+						if (isCrash) {
+							// 当前录制视频加锁
+							if ((MyApp.isFrontRecording || MyApp.isBackRecording)
+									&& !MyApp.isFrontLock) {
+								MyApp.isFrontLock = true;
+								MyApp.isCrashed = true;
+								speakVoice(getResources().getString(
+										R.string.hint_video_lock));
+								HintUtil.showToast(context, getResources()
+										.getString(R.string.hint_video_lock));
+								MyLog.v("SensorWarchService.Crashed->VideoLock;LIMIT:"
+										+ LIMIT_X
+										+ ",X:"
+										+ valueX
+										+ ",Y:"
+										+ valueY + ",Z:" + valueZ);
+							}
+							// 重置碰撞标志位
+							isCrash = false;
+						}
 					}
+				} else {
+					stopSelf();
 				}
 			}
 
