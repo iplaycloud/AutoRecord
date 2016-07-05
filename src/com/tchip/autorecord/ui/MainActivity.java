@@ -1204,16 +1204,7 @@ public class MainActivity extends Activity {
 				HintUtil.playAudio(getApplicationContext(),
 						com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
 				recorderFront.takePicture();
-
-				if (sharedPreferences.getBoolean(Constant.MySP.STR_PARKING_ON,
-						true) && Constant.Module.hintParkingMonitor) {
-					speakVoice(getResources().getString(
-							R.string.hint_start_park_monitor_after_90));
-				}
 			}
-			// if (powerManager.isScreenOn()) {
-			// sendKeyCode(KeyEvent.KEYCODE_POWER); // 熄屏
-			// }
 		}
 	}
 
@@ -2022,15 +2013,15 @@ public class MainActivity extends Activity {
 						if (MyApp.isFrontRecording
 								&& secondFrontCount == Constant.Record.parkVideoLength) {
 							String videoTimeStr = sharedPreferences.getString(
-									"videoTime", "3");
-							intervalState = "1".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_1MIN
-									: Constant.Record.STATE_INTERVAL_3MIN;
+									"videoTime", "1");
+							intervalState = "3".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_3MIN
+									: Constant.Record.STATE_INTERVAL_1MIN;
 
 							MyLog.v("Front.updateFrontTimeHandler.Stop Park Record");
 							stopFrontRecorder5Times(); // 停止录像
 							stopBackRecorder5Times();
-							setFrontInterval(("1".equals(videoTimeStr)) ? 1 * 60
-									: 3 * 60); // 重设视频分段
+							setFrontInterval(("3".equals(videoTimeStr)) ? 3 * 60
+									: 1 * 60); // 重设视频分段
 							ProviderUtil.setValue(context, Name.PARK_REC_STATE,
 									"0");
 						}
@@ -2161,15 +2152,15 @@ public class MainActivity extends Activity {
 						if (MyApp.isBackRecording
 								&& secondBackCount == Constant.Record.parkVideoLength) {
 							String videoTimeStr = sharedPreferences.getString(
-									"videoTime", "3");
-							intervalState = "1".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_1MIN
-									: Constant.Record.STATE_INTERVAL_3MIN;
+									"videoTime", "1");
+							intervalState = "3".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_3MIN
+									: Constant.Record.STATE_INTERVAL_1MIN;
 
 							MyLog.v("Back.updateFrontTimeHandler.Stop Park Record");
 							stopFrontRecorder5Times(); // 停止录像
 							stopBackRecorder5Times();
-							setFrontInterval(("1".equals(videoTimeStr)) ? 1 * 60
-									: 3 * 60); // 重设视频分段
+							setFrontInterval(("3".equals(videoTimeStr)) ? 3 * 60
+									: 1 * 60); // 重设视频分段
 							ProviderUtil.setValue(context, Name.PARK_REC_STATE,
 									"0");
 						}
@@ -2707,9 +2698,9 @@ public class MainActivity extends Activity {
 		resolutionState = "1080".equals(videoSizeStr) ? Constant.Record.STATE_RESOLUTION_1080P
 				: Constant.Record.STATE_RESOLUTION_720P;
 
-		String videoTimeStr = sharedPreferences.getString("videoTime", "3"); // 视频分段
-		intervalState = "1".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_1MIN
-				: Constant.Record.STATE_INTERVAL_3MIN;
+		String videoTimeStr = sharedPreferences.getString("videoTime", "1"); // 视频分段
+		intervalState = "3".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_3MIN
+				: Constant.Record.STATE_INTERVAL_1MIN;
 	}
 
 	private void refreshBackButton() {
@@ -2717,9 +2708,9 @@ public class MainActivity extends Activity {
 		resolutionState = "1080".equals(videoSizeStr) ? Constant.Record.STATE_RESOLUTION_1080P
 				: Constant.Record.STATE_RESOLUTION_720P;
 
-		String videoTimeStr = sharedPreferences.getString("videoTime", "3"); // 视频分段
-		intervalState = "1".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_1MIN
-				: Constant.Record.STATE_INTERVAL_3MIN;
+		String videoTimeStr = sharedPreferences.getString("videoTime", "1"); // 视频分段
+		intervalState = "3".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_3MIN
+				: Constant.Record.STATE_INTERVAL_1MIN;
 	}
 
 	/** 设置分辨率 */
@@ -2843,10 +2834,10 @@ public class MainActivity extends Activity {
 				recorderFront
 						.setVideoBiteRate(Constant.Record.FRONT_BITRATE_720P);
 			}
-			if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
-				recorderFront.setVideoSeconds(1 * 60);
-			} else {
+			if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
 				recorderFront.setVideoSeconds(3 * 60);
+			} else {
+				recorderFront.setVideoSeconds(1 * 60);
 			}
 			recorderFront.setVideoOverlap(0);
 			recorderFront.prepare();
@@ -2880,10 +2871,10 @@ public class MainActivity extends Activity {
 			recorderBack.setVideoSize(640, 480); // (640, 480)(1280,720)
 			recorderBack.setVideoFrameRate(Constant.Record.BACK_FRAME);
 			recorderBack.setVideoBiteRate(Constant.Record.BACK_BITRATE);
-			if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
-				recorderBack.setVideoSeconds(1 * 60);
-			} else {
+			if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
 				recorderBack.setVideoSeconds(3 * 60);
+			} else {
+				recorderBack.setVideoSeconds(1 * 60);
 			}
 			recorderBack.setVideoOverlap(0);
 			recorderBack.prepare();

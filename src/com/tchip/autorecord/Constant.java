@@ -33,11 +33,11 @@ public interface Constant {
 
 		/** ACC下电 */
 		public static final String ACC_OFF = "com.tchip.ACC_OFF";
-		
-        /** 倒车开始 */
-        public static final String BACK_CAR_ON = "com.tchip.KEY_BACK_CAR_ON";
-        /** 倒车结束 */
-        public static final String BACK_CAR_OFF = "com.tchip.KEY_BACK_CAR_OFF";
+
+		/** 倒车开始 */
+		public static final String BACK_CAR_ON = "com.tchip.KEY_BACK_CAR_ON";
+		/** 倒车结束 */
+		public static final String BACK_CAR_OFF = "com.tchip.KEY_BACK_CAR_OFF";
 
 		/** 通知设置打开GPS */
 		public static final String GPS_ON = "tchip.intent.action.GPS_ON";
@@ -172,14 +172,11 @@ public interface Constant {
 		/** 停车侦测录像时长(s) */
 		public static final int parkVideoLength = 60;
 
-		/** 停车侦测是否默认打开 */
-		public static final boolean parkDefaultOn = true;
-
 		/** 开机自动录像延时 */
-		public static final int autoRecordDelay = 1500; // 3500
+		public static final int autoRecordDelay = 3500;
 
 		/** 循环录像保留空间(单位：字节B) */
-		public static final long FRONT_MIN_FREE_STORAGE = 400 * 1024 * 1024; // 400M
+		public static final long FRONT_MIN_FREE_STORAGE = 500 * 1024 * 1024; // 400M
 
 		public static final long BACK_MIN_FREE_STORAGE = 100 * 1024 * 1024; // 100M
 
@@ -192,6 +189,8 @@ public interface Constant {
 		 * MTK:9000 * 1000
 		 * 
 		 * X1:3500 * 1000
+		 * 
+		 * 1280x720=921600
 		 */
 		public static final int FRONT_BITRATE_720P = 5000 * 1000;
 
@@ -204,6 +203,8 @@ public interface Constant {
 		 * MTK:17000 * 1000
 		 * 
 		 * X1:8000 * 1000
+		 * 
+		 * 1920x1080=2073600
 		 */
 		public static final int FRONT_BITRATE_1080P = 10000 * 1000;
 
@@ -212,8 +213,8 @@ public interface Constant {
 
 		public static final int BACK_BITRATE = 600 * 1000; // 2000 * 1000
 		/** 帧率 */
-		// 5>49(2M),15>26(2M)>49(0.5M),24>43(2M),30(NotOK:8,10,12,18)
-		public static final int BACK_FRAME = 15;
+		// 5>49(2M),15>26(2M)>49(0.5M),24>43(2M),30>29(0.5M)(NotOK:8,10,12,18)
+		public static final int BACK_FRAME = 30; // 15
 
 		// 分辨率
 		public static final int STATE_RESOLUTION_720P = 0;
@@ -296,9 +297,6 @@ public interface Constant {
 	public static final class Module {
 		/** 是否是公版软件 */
 		public static final boolean isPublic = true;
-
-		/** 是否提示90s后启动停车守卫 */
-		public static final boolean hintParkingMonitor = !isPublic;
 
 		/** 是否使用系统Camera参数 */
 		public static final boolean useSystemCameraParam = true;
