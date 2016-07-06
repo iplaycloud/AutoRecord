@@ -73,21 +73,38 @@ public class SensorWatchService extends Service {
 						}
 						if (isCrash) {
 							// 当前录制视频加锁
-							if ((MyApp.isFrontRecording || MyApp.isBackRecording)
-									&& !MyApp.isFrontLock) {
+							if (MyApp.isFrontRecording && !MyApp.isFrontLock) {
 								MyApp.isFrontLock = true;
-								MyApp.isCrashed = true;
-								speakVoice(getResources().getString(
-										R.string.hint_video_lock));
-								HintUtil.showToast(context, getResources()
-										.getString(R.string.hint_video_lock));
-								MyLog.v("SensorWarchService.Crashed->VideoLock;LIMIT:"
+								MyApp.isFrontCrashed = true;
+
+								HintUtil.showToast(
+										context,
+										getResources().getString(
+												R.string.hint_video_lock_front));
+								MyLog.v("SensorWarchService.Crashed->FrontVideoLock;LIMIT:"
 										+ LIMIT_X
 										+ ",X:"
 										+ valueX
 										+ ",Y:"
 										+ valueY + ",Z:" + valueZ);
 							}
+
+							if (MyApp.isBackRecording && !MyApp.isBackLock) {
+								MyApp.isBackLock = true;
+								MyApp.isBackCrashed = true;
+
+								HintUtil.showToast(
+										context,
+										getResources().getString(
+												R.string.hint_video_lock_back));
+								MyLog.v("SensorWarchService.Crashed->BackVideoLock;LIMIT:"
+										+ LIMIT_X
+										+ ",X:"
+										+ valueX
+										+ ",Y:"
+										+ valueY + ",Z:" + valueZ);
+							}
+
 							// 重置碰撞标志位
 							isCrash = false;
 						}

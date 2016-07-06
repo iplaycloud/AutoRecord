@@ -4,7 +4,7 @@
     package="com.tchip.autorecord"
     android:sharedUserId="android.uid.system"
     android:versionCode="1"
-    android:versionName="2016.07.05-20:10" >
+    android:versionName="2016.07.06-16:25" >
 
     <uses-sdk
         android:minSdkVersion="21"

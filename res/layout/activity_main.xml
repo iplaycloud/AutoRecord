@@ -106,6 +106,35 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/icon_area_height"
+                    android:layout_alignParentRight="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginTop="@dimen/icon_area_margin_top_bottom" >
+
+                    <ImageButton
+                        android:id="@+id/imageBackLock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@null"
+                        android:paddingBottom="@dimen/icon_image_padding_bottom"
+                        android:src="@drawable/video_unlock" />
+
+                    <TextView
+                        android:id="@+id/textBackLock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginBottom="3dp"
+                        android:text="@string/icon_hint_unlock"
+                        android:textColor="@color/icon_hint_text_color"
+                        android:textSize="@dimen/icon_hint_text_size" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/icon_area_height"
                     android:layout_centerInParent="true" >
 
                     <ImageButton
@@ -252,6 +281,35 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/icon_area_height"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentTop="true"
+                android:layout_marginTop="@dimen/icon_area_margin_top_bottom" >
+
+                <ImageButton
+                    android:id="@+id/imageFrontLock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:background="?android:attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null"
+                    android:paddingBottom="@dimen/icon_image_padding_bottom"
+                    android:src="@drawable/video_unlock" />
+
+                <TextView
+                    android:id="@+id/textFrontLock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="3dp"
+                    android:text="@string/icon_hint_unlock"
+                    android:textColor="@color/icon_hint_text_color"
+                    android:textSize="@dimen/icon_hint_text_size" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/icon_area_height"
                 android:layout_centerInParent="true" >
 
                 <ImageButton
@@ -318,36 +376,6 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="@null"
             android:src="@drawable/photo_take" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/layoutLock"
-        android:layout_width="@dimen/side_shadow_width"
-        android:layout_height="@dimen/icon_area_height"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="@dimen/icon_area_margin_top_bottom" >
-
-        <ImageButton
-            android:id="@+id/imageFrontLock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@null"
-            android:paddingBottom="@dimen/icon_image_padding_bottom"
-            android:src="@drawable/video_unlock" />
-
-        <TextView
-            android:id="@+id/textFrontLock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="3dp"
-            android:text="@string/icon_hint_unlock"
-            android:textColor="@color/icon_hint_text_color"
-            android:textSize="@dimen/icon_hint_text_size" />
     </RelativeLayout>
 
 </RelativeLayout>

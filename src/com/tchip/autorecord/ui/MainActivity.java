@@ -66,7 +66,6 @@ public class MainActivity extends Activity {
 	private RelativeLayout layoutFront;
 	private TextView textFrontTime; // 时间跑秒
 	private ImageButton imageFrontState; // 录像按钮
-	private RelativeLayout layoutLock;
 	private ImageButton imageFrontLock; // 加锁按钮
 	private TextView textFrontLock;
 	private ImageButton imageFrontSwitch; // 前后切换
@@ -90,6 +89,8 @@ public class MainActivity extends Activity {
 	private RelativeLayout layoutBackRecord;
 	private TextView textBackTime;
 	private ImageButton imageBackState;
+	private ImageButton imageBackLock;
+	private TextView textBackLock;
 	private ImageButton imageBackSwitch;
 	private TextView textBackSwitch;
 	private Camera cameraBack;
@@ -240,6 +241,9 @@ public class MainActivity extends Activity {
 		// ACC在的时候不频繁释放录像区域：ACC在的时候Suspend？
 		if (!MyApp.isAccOn && !MyApp.isFrontRecording) {
 			MyApp.isFrontLockSecond = false;
+		}
+		if (!MyApp.isAccOn && !MyApp.isBackRecording) {
+			MyApp.isBackLockSecond = false;
 		}
 		super.onPause();
 	}
@@ -565,6 +569,7 @@ public class MainActivity extends Activity {
 					if (!MyApp.isFrontRecording) {
 						if (Constant.Record.parkVideoLock) { // 是否需要加锁
 							MyApp.isFrontLock = true;
+							MyApp.isBackLock = true;
 						}
 						new Thread(new RecordWhenCrashThread()).start();
 					}
@@ -803,10 +808,14 @@ public class MainActivity extends Activity {
 		imageBackState.setOnClickListener(myOnClickListener);
 
 		// 锁定
-		layoutLock = (RelativeLayout) findViewById(R.id.layoutLock);
 		imageFrontLock = (ImageButton) findViewById(R.id.imageFrontLock);
 		imageFrontLock.setOnClickListener(myOnClickListener);
 		textFrontLock = (TextView) findViewById(R.id.textFrontLock);
+		textFrontLock.setOnClickListener(myOnClickListener);
+
+		imageBackLock = (ImageButton) findViewById(R.id.imageBackLock);
+		imageBackLock.setOnClickListener(myOnClickListener);
+		textBackLock = (TextView) findViewById(R.id.textBackLock);
 		textFrontLock.setOnClickListener(myOnClickListener);
 
 		// 前后切换图标
@@ -870,10 +879,58 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	/** 切换前后摄像画面 */
+	private void switchCameraTo(int camera) {
+		switch (camera) {
+		case 0:
+			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(
+					1184, 480));
+			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(1,
+					1));
+
+			layoutFront.setVisibility(View.VISIBLE);
+			layoutBack.setVisibility(View.GONE);
+			setBackLineVisible(false);
+			break;
+
+		case 1:
+			layoutBack.setVisibility(View.VISIBLE);
+			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
+					1184, 480)); // 854,480
+			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
+					1));
+			layoutFront.setVisibility(View.GONE);
+
+			String strBackState = ProviderUtil.getValue(context,
+					Name.BACK_CAR_STATE);
+			if (null != strBackState && strBackState.trim().length() > 0
+					&& "1".equals(strBackState)) {
+				setBackLineVisible(true);
+			} else {
+				setBackLineVisible(false);
+			}
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	/**
+	 * @param isVisible
+	 *            是否倒车
+	 */
 	private void setBackLineVisible(boolean isVisible) {
 		if (isVisible) {
+			// 确保显示后摄,解决倒车线在前摄界面
+			layoutBack.setVisibility(View.VISIBLE);
+			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
+					1184, 480)); // 854,480
+			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
+					1));
+			layoutFront.setVisibility(View.GONE);
+
 			layoutBackRecord.setVisibility(View.GONE);
-			layoutLock.setVisibility(View.GONE);
 			layoutBackLineControl.setVisibility(View.VISIBLE);
 			String strBackLineShow = ProviderUtil.getValue(context,
 					Name.BACK_LINE_SHOW);
@@ -887,7 +944,6 @@ public class MainActivity extends Activity {
 			}
 		} else {
 			layoutBackRecord.setVisibility(View.VISIBLE);
-			layoutLock.setVisibility(View.VISIBLE);
 			layoutBackLineControl.setVisibility(View.GONE);
 			layoutBackLine.removeAllViews();
 		}
@@ -972,11 +1028,23 @@ public class MainActivity extends Activity {
 			case R.id.imageFrontLock:
 			case R.id.textFrontLock:
 				if (!ClickUtil.isQuickClick(1000)) {
-					if (MyApp.isFrontRecording || MyApp.isBackRecording) {
-						lockOrUnlockVideo();
+					if (MyApp.isFrontRecording) {
+						lockOrUnlockFrontVideo();
 					} else {
 						HintUtil.showToast(MainActivity.this, getResources()
-								.getString(R.string.hint_not_record));
+								.getString(R.string.hint_not_record_front));
+					}
+				}
+				break;
+
+			case R.id.imageBackLock:
+			case R.id.textBackLock:
+				if (!ClickUtil.isQuickClick(1000)) {
+					if (MyApp.isBackRecording) {
+						lockOrUnlockBackVideo();
+					} else {
+						HintUtil.showToast(MainActivity.this, getResources()
+								.getString(R.string.hint_not_record_back));
 					}
 				}
 				break;
@@ -1111,59 +1179,31 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	/** 切换前后摄像画面 */
-	private void switchCameraTo(int camera) {
-		switch (camera) {
-		case 0:
-			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(
-					1184, 480));
-			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(1,
-					1));
-
-			layoutFront.setVisibility(View.VISIBLE);
-			layoutBack.setVisibility(View.GONE);
-			setBackLineVisible(false);
-			break;
-
-		case 1:
-			layoutBack.setVisibility(View.VISIBLE);
-			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
-					1184, 480)); // 854,480
-			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
-					1));
-			layoutFront.setVisibility(View.GONE);
-
-			String strBackState = ProviderUtil.getValue(context,
-					Name.BACK_CAR_STATE);
-			if (null != strBackState && strBackState.trim().length() > 0
-					&& "1".equals(strBackState)) {
-				setBackLineVisible(true);
-			} else {
-				setBackLineVisible(false);
-			}
-			break;
-
-		default:
-			break;
-		}
-	}
-
 	/** 加锁或解锁视频 */
-	private void lockOrUnlockVideo() {
+	private void lockOrUnlockFrontVideo() {
 		if (!MyApp.isFrontLock) {
 			MyApp.isFrontLock = true;
-			speakVoice(getResources().getString(R.string.hint_video_lock));
+			speakVoice(getResources().getString(R.string.hint_video_lock_front));
 		} else {
 			MyApp.isFrontLock = false;
 			MyApp.isFrontLockSecond = false;
-			speakVoice(getResources().getString(R.string.hint_video_unlock));
+			speakVoice(getResources().getString(
+					R.string.hint_video_unlock_front));
 		}
+		setupFrontViews();
+	}
+
+	/** 加锁或解锁视频 */
+	private void lockOrUnlockBackVideo() {
 		setupFrontViews();
 		if (!MyApp.isBackLock) {
 			MyApp.isBackLock = true;
+			speakVoice(getResources().getString(R.string.hint_video_lock_back));
 		} else {
 			MyApp.isBackLock = false;
 			MyApp.isBackLockSecond = false;
+			speakVoice(getResources()
+					.getString(R.string.hint_video_unlock_back));
 		}
 		setupBackViews();
 	}
@@ -1494,6 +1534,13 @@ public class MainActivity extends Activity {
 		imageBackState.setImageDrawable(getResources().getDrawable(
 				MyApp.isBackRecording ? R.drawable.video_stop
 						: R.drawable.video_start, null));
+		// 视频加锁
+		imageBackLock.setImageDrawable(getResources().getDrawable(
+				MyApp.isBackLock ? R.drawable.video_lock
+						: R.drawable.video_unlock, null));
+		textBackLock.setText(getResources().getString(
+				MyApp.isBackLock ? R.string.icon_hint_lock
+						: R.string.icon_hint_unlock));
 	}
 
 	/** 启动录像 */
@@ -1857,9 +1904,7 @@ public class MainActivity extends Activity {
 			// 解决录像时，快速点击录像按钮两次，线程叠加跑秒过快的问题
 			do {
 				MyApp.isUpdateFrontTimeRun = true;
-				String strParkRecord = ProviderUtil.getValue(context,
-						Name.PARK_REC_STATE);
-				if (MyApp.isCrashed) {
+				if (MyApp.isFrontCrashed) {
 					Message messageVideoLock = new Message();
 					messageVideoLock.what = 4;
 					updateFrontTimeHandler.sendMessage(messageVideoLock);
@@ -1898,9 +1943,13 @@ public class MainActivity extends Activity {
 					updateFrontTimeHandler
 							.sendMessage(messageStopRecordFromVoice);
 					return;
-				} else if (!MyApp.isAccOn && null != strParkRecord
-						&& strParkRecord.trim().length() > 0
-						&& "0".equals(strParkRecord)) { // ACC下电停止录像
+				} else if (!MyApp.isAccOn
+						&& null != ProviderUtil.getValue(context,
+								Name.PARK_REC_STATE)
+						&& ProviderUtil.getValue(context, Name.PARK_REC_STATE)
+								.trim().length() > 0
+						&& "0".equals(ProviderUtil.getValue(context,
+								Name.PARK_REC_STATE))) { // ACC下电停止录像
 					MyLog.e("Front.Stop Record:isSleeping = true");
 					Message messageSleep = new Message();
 					messageSleep.what = 5;
@@ -1929,8 +1978,11 @@ public class MainActivity extends Activity {
 			// 解决录像时，快速点击录像按钮两次，线程叠加跑秒过快的问题
 			do {
 				MyApp.isUpdateBackTimeRun = true;
-				String strParkRecord = ProviderUtil.getValue(context,
-						Name.PARK_REC_STATE);
+				if (MyApp.isBackCrashed) {
+					Message messageVideoLock = new Message();
+					messageVideoLock.what = 4;
+					updateBackTimeHandler.sendMessage(messageVideoLock);
+				}
 				if (MyApp.isAppException) { // 程序异常,停止录像
 					MyApp.isAppException = false;
 					MyLog.e("Back.App exception, stop record!");
@@ -1965,9 +2017,13 @@ public class MainActivity extends Activity {
 					updateBackTimeHandler
 							.sendMessage(messageStopRecordFromVoice);
 					return;
-				} else if (!MyApp.isAccOn && null != strParkRecord
-						&& strParkRecord.trim().length() > 0
-						&& "0".equals(strParkRecord)) { // ACC下电停止录像
+				} else if (!MyApp.isAccOn
+						&& null != ProviderUtil.getValue(context,
+								Name.PARK_REC_STATE)
+						&& ProviderUtil.getValue(context, Name.PARK_REC_STATE)
+								.trim().length() > 0
+						&& "0".equals(ProviderUtil.getValue(context,
+								Name.PARK_REC_STATE))) { // ACC下电停止录像
 					Message messageSleep = new Message();
 					messageSleep.what = 5;
 					updateBackTimeHandler.sendMessage(messageSleep);
@@ -2064,7 +2120,7 @@ public class MainActivity extends Activity {
 
 			case 4:
 				this.removeMessages(4);
-				MyApp.isCrashed = false;
+				MyApp.isFrontCrashed = false;
 				setupFrontViews();
 				// 碰撞后判断是否需要加锁第二段视频
 				if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
@@ -2200,6 +2256,23 @@ public class MainActivity extends Activity {
 				MyLog.e("Back.CardEjectReceiver:Video SD Removed");
 				speakVoice(strVideoCardEject);
 				this.removeMessages(2);
+				break;
+
+			case 4:
+				this.removeMessages(4);
+				MyApp.isBackCrashed = false;
+				setupBackViews();
+				// 碰撞后判断是否需要加锁第二段视频
+				if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
+					if (secondBackCount > 45) {
+						MyApp.isBackLockSecond = true;
+					}
+				} else if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
+					if (secondBackCount > 165) {
+						MyApp.isBackLockSecond = true;
+					}
+				}
+				this.removeMessages(4);
 				break;
 
 			case 5: // 进入休眠，停止录像
@@ -3079,6 +3152,15 @@ public class MainActivity extends Activity {
 					String videoName = path.split("/")[5];
 					int videoResolution = 640;
 					int videoLock = 0;
+
+					if (MyApp.isBackLock) {
+						videoLock = 1;
+						MyApp.isBackLock = false; // 还原
+						if (MyApp.isBackRecording && MyApp.isBackLockSecond) {
+							MyApp.isBackRecording = true;
+							MyApp.isBackLockSecond = false; // 不录像时修正加锁图标
+						}
+					}
 
 					setupBackViews(); // 更新录制按钮状态
 					DriveVideo driveVideo = new DriveVideo(videoName,

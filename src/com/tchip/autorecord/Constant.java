@@ -176,43 +176,21 @@ public interface Constant {
 		public static final int autoRecordDelay = 3500;
 
 		/** 循环录像保留空间(单位：字节B) */
-		public static final long FRONT_MIN_FREE_STORAGE = 500 * 1024 * 1024; // 400M
-
+		public static final long FRONT_MIN_FREE_STORAGE = 700 * 1024 * 1024; // 400M
 		public static final long BACK_MIN_FREE_STORAGE = 100 * 1024 * 1024; // 100M
 
-		/** 比特率240P */
+		/** 比特率 */
+		// 240P
 		public static final int BIT_RATE_240P = 120 * 1000;
-
-		/**
-		 * 比特率720P:
-		 * 
-		 * MTK:9000 * 1000
-		 * 
-		 * X1:3500 * 1000
-		 * 
-		 * 1280x720=921600
-		 */
+		// 720P: MTK:9000 * 1000 X1:3500 * 1000 1280x720=921600
 		public static final int FRONT_BITRATE_720P = 5000 * 1000;
-
-		/** 帧率 */
-		public static final int FRONT_FRAME_720P = 30;
-
-		/**
-		 * 比特率1080P:
-		 * 
-		 * MTK:17000 * 1000
-		 * 
-		 * X1:8000 * 1000
-		 * 
-		 * 1920x1080=2073600
-		 */
+		// 1080P: MTK:17000 * 1000 X1:8000 * 1000 1920x1080=2073600
 		public static final int FRONT_BITRATE_1080P = 10000 * 1000;
-
-		/** 帧率 */
-		public static final int FRONT_FRAME_1080P = 24;
-
 		public static final int BACK_BITRATE = 600 * 1000; // 2000 * 1000
+
 		/** 帧率 */
+		public static final int FRONT_FRAME_720P = 30; // 24>29,30(NotOK:25)
+		public static final int FRONT_FRAME_1080P = 30; // 24>29,30(NotOK:25)
 		// 5>49(2M),15>26(2M)>49(0.5M),24>43(2M),30>29(0.5M)(NotOK:8,10,12,18)
 		public static final int BACK_FRAME = 30; // 15
 

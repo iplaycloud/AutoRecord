@@ -71,7 +71,8 @@ public class MyApp extends Application {
 	public static boolean isBackLockSecond = false;
 
 	/** 侦测到碰撞 */
-	public static boolean isCrashed = false;
+	public static boolean isFrontCrashed = false;
+	public static boolean isBackCrashed = false;
 
 	/** 存储更改视频分辨率前的录像状态 */
 	public static boolean shouldVideoRecordWhenChangeSize = false;

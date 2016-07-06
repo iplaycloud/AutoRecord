@@ -339,29 +339,35 @@ public class StorageUtil {
 			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context); // 视频数据库
 			try {
 				String fileName = file.getName();
-				if (file.isFile() && !fileName.endsWith(".jpg")
-						&& !fileName.endsWith(".tmp")) {
-					if (fileName.startsWith(".")) {
-						// Delete file start with dot but not the recording one
-						if (!MyApp.isFrontRecording && !MyApp.isBackRecording) {
-							file.delete();
-							MyLog.v("StorageUtil.RecursionCheckFile-Delete Error File start with DOT:"
-									+ fileName);
+				if (file.isFile()) {
+					if (fileName.endsWith(".mp4")) {
+						if (fileName.startsWith(".")) {
+							// Delete file start with dot but not the recording
+							// one
+							if (!MyApp.isFrontRecording
+									&& !MyApp.isBackRecording) {
+								file.delete();
+								MyLog.v("StorageUtil.RecursionCheckFile-Delete Error File start with DOT:"
+										+ fileName);
+							}
+						} else {
+							boolean isVideoExist = videoDb
+									.isVideoExist(fileName);
+							if (!isVideoExist) {
+								// boolean isSuccess = file.delete();
+								DriveVideo driveVideo = new DriveVideo(
+										fileName, 0, 555, 0);
+								videoDb.addDriveVideo(driveVideo);
+								MyLog.v("StorageUtil.RecursionCheckFile-Insert Video To DB:"
+										+ file.getAbsolutePath());
+							}
 						}
-					} else {
-						boolean isVideoExist = videoDb.isVideoExist(fileName);
-						if (!isVideoExist) {
-							// boolean isSuccess = file.delete();
-							DriveVideo driveVideo = new DriveVideo(fileName, 0,
-									555, 0);
-							videoDb.addDriveVideo(driveVideo);
-							MyLog.v("StorageUtil.RecursionCheckFile-Insert Video To DB:"
-									+ file.getAbsolutePath());
-						}
+						return;
+					} else if (!fileName.endsWith(".jpg")
+							&& !fileName.endsWith(".tmp")) {
+						file.delete();
 					}
-					return;
-				}
-				if (file.isDirectory()) {
+				} else if (file.isDirectory()) {
 					File[] childFile = file.listFiles();
 					if (childFile == null || childFile.length == 0) {
 						return;
