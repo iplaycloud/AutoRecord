@@ -17,11 +17,11 @@ public class CardEjectReceiver extends BroadcastReceiver {
 		if (action.equals(Intent.ACTION_MEDIA_EJECT)
 				|| action.equals(Intent.ACTION_MEDIA_BAD_REMOVAL)
 				|| action.equals(Intent.ACTION_MEDIA_UNMOUNTED)) {
-			if ("/storage/sdcard2".equals(intent.getData().getPath())) {
+			if ("/storage/sdcard1".equals(intent.getData().getPath())) {
 				MyApp.isVideoCardEject = true;
 			}
 		} else if (action.equals(Intent.ACTION_MEDIA_MOUNTED)) {
-			if ("/storage/sdcard2".equals(intent.getData().getPath())) { // 插入录像卡自动录像
+			if ("/storage/sdcard1".equals(intent.getData().getPath())) { // 插入录像卡自动录像
 				StorageUtil.createRecordDirectory();
 				if (MyApp.isAccOn) {
 					if (!MyApp.isFrontRecording) {

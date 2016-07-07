@@ -28,9 +28,9 @@ public class FileUtil {
 	/**
 	 * [双录到同一张SD卡]空间是否不足，需要删除旧视频
 	 * 
-	 * 前录路径：/storage/sdcard2/DrivingRecord/VideoFront/ *.mp4
+	 * 前录路径：/storage/sdcard1/DrivingRecord/VideoFront/ *.mp4
 	 * 
-	 * 后录路径：/storage/sdcard2/tachograph_back/DrivingRecord/unlock/
+	 * 后录路径：/storage/sdcard1/tachograph_back/DrivingRecord/unlock/
 	 * 
 	 */
 	public static boolean isFrontStorageLess() {

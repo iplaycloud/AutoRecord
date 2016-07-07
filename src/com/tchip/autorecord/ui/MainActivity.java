@@ -438,7 +438,7 @@ public class MainActivity extends Activity {
 			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
 				String path = intent.getExtras().getString("path");
 				MyLog.e("MEDIA_FORMAT !! Path:" + path);
-				if ("/storage/sdcard2".equals(path)) {
+				if ("/storage/sdcard1".equals(path)) {
 					MyApp.isVideoCardFormat = true;
 				}
 			} else if (Constant.Broadcast.GOING_SHUTDOWN.equals(action)) {
@@ -1212,7 +1212,7 @@ public class MainActivity extends Activity {
 	private void noVideoSDHint() {
 		if (MyApp.isAccOn) {
 			String strNoSD = getResources().getString(
-					R.string.hint_sd2_not_exist);
+					R.string.hint_sd_record_not_exist);
 			HintUtil.showToast(context, strNoSD);
 			speakVoice(strNoSD);
 		} else {
@@ -1225,7 +1225,7 @@ public class MainActivity extends Activity {
 			noVideoSDHint(); // SDCard不存在
 			return -1;
 		} else if (recorderFront != null) {
-			setFrontDirectory(Constant.Path.SDCARD_2); // 设置保存路径，否则会保存到内部存储
+			setFrontDirectory(Constant.Path.SDCARD_1); // 设置保存路径，否则会保存到内部存储
 			HintUtil.playAudio(getApplicationContext(),
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
 			return recorderFront.takePicture();
@@ -1239,7 +1239,7 @@ public class MainActivity extends Activity {
 			if (!MyApp.isAccOffPhotoTaking) {
 				MyApp.isAccOffPhotoTaking = true;
 				if (StorageUtil.isFrontCardExist()) {
-					setFrontDirectory(Constant.Path.SDCARD_2); // 如果录像卡不存在，则会保存到内部存储
+					setFrontDirectory(Constant.Path.SDCARD_1); // 如果录像卡不存在，则会保存到内部存储
 				}
 				HintUtil.playAudio(getApplicationContext(),
 						com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
@@ -1252,7 +1252,7 @@ public class MainActivity extends Activity {
 	public void takePhotoWhenVoiceCommand() {
 		if (recorderFront != null) {
 			if (StorageUtil.isFrontCardExist()) { // 如果录像卡不存在，则会保存到内部存储
-				setFrontDirectory(Constant.Path.SDCARD_2);
+				setFrontDirectory(Constant.Path.SDCARD_1);
 			}
 
 			HintUtil.playAudio(getApplicationContext(),
@@ -1613,7 +1613,7 @@ public class MainActivity extends Activity {
 		if (!MyApp.isFrontRecording && MyApp.isFrontPreview
 				&& recorderFront != null) {
 			MyLog.d("Front.Record Start");
-			setFrontDirectory(Constant.Path.SDCARD_2); // 设置保存路径
+			setFrontDirectory(Constant.Path.SDCARD_1); // 设置保存路径
 			// 设置录像静音
 			if (sharedPreferences.getBoolean("videoMute",
 					Constant.Record.muteDefault)) {
@@ -1645,7 +1645,7 @@ public class MainActivity extends Activity {
 		if (!MyApp.isBackRecording && MyApp.isBackPreview
 				&& recorderBack != null) {
 			MyLog.d("Back.Start Record");
-			setBackDirectory(Constant.Path.SDCARD_2); // 设置保存路径
+			setBackDirectory(Constant.Path.SDCARD_1); // 设置保存路径
 			// 设置录像静音
 			if (sharedPreferences.getBoolean("videoMute",
 					Constant.Record.muteDefault)) {
@@ -2526,7 +2526,7 @@ public class MainActivity extends Activity {
 				break;
 
 			case 2:
-				noVideoSDHint(); // SDCard2不存在
+				noVideoSDHint(); // SDCard1不存在
 				break;
 
 			default:
@@ -2549,7 +2549,7 @@ public class MainActivity extends Activity {
 				break;
 
 			case 2:
-				noVideoSDHint(); // SDCard2不存在
+				noVideoSDHint(); // SDCard1不存在
 				break;
 
 			default:
@@ -3030,9 +3030,9 @@ public class MainActivity extends Activity {
 		 *            0-图片 1-视频
 		 * 
 		 * @param path
-		 *            视频：/storage/sdcard2/DrivingRecord/VideoFront/2016-05-
+		 *            视频：/storage/sdcard1/DrivingRecord/VideoFront/2016-05-
 		 *            04_155010_0.mp4
-		 *            图片:/storage/sdcard2/DrivingRecord/Image/2015-
+		 *            图片:/storage/sdcard1/DrivingRecord/Image/2015-
 		 *            07-01_105536.jpg
 		 */
 		@Override
@@ -3137,7 +3137,7 @@ public class MainActivity extends Activity {
 		 *            0-图片 1-视频
 		 * 
 		 * @param path
-		 *            视频：/storage/sdcard2/DrivingRecord/VideoBack/2016-05-
+		 *            视频：/storage/sdcard1/DrivingRecord/VideoBack/2016-05-
 		 *            04_155010_1.mp4
 		 */
 		@Override

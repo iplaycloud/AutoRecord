@@ -290,18 +290,17 @@ public interface Constant {
 
 		public static final String SDCARD_0 = "/storage/sdcard0";
 		public static final String SDCARD_1 = "/storage/sdcard1";
-		public static final String SDCARD_2 = "/storage/sdcard2";
 
 		/** 录像存储卡路径 */
-		public static String RECORD_SDCARD = SDCARD_2 + File.separator;// "/storage/sdcard2/";
+		public static String RECORD_SDCARD = SDCARD_1 + File.separator;
 
-		public static String RECORD_DIRECTORY = "/storage/sdcard2/DrivingRecord/";
+		public static String RECORD_DIRECTORY = "/storage/sdcard1/DrivingRecord/";
 		/** 前录存储路径 */
-		public static String RECORD_FRONT = "/storage/sdcard2/DrivingRecord/VideoFront/";
-		public static String IMAGE = "/storage/sdcard2/DrivingRecord/Image/";
+		public static String RECORD_FRONT = "/storage/sdcard1/DrivingRecord/VideoFront/";
+		public static String IMAGE = "/storage/sdcard1/DrivingRecord/Image/";
 
 		/** 后录存储路径 */
-		public static String RECORD_BACK = "/storage/sdcard2/DrivingRecord/VideoBack/";
+		public static String RECORD_BACK = "/storage/sdcard1/DrivingRecord/VideoBack/";
 
 		/** 字体目录 */
 		public static final String FONT = "fonts/";
