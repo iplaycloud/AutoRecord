@@ -123,6 +123,24 @@ public class StorageUtil {
 		}
 	}
 
+	/** 将加锁视频移动到加锁文件夹 */
+	public static void lockVideo(boolean isFront, String videoName) {
+		String rawPath = isFront ? Constant.Path.RECORD_FRONT
+				: Constant.Path.RECORD_BACK;
+		String lockPath = isFront ? Constant.Path.RECORD_FRONT_LOCK
+				: Constant.Path.RECORD_BACK_LOCK;
+		File rawFile = new File(rawPath + videoName);
+		if (rawFile.exists() && rawFile.isFile()) {
+			File lockDir = new File(lockPath);
+			if (!lockDir.exists()) {
+				lockDir.mkdirs();
+			}
+			File lockFile = new File(lockDir + File.separator + videoName);
+			rawFile.renameTo(lockFile);
+			MyLog.v("StorageUtil.lockVideo:" + videoName);
+		}
+	}
+
 	/**
 	 * 删除最旧视频，调用此函数的地方：
 	 * 
@@ -142,8 +160,7 @@ public class StorageUtil {
 			// AudioRecordDialog(context);
 			while (FileUtil.isFrontStorageLess()) {
 				int oldestUnlockVideoId = videoDb.getOldestUnlockFrontVideoId();
-				// 删除较旧未加锁视频文件
-				if (oldestUnlockVideoId != -1) {
+				if (oldestUnlockVideoId != -1) { // 删除较旧未加锁视频文件
 					String oldestUnlockVideoName = videoDb
 							.getVideNameById(oldestUnlockVideoId);
 					File file;
@@ -175,29 +192,23 @@ public class StorageUtil {
 									.getString(
 											R.string.hint_storage_full_cause_by_other);
 							HintUtil.showToast(context, strNoStorage);
-
-							// audioRecordDialog.showErrorDialog(strNoStorage);
-							// MyApp.speakVoice(strNoStorage);
 							return false;
 						}
-					} else {
-						// 提示用户清理空间，删除较旧的视频（加锁）
+					} else { // 提示用户清理空间，删除较旧的视频（加锁）
 						String strStorageFull = context
 								.getResources()
 								.getString(
 										R.string.hint_storage_full_and_delete_lock);
-						// MyApp.speakVoice(strStorageFull);
 						HintUtil.showToast(context, strStorageFull);
 						String oldestVideoName = videoDb
 								.getVideNameById(oldestVideoId);
 						File file;
-						if ("1.".equals(videoDb
-								.getVideoWhichById(oldestUnlockVideoId))) { // 后录文件
-							file = new File(Constant.Path.RECORD_BACK
-									+ oldestVideoName);
+						if (oldestVideoName.endsWith("_1.mp4")) { // 后录文件
+							file = new File(Constant.Path.RECORD_BACK_LOCK
+									+ File.separator + oldestVideoName);
 						} else { // 前录文件
-							file = new File(Constant.Path.RECORD_FRONT
-									+ oldestVideoName);
+							file = new File(Constant.Path.RECORD_FRONT_LOCK
+									+ File.separator + oldestVideoName);
 						}
 						if (file.exists() && file.isFile()) {
 							MyLog.d("StorageUtil.Delete Old Unlock Video:"
@@ -215,9 +226,7 @@ public class StorageUtil {
 			}
 			return true;
 		} catch (Exception e) {
-			/*
-			 * 异常原因：1.文件由用户手动删除
-			 */
+			/* 异常原因：1.文件由用户手动删除 */
 			MyLog.e("StorageUtil.deleteOldestUnlockVideo:Catch Exception:"
 					+ e.toString());
 			e.printStackTrace();
@@ -240,12 +249,9 @@ public class StorageUtil {
 		try {
 			// 视频数据库
 			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context);
-			// AudioRecordDialog audioRecordDialog = new
-			// AudioRecordDialog(context);
 			while (FileUtil.isBackStorageLess()) {
 				int oldestUnlockVideoId = videoDb.getOldestUnlockBackVideoId();
-				// 删除较旧未加锁视频文件
-				if (oldestUnlockVideoId != -1) {
+				if (oldestUnlockVideoId != -1) { // 删除较旧未加锁视频文件
 					String oldestUnlockVideoName = videoDb
 							.getVideNameById(oldestUnlockVideoId);
 					File file;
@@ -278,32 +284,26 @@ public class StorageUtil {
 									.getString(
 											R.string.hint_storage_full_cause_by_other);
 							HintUtil.showToast(context, strNoStorage);
-
-							// audioRecordDialog.showErrorDialog(strNoStorage);
-							// MyApp.speakVoice(strNoStorage);
 							return false;
 						}
-					} else {
-						// 提示用户清理空间，删除较旧的视频（加锁）
+					} else { // 提示用户清理空间，删除较旧的视频（加锁）
 						String strStorageFull = context
 								.getResources()
 								.getString(
 										R.string.hint_storage_full_and_delete_lock);
-						// MyApp.speakVoice(strStorageFull);
 						HintUtil.showToast(context, strStorageFull);
 						String oldestVideoName = videoDb
 								.getVideNameById(oldestVideoId);
 						File file;
-						if ("1.".equals(videoDb
-								.getVideoWhichById(oldestUnlockVideoId))) { // 后录文件
-							file = new File(Constant.Path.RECORD_BACK
-									+ oldestVideoName);
+						if (oldestVideoName.endsWith("_1.mp4")) { // 后录文件
+							file = new File(Constant.Path.RECORD_BACK_LOCK
+									+ File.separator + oldestVideoName);
 						} else { // 前录文件
-							file = new File(Constant.Path.RECORD_FRONT
-									+ oldestVideoName);
+							file = new File(Constant.Path.RECORD_FRONT_LOCK
+									+ File.separator + oldestVideoName);
 						}
 						if (file.exists() && file.isFile()) {
-							MyLog.d("StorageUtil.Delete Old Unlock Video:"
+							MyLog.d("StorageUtil.Delete Old Unlock Back Video:"
 									+ file.getPath());
 							int i = 0;
 							while (!file.delete() && i < 3) {
@@ -347,16 +347,17 @@ public class StorageUtil {
 							if (!MyApp.isFrontRecording
 									&& !MyApp.isBackRecording) {
 								file.delete();
-								MyLog.v("StorageUtil.RecursionCheckFile-Delete Error File start with DOT:"
+								MyLog.v("StorageUtil.RecursionCheckFile-Delete DOT File:"
 										+ fileName);
 							}
 						} else {
 							boolean isVideoExist = videoDb
 									.isVideoExist(fileName);
 							if (!isVideoExist) {
-								// boolean isSuccess = file.delete();
+								boolean isLock = file.getPath()
+										.contains("Lock");
 								DriveVideo driveVideo = new DriveVideo(
-										fileName, 0, 555, 0);
+										fileName, isLock ? 1 : 0, 555, 0);
 								videoDb.addDriveVideo(driveVideo);
 								MyLog.v("StorageUtil.RecursionCheckFile-Insert Video To DB:"
 										+ file.getAbsolutePath());

@@ -295,12 +295,11 @@ public interface Constant {
 		public static String RECORD_SDCARD = SDCARD_1 + File.separator;
 
 		public static String RECORD_DIRECTORY = "/storage/sdcard1/DrivingRecord/";
-		/** 前录存储路径 */
 		public static String RECORD_FRONT = "/storage/sdcard1/DrivingRecord/VideoFront/";
-		public static String IMAGE = "/storage/sdcard1/DrivingRecord/Image/";
-
-		/** 后录存储路径 */
 		public static String RECORD_BACK = "/storage/sdcard1/DrivingRecord/VideoBack/";
+		public static String RECORD_FRONT_LOCK = "/storage/sdcard1/DrivingRecord/VideoFront/Lock";
+		public static String RECORD_BACK_LOCK = "/storage/sdcard1/DrivingRecord/VideoBack/Lock";
+		public static String IMAGE = "/storage/sdcard1/DrivingRecord/Image/";
 
 		/** 字体目录 */
 		public static final String FONT = "fonts/";

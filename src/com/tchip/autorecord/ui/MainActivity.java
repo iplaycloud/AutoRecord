@@ -292,7 +292,7 @@ public class MainActivity extends Activity {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			moveTaskToBack(true); // sendHomeKey();
+			sendHomeKey(); // moveTaskToBack(true);
 		}
 
 	}
@@ -3052,6 +3052,7 @@ public class MainActivity extends Activity {
 					if (MyApp.isFrontLock) {
 						videoLock = 1;
 						MyApp.isFrontLock = false; // 还原
+						StorageUtil.lockVideo(true, videoName);
 						if (MyApp.isFrontRecording && MyApp.isFrontLockSecond) {
 							MyApp.isFrontLock = true;
 							MyApp.isFrontLockSecond = false; // 不录像时修正加锁图标
@@ -3156,6 +3157,7 @@ public class MainActivity extends Activity {
 					if (MyApp.isBackLock) {
 						videoLock = 1;
 						MyApp.isBackLock = false; // 还原
+						StorageUtil.lockVideo(false, videoName);
 						if (MyApp.isBackRecording && MyApp.isBackLockSecond) {
 							MyApp.isBackRecording = true;
 							MyApp.isBackLockSecond = false; // 不录像时修正加锁图标
