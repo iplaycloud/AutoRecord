@@ -395,6 +395,7 @@ public class MainActivity extends Activity {
 	}
 
 	private MainReceiver mainReceiver;
+	private int cameraBeforeBack = 0; // 倒车前界面：0-前 1-后
 
 	public class MainReceiver extends BroadcastReceiver {
 
@@ -408,11 +409,13 @@ public class MainActivity extends Activity {
 				MyApp.isAccOn = true;
 				MyApp.shouldWakeRecord = true;
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
+				cameraBeforeBack = (0 == layoutFront.getVisibility()) ? 0 : 1;
 				acquireFullWakeLock();
 				setBackLineVisible(true);
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
 				releaseFullWakeLock();
 				setBackLineVisible(false);
+				switchCameraTo(cameraBeforeBack);
 			} else if (action.equals(Constant.Broadcast.SPEECH_COMMAND)) {
 				String command = intent.getExtras().getString("command");
 				if ("open_dvr".equals(command)) {
