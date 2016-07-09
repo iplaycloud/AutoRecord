@@ -39,6 +39,8 @@ public interface Constant {
 		/** 倒车结束 */
 		public static final String BACK_CAR_OFF = "com.tchip.KEY_BACK_CAR_OFF";
 
+		public static final String KILL_APP = "tchip.intent.action.KILL_APP";
+
 		/** 通知设置打开GPS */
 		public static final String GPS_ON = "tchip.intent.action.GPS_ON";
 
@@ -88,6 +90,8 @@ public interface Constant {
 		 * 2.语音开始录像：open_dvr
 		 * 
 		 * 3.语音停止录像：close_dvr
+		 * 
+		 * 4.停车拍照：take_park_photo
 		 */
 		public static final String SPEECH_COMMAND = "com.tchip.SPEECH_COMMAND";
 

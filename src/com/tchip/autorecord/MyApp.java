@@ -103,9 +103,6 @@ public class MyApp extends Application {
 	/** 录像界面是否可见 */
 	public static boolean isMainForeground = true;
 
-	/** 正在处理ACC休眠拍照 */
-	public static boolean isAccOffPhotoTaking = false;
-
 	/** 当前正在录像的视频名称 */
 	public static String nowRecordVideoName = "";
 

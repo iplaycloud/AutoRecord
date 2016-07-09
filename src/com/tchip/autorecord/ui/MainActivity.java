@@ -439,6 +439,9 @@ public class MainActivity extends Activity {
 				} else if ("take_photo".equals(command)
 						|| "take_photo_wenxin".equals(command)) {
 					takePhoto();
+				} else if ("take_park_photo".equals(command)) { // 停车照片
+					MyApp.shouldSendPathToDSA = true;
+					takePhotoWhenAccOff();
 				}
 			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
 				String path = intent.getExtras().getString("path");
@@ -1269,15 +1272,12 @@ public class MainActivity extends Activity {
 	/** ACC下电拍照 */
 	public void takePhotoWhenAccOff() {
 		if (recorderFront != null) {
-			if (!MyApp.isAccOffPhotoTaking) {
-				MyApp.isAccOffPhotoTaking = true;
-				if (StorageUtil.isFrontCardExist()) {
-					setFrontDirectory(Constant.Path.SDCARD_1); // 如果录像卡不存在，则会保存到内部存储
-				}
-				HintUtil.playAudio(getApplicationContext(),
-						com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
-				recorderFront.takePicture();
+			if (StorageUtil.isFrontCardExist()) {
+				setFrontDirectory(Constant.Path.SDCARD_0); // 如果录像卡不存在，则会保存到内部存储
 			}
+			HintUtil.playAudio(getApplicationContext(),
+					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
+			recorderFront.takePicture();
 		}
 	}
 
@@ -2080,7 +2080,7 @@ public class MainActivity extends Activity {
 	final Handler updateFrontTimeHandler = new Handler() {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case 1: // 处理停车守卫录像
+			case 1:
 				this.removeMessages(1);
 				if (!ClickUtil.isPlusFrontTimeTooQuick(900)) {
 					secondFrontCount++;
@@ -2093,7 +2093,7 @@ public class MainActivity extends Activity {
 					}
 				}
 
-				if (!MyApp.isAccOn) {
+				if (!MyApp.isAccOn) { // 处理停车守卫录像
 					String strParkRecord = ProviderUtil.getValue(context,
 							Name.PARK_REC_STATE);
 					if (null != strParkRecord
@@ -2109,6 +2109,7 @@ public class MainActivity extends Activity {
 							MyLog.v("Front.updateFrontTimeHandler.Stop Park Record");
 							stopFrontRecorder5Times(); // 停止录像
 							stopBackRecorder5Times();
+							SettingUtil.setAirplaneMode(context, true);
 							setFrontInterval(("3".equals(videoTimeStr)) ? 3 * 60
 									: 1 * 60); // 重设视频分段
 							ProviderUtil.setValue(context, Name.PARK_REC_STATE,
@@ -2216,7 +2217,7 @@ public class MainActivity extends Activity {
 	final Handler updateBackTimeHandler = new Handler() {
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case 1: // 处理停车守卫录像
+			case 1:
 				this.removeMessages(1);
 				if (!ClickUtil.isPlusBackTimeTooQuick(900)) {
 					secondBackCount++;
@@ -2228,7 +2229,7 @@ public class MainActivity extends Activity {
 						}
 					}
 				}
-				if (!MyApp.isAccOn) {
+				if (!MyApp.isAccOn) { // 处理停车守卫录像
 					String strParkRecord = ProviderUtil.getValue(context,
 							Name.PARK_REC_STATE);
 					if (null != strParkRecord
@@ -2246,6 +2247,7 @@ public class MainActivity extends Activity {
 							stopBackRecorder5Times();
 							setFrontInterval(("3".equals(videoTimeStr)) ? 3 * 60
 									: 1 * 60); // 重设视频分段
+							SettingUtil.setAirplaneMode(context, true);
 							ProviderUtil.setValue(context, Name.PARK_REC_STATE,
 									"0");
 						}
@@ -2339,6 +2341,25 @@ public class MainActivity extends Activity {
 			}
 		}
 	};
+
+	class CloseRecordThread implements Runnable {
+
+		@Override
+		public void run() {
+			sendHomeKey();
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if (!MyApp.isAccOn) {
+				sendBroadcast(new Intent(Constant.Broadcast.RELEASE_RECORD));
+				sendBroadcast(new Intent(Constant.Broadcast.KILL_APP).putExtra(
+						"name", "com.tchip.autorecord"));
+			}
+		}
+
+	}
 
 	/** 更改分辨率后重启录像 */
 	public class StartRecordWhenChangeSizeThread implements Runnable {
@@ -2649,6 +2670,7 @@ public class MainActivity extends Activity {
 			} else {
 				ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
 			}
+			new Thread(new CloseRecordThread()).start();
 		}
 	}
 
@@ -2678,6 +2700,7 @@ public class MainActivity extends Activity {
 			} else {
 				ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
 			}
+			new Thread(new CloseRecordThread()).start();
 		}
 	}
 
@@ -3094,6 +3117,20 @@ public class MainActivity extends Activity {
 
 					MyApp.writeImageExifPath = path;
 					new Thread(new WriteImageExifThread()).start();
+
+					if (MyApp.shouldSendPathToDSA) {
+						MyApp.shouldSendPathToDSA = false;
+						String[] picPaths = new String[2]; // 第一张保存前置的图片路径
+															// ；第二张保存后置的，如无可以为空
+						picPaths[0] = path;
+						picPaths[1] = "";
+						Intent intent = new Intent(
+								Constant.Broadcast.SEND_PIC_PATH);
+						intent.putExtra("picture", picPaths);
+						sendBroadcast(intent);
+
+						MyLog.v("SendDSA,Path:" + path);
+					}
 
 					// 通知语音
 					Intent intentImageSave = new Intent(

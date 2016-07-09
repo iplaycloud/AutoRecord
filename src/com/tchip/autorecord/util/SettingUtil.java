@@ -45,15 +45,27 @@ public class SettingUtil {
 		}
 	}
 
-	/** 设置飞行模式 */
-	public static void setAirplaneMode(Context context, boolean setAirPlane) {
-		MyLog.v("SettingUtil.setAirplaneMode:" + setAirPlane);
+	/**
+	 * 飞行模式是否打开
+	 * 
+	 * @param context
+	 * @return
+	 */
+	public static boolean isAirplaneModeOn(Context context) {
+		return android.provider.Settings.System.getInt(
+				context.getContentResolver(),
+				android.provider.Settings.Global.AIRPLANE_MODE_ON, 0) == 1;
+	}
+
+	/** 设置飞行模式开关 */
+	public static void setAirplaneMode(Context context, boolean enable) {
+		MyLog.v("SettingUtil.setAirplaneMode:" + enable);
 		Settings.Global.putInt(context.getContentResolver(),
-				Settings.Global.AIRPLANE_MODE_ON, setAirPlane ? 1 : 0);
-		// 广播飞行模式的改变，让相应的程序可以处理。
-		Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-		intent.putExtra("state", setAirPlane);
-		context.sendBroadcast(intent);
+				Settings.Global.AIRPLANE_MODE_ON, enable ? 1 : 0);
+		Intent intentAirplaneOn = new Intent(
+				Intent.ACTION_AIRPLANE_MODE_CHANGED);
+		intentAirplaneOn.putExtra("state", enable);
+		context.sendBroadcast(intentAirplaneOn);
 	}
 
 	public static void SaveFileToNode(File file, String value) {
