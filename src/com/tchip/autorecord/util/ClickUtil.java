@@ -31,6 +31,18 @@ public class ClickUtil {
 		return false;
 	}
 
+	private static long lastHintSdEjectTime;
+
+	public static boolean isHintSdEjectTooQuick(int minRunSpan) {
+		long time = System.currentTimeMillis();
+		long timeD = time - lastHintSdEjectTime;
+		if (0 < timeD && timeD < minRunSpan) {
+			return true;
+		}
+		lastHintSdEjectTime = time;
+		return false;
+	}
+
 	private static long lastHintSleepTime;
 
 	public static boolean isHintSleepTooQuick(int runMinSpan) {
@@ -54,7 +66,7 @@ public class ClickUtil {
 		lastPlusFrontTime = time;
 		return false;
 	}
-	
+
 	private static long lastPlusBackTime;
 
 	public static boolean isPlusBackTimeTooQuick(int runMinSpan) {

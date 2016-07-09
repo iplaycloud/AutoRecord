@@ -224,10 +224,12 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 			MyLog.e("onResume catch Exception:" + e.toString());
 		}
-		String strBackState = ProviderUtil.getValue(context,
-				Name.BACK_CAR_STATE);
-		if (null != strBackState && strBackState.trim().length() > 0) {
-			switchCameraTo(Integer.parseInt(strBackState));
+		if (cameraBeforeBack == 0) {
+			String strBackState = ProviderUtil.getValue(context,
+					Name.BACK_CAR_STATE);
+			if (null != strBackState && strBackState.trim().length() > 0) {
+				switchCameraTo(Integer.parseInt(strBackState));
+			}
 		}
 		super.onResume();
 	}
@@ -415,7 +417,7 @@ public class MainActivity extends Activity {
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
 				releaseFullWakeLock();
 				setBackLineVisible(false);
-				switchCameraTo(cameraBeforeBack);
+				switchCameraWhenBackOver(cameraBeforeBack);
 			} else if (action.equals(Constant.Broadcast.SPEECH_COMMAND)) {
 				String command = intent.getExtras().getString("command");
 				if ("open_dvr".equals(command)) {
@@ -912,6 +914,34 @@ public class MainActivity extends Activity {
 			} else {
 				setBackLineVisible(false);
 			}
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	/** 切换前后摄像画面 */
+	private void switchCameraWhenBackOver(int camera) {
+		switch (camera) {
+		case 0:
+			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(
+					1184, 480));
+			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(1,
+					1));
+
+			layoutFront.setVisibility(View.VISIBLE);
+			layoutBack.setVisibility(View.GONE);
+			setBackLineVisible(false);
+			break;
+
+		case 1:
+			layoutBack.setVisibility(View.VISIBLE);
+			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
+					1184, 480)); // 854,480
+			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
+					1));
+			layoutFront.setVisibility(View.GONE);
 			break;
 
 		default:
@@ -2113,11 +2143,7 @@ public class MainActivity extends Activity {
 				this.removeMessages(2);
 				MyLog.v("Front.UpdateRecordTimeHandler.stopRecorder() 2,Video SD Removed");
 				stopFrontRecorder5Times();
-				String strVideoCardEject = getResources().getString(
-						R.string.hint_sd_remove_badly);
-				HintUtil.showToast(MainActivity.this, strVideoCardEject);
-
-				speakVoice(strVideoCardEject);
+				hintCardEject();
 				this.removeMessages(2);
 				break;
 
@@ -2252,12 +2278,7 @@ public class MainActivity extends Activity {
 				this.removeMessages(2);
 				MyLog.v("Back.UpdateRecordTimeHandler.stopRecorder() 2");
 				stopBackRecorder5Times();
-				String strVideoCardEject = getResources().getString(
-						R.string.hint_sd_remove_badly);
-				HintUtil.showToast(MainActivity.this, strVideoCardEject);
-
-				MyLog.e("Back.CardEjectReceiver:Video SD Removed");
-				speakVoice(strVideoCardEject);
+				hintCardEject();
 				this.removeMessages(2);
 				break;
 
@@ -3204,6 +3225,16 @@ public class MainActivity extends Activity {
 			MyLog.v("Back.onFileStart.Path:" + path);
 		}
 
+	}
+
+	private void hintCardEject() {
+		if (!ClickUtil.isHintSdEjectTooQuick(2000)) {
+			String strVideoCardEject = getResources().getString(
+					R.string.hint_sd_remove_badly);
+			HintUtil.showToast(MainActivity.this, strVideoCardEject);
+			speakVoice(strVideoCardEject);
+			MyLog.e("showCardEjectMessage");
+		}
 	}
 
 }
