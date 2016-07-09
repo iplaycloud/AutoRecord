@@ -180,14 +180,14 @@ public interface Constant {
 
 		/** 循环录像保留空间(单位：字节B) */
 		public static final long FRONT_MIN_FREE_STORAGE = 700 * M; // 400M
-		public static final long BACK_MIN_FREE_STORAGE = 200 * M; // 100M
+		public static final long BACK_MIN_FREE_STORAGE = 100 * M; // 100M
 
 		/** 比特率 */
 		// 720P: MTK:9M X1:3.5M 1280x720=921600
 		public static final int FRONT_BITRATE_720P = 4 * M; // 5 * M
 		// 1080P: MTK:17M X1:8M RAW:10M
 		public static final int FRONT_BITRATE_1080P = 9 * M;
-		public static final int BACK_BITRATE = 500 * K; // 0.6M,2M
+		public static final int BACK_BITRATE = 600 * K; // 0.6M,2M
 
 		/** 帧率 */
 		public static final int FRONT_FRAME_720P = 30; // 24>29,30(NotOK:25)
