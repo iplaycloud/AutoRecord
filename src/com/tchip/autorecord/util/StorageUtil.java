@@ -156,8 +156,6 @@ public class StorageUtil {
 		try {
 			// 视频数据库
 			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context);
-			// AudioRecordDialog audioRecordDialog = new
-			// AudioRecordDialog(context);
 			while (FileUtil.isFrontStorageLess()) {
 				int oldestUnlockVideoId = videoDb.getOldestUnlockFrontVideoId();
 				if (oldestUnlockVideoId != -1) { // 删除较旧未加锁视频文件
@@ -406,11 +404,8 @@ public class StorageUtil {
 						+ e.toString());
 				e.printStackTrace();
 			}
-
 			MyApp.writeImageExifPath = "NULL";
-
 		} else {
-
 		}
 	}
 }
