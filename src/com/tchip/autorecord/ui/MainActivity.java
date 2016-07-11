@@ -1057,13 +1057,6 @@ public class MainActivity extends Activity {
 								R.string.hint_video_size_1080));
 					}
 					editor.commit();
-					setupFrontViews();
-					// 修改分辨率后按需启动录像
-					if (MyApp.shouldVideoRecordWhenChangeSize) {
-						new Thread(new StartRecordWhenChangeSizeThread())
-								.start();
-						MyApp.shouldVideoRecordWhenChangeSize = false;
-					}
 				}
 				break;
 
@@ -1299,7 +1292,7 @@ public class MainActivity extends Activity {
 				this.removeMessages(4);
 				break;
 
-			case 5: // TODO
+			case 5: // 拍照
 				this.removeMessages(5);
 				if (!MyApp.isFrontRecording && !MyApp.isBackRecording
 						&& !StorageUtil.isFrontCardExist()) { // 判断SD卡2是否存在，需要耗费一定时间
@@ -1313,9 +1306,32 @@ public class MainActivity extends Activity {
 				}
 				this.removeMessages(5);
 				break;
+
+			case 6: // 切换分辨率
+				this.removeMessages(6);
+				releaseFrontRecorder();
+				closeFrontCamera();
+				if (openFrontCamera()) {
+					setupFrontRecorder();
+				}
+
+				mMainHandler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						setupFrontViews();
+					}
+				});
+
+				// 修改分辨率后按需启动录像
+				if (MyApp.shouldVideoRecordWhenChangeSize) {
+					new Thread(new StartRecordWhenChangeSizeThread()).start();
+					MyApp.shouldVideoRecordWhenChangeSize = false;
+				}
+				this.removeMessages(6);
+				break;
 			}
 		}
-
 	}
 
 	private class WriteImageExifThread implements Runnable {
@@ -2716,17 +2732,13 @@ public class MainActivity extends Activity {
 	}
 
 	/** 设置分辨率 */
-	public int setFrontResolution(int state) {
+	public void setFrontResolution(int state) { // TODO
 		if (state != resolutionState) {
 			resolutionState = state;
-			// 释放录像区域
-			releaseFrontRecorder();
-			closeFrontCamera();
-			if (openFrontCamera()) {
-				setupFrontRecorder();
-			}
+			Message msgSetResolution = new Message();
+			msgSetResolution.what = 6;
+			taskHandler.sendMessage(msgSetResolution);
 		}
-		return -1;
 	}
 
 	/** 设置分辨率 */
