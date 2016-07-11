@@ -110,14 +110,6 @@ public class MainActivity extends Activity {
 
 	private Handler mMainHandler; // 主线程Handler
 
-	/** 非UI线程 */
-	private static final HandlerThread taskThread = new HandlerThread(
-			"startrecord-thread");
-	static {
-		taskThread.start();
-	}
-	private final Handler taskHandler = new TaskHandler(taskThread.getLooper());
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -257,7 +249,6 @@ public class MainActivity extends Activity {
 		closeFrontCamera();
 		closeBackCamera();
 		videoDb.close();
-
 		// 关闭碰撞侦测服务
 		Intent intentCrash = new Intent(context, SensorWatchService.class);
 		stopService(intentCrash);
@@ -265,6 +256,8 @@ public class MainActivity extends Activity {
 		if (mainReceiver != null) {
 			unregisterReceiver(mainReceiver);
 		}
+		// 结束异步线程
+		taskThread.quit();
 		super.onDestroy();
 	}
 
@@ -841,12 +834,11 @@ public class MainActivity extends Activity {
 	private void switchCameraTo(int camera) {
 		switch (camera) {
 		case 0:
+			layoutFront.setVisibility(View.VISIBLE);
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(
 					1184, 480));
 			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
-
-			layoutFront.setVisibility(View.VISIBLE);
 			layoutBack.setVisibility(View.GONE);
 			setBackLineVisible(false);
 			break;
@@ -872,6 +864,11 @@ public class MainActivity extends Activity {
 		default:
 			break;
 		}
+		// 更新录像界面按钮状态
+		refreshFrontButton();
+		refreshBackButton();
+		setupFrontViews();
+		setupBackViews();
 	}
 
 	/** 切换前后摄像画面 */
@@ -1100,8 +1097,7 @@ public class MainActivity extends Activity {
 						setFrontMute(true, true);
 					}
 					setupFrontViews();
-					// 修改录音/静音后按需还原录像状态
-					if (MyApp.shouldVideoRecordWhenChangeMute) {
+					if (MyApp.shouldVideoRecordWhenChangeMute) { // 修改录音/静音后按需还原录像状态
 						new Thread(new StartRecordWhenChangeMuteThread())
 								.start();
 						MyApp.shouldVideoRecordWhenChangeMute = false;
@@ -1198,9 +1194,7 @@ public class MainActivity extends Activity {
 
 	/** 拍照 */
 	public void takePhoto() {
-		Message messageTakePhoto = new Message();
-		messageTakePhoto.what = 5;
-		taskHandler.sendMessage(messageTakePhoto);
+		new Thread(new TakePhotoThread()).start();
 	}
 
 	/** ACC下电拍照 */
@@ -1221,12 +1215,24 @@ public class MainActivity extends Activity {
 			if (StorageUtil.isFrontCardExist()) { // 如果录像卡不存在，则会保存到内部存储
 				setFrontDirectory(Constant.Path.SDCARD_1);
 			}
-
 			HintUtil.playAudio(getApplicationContext(),
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
 			recorderFront.takePicture();
 		}
 	}
+
+	/** 异步线程 */
+	private static final HandlerThread taskThread = new HandlerThread(
+			"task-thread");
+	static {
+		taskThread.start();
+	}
+
+	/**
+	 * @param 1 前录:文件保存时释放空间
+	 * @param 2 后录:文件保存时释放空间
+	 */
+	private final Handler taskHandler = new TaskHandler(taskThread.getLooper());
 
 	class TaskHandler extends Handler {
 
@@ -1237,36 +1243,105 @@ public class MainActivity extends Activity {
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case 1: // 前录:开启时释放存储
+			case 1: // 前录:文件保存时释放空间
 				this.removeMessages(1);
-				final boolean isDeleteFrontSuccess = StorageUtil
-						.releaseFrontStorage(context);
-				mMainHandler.post(new Runnable() {
-
-					@Override
-					public void run() {
-						if (isDeleteFrontSuccess) {
-							HintUtil.playAudio(
-									getApplicationContext(),
-									com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
-							if (MyApp.isFrontPreview
-									&& recorderFront.start() == 0) {
-								setFrontState(true);
-							}
-						}
-					}
-				});
+				StorageUtil.releaseFrontStorage(context);
 				this.removeMessages(1);
 				break;
 
-			case 2: // 后录:开启时释放存储
+			case 2: // 后录:文件保存时释放空间
 				this.removeMessages(2);
+				StorageUtil.releaseBackStorage(context);
+				this.removeMessages(2);
+				break;
+			}
+		}
+	}
+
+	/** 前录:切换分辨率 */
+	private class ChangeFrontSizeThread implements Runnable {
+
+		@Override
+		public void run() {
+			releaseFrontRecorder();
+			closeFrontCamera();
+			if (openFrontCamera()) {
+				setupFrontRecorder();
+			}
+			mMainHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					setupFrontViews();
+				}
+			});
+			if (MyApp.shouldVideoRecordWhenChangeSize) { // 修改分辨率后按需启动录像
+				MyApp.shouldVideoRecordWhenChangeSize = false;
+				try {
+					Thread.sleep(1000);
+				} catch (Exception e) {
+				}
+				startFrontRecord();
+			}
+		}
+
+	}
+
+	private class StartFrontRecordThread implements Runnable {
+
+		@Override
+		public void run() {
+			if (!MyApp.isFrontRecording && MyApp.isFrontPreview
+					&& recorderFront != null) {
+				MyLog.d("Front.Record Start");
+				setFrontDirectory(Constant.Path.SDCARD_1); // 设置保存路径
+				if (sharedPreferences.getBoolean("videoMute",
+						Constant.Record.muteDefault)) {
+					setFrontMute(true, false); // 设置录像静音
+				} else {
+					setFrontMute(false, false);
+				}
+				
+				final boolean isDeleteFrontSuccess = StorageUtil
+						.releaseFrontStorage(context);
+				if (isDeleteFrontSuccess) {
+					if (MyApp.isFrontPreview && recorderFront.start() == 0) {
+						mMainHandler.post(new Runnable() {
+
+							@Override
+							public void run() {
+								resetFrontTimeText();
+								HintUtil.playAudio(
+										getApplicationContext(),
+										com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
+
+								setFrontState(true);
+							}
+						});
+					}
+				}
+			}
+
+		}
+	}
+
+	private class StartBackRecordThread implements Runnable {
+
+		@Override
+		public void run() {
+
+			if (!MyApp.isBackRecording && MyApp.isBackPreview
+					&& recorderBack != null) {
+				MyLog.d("Back.Start Record");
+				setBackDirectory(Constant.Path.SDCARD_1); // 设置保存路径
+				setBackMute(true, false); // 设置录像静音
+
 				final boolean isDeleteBackSuccess = StorageUtil
 						.releaseBackStorage(context);
 				mMainHandler.post(new Runnable() {
 
 					@Override
 					public void run() {
+						resetBackTimeText();
 						if (isDeleteBackSuccess) {
 							HintUtil.playAudio(
 									getApplicationContext(),
@@ -1278,60 +1353,114 @@ public class MainActivity extends Activity {
 						}
 					}
 				});
-				this.removeMessages(2);
+			}
 
-			case 3: // 前录:文件保存时释放空间
-				this.removeMessages(3);
-				StorageUtil.releaseFrontStorage(context);
-				this.removeMessages(3);
-				break;
+		}
 
-			case 4: // 后录:文件保存时释放空间
-				this.removeMessages(4);
-				StorageUtil.releaseBackStorage(context);
-				this.removeMessages(4);
-				break;
+	}
 
-			case 5: // 拍照
-				this.removeMessages(5);
-				if (!MyApp.isFrontRecording && !MyApp.isBackRecording
-						&& !StorageUtil.isFrontCardExist()) { // 判断SD卡2是否存在，需要耗费一定时间
-					noVideoSDHint(); // SDCard不存在
-				} else if (recorderFront != null) {
-					setFrontDirectory(Constant.Path.SDCARD_1); // 设置保存路径，否则会保存到内部存储
-					HintUtil.playAudio(
-							getApplicationContext(),
-							com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
-					recorderFront.takePicture();
+	/** 停止录像x5 */
+	private void stopFrontRecorder5Times() {
+		if (MyApp.isFrontRecording) {
+			new Thread(new StopFrontRecordThread()).start();
+			textFrontTime.setVisibility(View.INVISIBLE);
+			resetFrontTimeText();
+		}
+	}
+
+	/** 停止录像x5 */
+	private void stopBackRecorder5Times() {
+		if (MyApp.isBackRecording) {
+			new Thread(new CloseBackRecordThread()).start();
+			textBackTime.setVisibility(View.INVISIBLE);
+			resetBackTimeText();
+		}
+	}
+
+	private class StopFrontRecordThread implements Runnable {
+
+		@Override
+		public void run() {
+			if (MyApp.isFrontRecording) {
+				try {
+					int tryTime = 0;
+					while (stopFrontRecorder() != 0 && tryTime < 5) { // 停止录像
+						tryTime++;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally {
+					mMainHandler.post(new Runnable() {
+
+						@Override
+						public void run() {
+							setFrontState(false);
+						}
+					});
 				}
-				this.removeMessages(5);
-				break;
-
-			case 6: // 切换分辨率
-				this.removeMessages(6);
-				releaseFrontRecorder();
-				closeFrontCamera();
-				if (openFrontCamera()) {
-					setupFrontRecorder();
+			}
+			// 处理停车录像过程中，拔卡停止录像或者手动停止录像情况
+			if (!MyApp.isAccOn && !MyApp.isBackRecording) {
+				if (!MyApp.isParkRecording) {
+				} else {
+					MyApp.isParkRecording = false;
+					ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
 				}
+				new Thread(new CloseRecordThread()).start();
+			}
+		}
 
+	}
+
+	private class CloseBackRecordThread implements Runnable {
+
+		@Override
+		public void run() {
+			try {
+				int tryTime = 0;
+				while (stopBackRecorder() != 0 && tryTime < 5) { // 停止录像
+					tryTime++;
+				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
 				mMainHandler.post(new Runnable() {
 
 					@Override
 					public void run() {
-						setupFrontViews();
+						setBackState(false);
 					}
 				});
-
-				// 修改分辨率后按需启动录像
-				if (MyApp.shouldVideoRecordWhenChangeSize) {
-					new Thread(new StartRecordWhenChangeSizeThread()).start();
-					MyApp.shouldVideoRecordWhenChangeSize = false;
+			}
+			// 处理停车录像过程中，拔卡停止录像或者手动停止录像情况
+			if (!MyApp.isAccOn && !MyApp.isFrontRecording) {
+				if (!MyApp.isParkRecording) {
+				} else {
+					MyApp.isParkRecording = false;
+					ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
 				}
-				this.removeMessages(6);
-				break;
+				new Thread(new CloseRecordThread()).start();
 			}
 		}
+
+	}
+
+	private class TakePhotoThread implements Runnable {
+
+		@Override
+		public void run() {
+			if (!MyApp.isFrontRecording && !MyApp.isBackRecording
+					&& !StorageUtil.isFrontCardExist()) { // 判断SD卡2是否存在，需要耗费一定时间
+				noVideoSDHint(); // SDCard不存在
+			} else if (recorderFront != null) {
+				setFrontDirectory(Constant.Path.SDCARD_1); // 设置保存路径，否则会保存到内部存储
+				HintUtil.playAudio(getApplicationContext(),
+						com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
+				recorderFront.takePicture();
+			}
+
+		}
+
 	}
 
 	private class WriteImageExifThread implements Runnable {
@@ -1392,7 +1521,6 @@ public class MainActivity extends Activity {
 			MyLog.v("Front.surface Created");
 			if (cameraFront == null) {
 				surfaceHolderFront = holder;
-
 				// Setup Front
 				releaseFrontRecorder();
 				closeFrontCamera();
@@ -1459,12 +1587,10 @@ public class MainActivity extends Activity {
 			textVideoSize.setText(getResources().getString(
 					R.string.icon_hint_1080p));
 		}
-
 		// 录像按钮
 		imageFrontState.setImageDrawable(getResources().getDrawable(
 				MyApp.isFrontRecording ? R.drawable.video_stop
 						: R.drawable.video_start, null));
-
 		// 视频分段
 		if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
 			imageVideoLength.setImageDrawable(getResources().getDrawable(
@@ -1477,7 +1603,6 @@ public class MainActivity extends Activity {
 			textVideoLength.setText(getResources().getString(
 					R.string.icon_hint_3_minutes));
 		}
-
 		// 视频加锁
 		imageFrontLock.setImageDrawable(getResources().getDrawable(
 				MyApp.isFrontLock ? R.drawable.video_lock
@@ -1485,7 +1610,6 @@ public class MainActivity extends Activity {
 		textFrontLock.setText(getResources().getString(
 				MyApp.isFrontLock ? R.string.icon_hint_lock
 						: R.string.icon_hint_unlock));
-
 		// 静音按钮
 		boolean videoMute = sharedPreferences.getBoolean("videoMute",
 				Constant.Record.muteDefault);
@@ -1520,13 +1644,15 @@ public class MainActivity extends Activity {
 			if (!MyApp.isFrontRecording) {
 				if (!MyApp.isAccOn) {
 					if (MyApp.isParkRecording) {
-						new Thread(new StartFrontRecordThread()).start(); // 开始录像
+						StartCheckErrorFileThread();
+						startFrontRecord();
 					} else if (!ClickUtil.isHintSleepTooQuick(3000)) {
 						HintUtil.showToast(MainActivity.this, getResources()
 								.getString(R.string.hint_stop_record_sleeping));
 					}
 				} else {
-					new Thread(new StartFrontRecordThread()).start(); // 开始录像
+					StartCheckErrorFileThread();
+					startFrontRecord();
 				}
 			} else {
 				MyLog.v("Front.startRecord.Already record yet");
@@ -1545,18 +1671,10 @@ public class MainActivity extends Activity {
 			if (!MyApp.isBackRecording) {
 				if (!MyApp.isAccOn) {
 					if (MyApp.isParkRecording) {
-						if (startBackRecord() == 0) {
-							setBackState(true);
-						} else {
-							MyLog.e("Back.Start Record Failed");
-						}
+						startBackRecord();
 					}
 				} else {
-					if (startBackRecord() == 0) {
-						setBackState(true);
-					} else {
-						MyLog.e("Back.Start Record Failed");
-					}
+					startBackRecord();
 				}
 				setupBackViews();
 			}
@@ -1572,30 +1690,8 @@ public class MainActivity extends Activity {
 	 * 
 	 * @return 0:成功 -1:失败
 	 */
-	public int startFrontRecord() { // FIXME
-		if (!MyApp.isFrontRecording && MyApp.isFrontPreview
-				&& recorderFront != null) {
-			MyLog.d("Front.Record Start");
-			setFrontDirectory(Constant.Path.SDCARD_1); // 设置保存路径
-			// 设置录像静音
-			if (sharedPreferences.getBoolean("videoMute",
-					Constant.Record.muteDefault)) {
-				setFrontMute(true, false);
-			} else {
-				setFrontMute(false, false);
-			}
-			resetFrontTimeText();
-
-			Message messageReleaseWhenStartRecord = new Message();
-			messageReleaseWhenStartRecord.what = 1;
-			taskHandler.sendMessage(messageReleaseWhenStartRecord);
-			if (!FileUtil.isFrontStorageLess()) {
-				return 0;
-			} else {
-				return -1;
-			}
-		}
-		return -1;
+	public void startFrontRecord() {
+		new Thread(new StartFrontRecordThread()).start();
 	}
 
 	/**
@@ -1603,30 +1699,8 @@ public class MainActivity extends Activity {
 	 * 
 	 * @return 0:成功 -1:失败
 	 */
-	public int startBackRecord() { // FIXME
-		if (!MyApp.isBackRecording && MyApp.isBackPreview
-				&& recorderBack != null) {
-			MyLog.d("Back.Start Record");
-			setBackDirectory(Constant.Path.SDCARD_1); // 设置保存路径
-			// 设置录像静音
-			if (sharedPreferences.getBoolean("videoMute",
-					Constant.Record.muteDefault)) {
-				setBackMute(true, false);
-			} else {
-				setBackMute(false, false);
-			}
-			resetBackTimeText();
-
-			Message messageReleaseWhenStartRecord = new Message();
-			messageReleaseWhenStartRecord.what = 2;
-			taskHandler.sendMessage(messageReleaseWhenStartRecord);
-			if (!FileUtil.isBackStorageLess()) {
-				return 0;
-			} else {
-				return -1;
-			}
-		}
-		return -1;
+	public void startBackRecord() {
+		new Thread(new StartBackRecordThread()).start();
 	}
 
 	/**
@@ -2271,22 +2345,6 @@ public class MainActivity extends Activity {
 
 	}
 
-	/** 更改分辨率后重启录像 */
-	public class StartRecordWhenChangeSizeThread implements Runnable {
-
-		@Override
-		public void run() {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			Message message = new Message();
-			message.what = 1;
-			startRecordWhenChangeSizeOrMute.sendMessage(message);
-		}
-	}
-
 	/** 更改录音/静音状态后重启录像 */
 	public class StartRecordWhenChangeMuteThread implements Runnable {
 
@@ -2333,184 +2391,6 @@ public class MainActivity extends Activity {
 		surfaceViewBack.getHolder().addCallback(new BackCallBack());
 	}
 
-	private class RestartRecordThread implements Runnable {
-
-		@Override
-		public void run() {
-			try {
-				Thread.sleep(500);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			Message messageRestart = new Message();
-			messageRestart.what = 1;
-			restartRecordHandler.sendMessage(messageRestart);
-		}
-
-	}
-
-	final Handler restartRecordHandler = new Handler() {
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 1:
-				if (!MyApp.isFrontRecording) {
-					if (startFrontRecord() == 0) {
-						setFrontState(true);
-					} else {
-						MyLog.e("Start Record Failed");
-					}
-				}
-				break;
-			default:
-				break;
-			}
-		}
-	};
-
-	/**
-	 * 录像线程， 调用此线程地方：
-	 * 
-	 * 1.首次启动录像{@link AutoThread }
-	 * 
-	 * 2.ACC上电录像 {@link BackgroundThread}
-	 * 
-	 * 3.停车侦测，录制一个视频,时长:{@link Constant.Record.parkVideoLength}
-	 * 
-	 * 4.插卡自动录像
-	 */
-	private class StartFrontRecordThread implements Runnable {
-
-		@Override
-		public void run() {
-			StartCheckErrorFileThread();
-			int i = 0;
-			while (i < 5) {
-				if (MyApp.isFrontRecording) {
-					i = 5;
-				} else {
-					if (!StorageUtil.isFrontCardExist()) {
-						// 如果是休眠状态，且不是停车侦测录像情况，避免线程执行过程中，ACC下电后仍然语音提醒“SD不存在”
-						if (!MyApp.isAccOn && !MyApp.isParkRecording) {
-							return;
-						}
-						i++;
-						MyLog.e("Front.StartRecordThread.No SD:try " + i);
-						try {
-							Thread.sleep(2000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						if (i == 4) {
-							Message messageRetry = new Message();
-							messageRetry.what = 2;
-							startFrontRecordHandler.sendMessage(messageRetry);
-						}
-					} else { // 开始录像
-						Message messageRecord = new Message();
-						messageRecord.what = 1;
-						startFrontRecordHandler.sendMessage(messageRecord);
-						i = 5;
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * 录像线程， 调用此线程地方：
-	 * 
-	 * 1.首次启动录像{@link AutoThread }
-	 * 
-	 * 2.ACC上电录像 {@link BackgroundThread}
-	 * 
-	 * 3.停车侦测，录制一个视频,时长:{@link Constant.Record.parkVideoLength}
-	 * 
-	 * 4.插卡自动录像
-	 */
-	private class StartBackRecordThread implements Runnable {
-
-		@Override
-		public void run() {
-			StartCheckErrorFileThread();
-			int i = 0;
-			while (i < 5) {
-				if (MyApp.isBackRecording) {
-					i = 5;
-				} else {
-					if (!StorageUtil.isBackCardExist()) {
-						// 如果是休眠状态，且不是停车侦测录像情况，避免线程执行过程中，ACC下电后仍然语音提醒“SD不存在”
-						if (!MyApp.isAccOn && !MyApp.isParkRecording) {
-							return;
-						}
-						i++;
-						MyLog.e("Back.StartRecordThread.No SD:try " + i);
-						try {
-							Thread.sleep(2000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						if (i == 4) {
-							Message messageRetry = new Message();
-							messageRetry.what = 2;
-							startBackRecordHandler.sendMessage(messageRetry);
-						}
-					} else { // 开始录像
-						Message messageRecord = new Message();
-						messageRecord.what = 1;
-						startBackRecordHandler.sendMessage(messageRecord);
-						i = 5;
-					}
-				}
-			}
-		}
-	}
-
-	final Handler startFrontRecordHandler = new Handler() {
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 1:
-				if (!MyApp.isFrontRecording) {
-					if (startFrontRecord() == 0) {
-						setFrontState(true);
-					} else {
-						MyLog.e("Front.Start Record Failed");
-					}
-				}
-				break;
-
-			case 2:
-				noVideoSDHint(); // SDCard1不存在
-				break;
-
-			default:
-				break;
-			}
-		}
-	};
-
-	final Handler startBackRecordHandler = new Handler() {
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 1:
-				if (!MyApp.isBackRecording) {
-					if (startBackRecord() == 0) {
-						setBackState(true);
-					} else {
-						MyLog.e("Back.Start Record Failed");
-					}
-				}
-				break;
-
-			case 2:
-				noVideoSDHint(); // SDCard1不存在
-				break;
-
-			default:
-				break;
-			}
-		}
-	};
-
 	/** 设置保存路径 */
 	public int setFrontDirectory(String dir) {
 		if (recorderFront != null) {
@@ -2550,56 +2430,6 @@ public class MainActivity extends Activity {
 			return recorderBack.setMute(true);
 		}
 		return -1;
-	}
-
-	/** 停止录像x5 */
-	private void stopFrontRecorder5Times() {
-		if (MyApp.isFrontRecording) {
-			try {
-				int tryTime = 0;
-				while (stopFrontRecorder() != 0 && tryTime < 5) { // 停止录像
-					tryTime++;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				setFrontState(false);
-			}
-		}
-		// 处理停车录像过程中，拔卡停止录像或者手动停止录像情况
-		if (!MyApp.isAccOn && !MyApp.isBackRecording) {
-			if (!MyApp.isParkRecording) {
-			} else {
-				MyApp.isParkRecording = false;
-				ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
-			}
-			new Thread(new CloseRecordThread()).start();
-		}
-	}
-
-	/** 停止录像x5 */
-	private void stopBackRecorder5Times() {
-		if (MyApp.isBackRecording) {
-			try {
-				int tryTime = 0;
-				while (stopBackRecorder() != 0 && tryTime < 5) { // 停止录像
-					tryTime++;
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				setBackState(false);
-			}
-		}
-		// 处理停车录像过程中，拔卡停止录像或者手动停止录像情况
-		if (!MyApp.isAccOn && !MyApp.isFrontRecording) {
-			if (!MyApp.isParkRecording) {
-			} else {
-				MyApp.isParkRecording = false;
-				ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
-			}
-			new Thread(new CloseRecordThread()).start();
-		}
 	}
 
 	/** 重置预览区域 */
@@ -2732,12 +2562,10 @@ public class MainActivity extends Activity {
 	}
 
 	/** 设置分辨率 */
-	public void setFrontResolution(int state) { // TODO
+	public void setFrontResolution(int state) {
 		if (state != resolutionState) {
 			resolutionState = state;
-			Message msgSetResolution = new Message();
-			msgSetResolution.what = 6;
-			taskHandler.sendMessage(msgSetResolution);
+			new Thread(new ChangeFrontSizeThread()).start();
 		}
 	}
 
@@ -2778,8 +2606,6 @@ public class MainActivity extends Activity {
 
 	/** 停止录像 */
 	public int stopFrontRecorder() {
-		resetFrontTimeText();
-		textFrontTime.setVisibility(View.INVISIBLE);
 		if (recorderFront != null) {
 			MyLog.d("Front.StopRecorder");
 			// 停车守卫不播放声音
@@ -2972,7 +2798,7 @@ public class MainActivity extends Activity {
 			try {
 				if (type == 1) { // 视频
 					Message messageDeleteUnlockVideo = new Message();
-					messageDeleteUnlockVideo.what = 3;
+					messageDeleteUnlockVideo.what = 1;
 					taskHandler.sendMessage(messageDeleteUnlockVideo);
 
 					String videoName = path.split("/")[5];
@@ -3088,7 +2914,7 @@ public class MainActivity extends Activity {
 			try {
 				if (type == 1) { // 视频
 					Message messageDeleteUnlockVideo = new Message();
-					messageDeleteUnlockVideo.what = 4;
+					messageDeleteUnlockVideo.what = 2;
 					taskHandler.sendMessage(messageDeleteUnlockVideo);
 
 					String videoName = path.split("/")[5];

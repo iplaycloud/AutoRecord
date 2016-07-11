@@ -79,6 +79,9 @@ public class MyApp extends Application {
 
 	/** SD卡取出 */
 	public static boolean isVideoCardEject = false;
+	
+	/** 视频卡是否存在 */
+	public static boolean isVideoCardExist = false;
 
 	/** SD卡准备格式化 */
 	public static boolean isVideoCardFormat = false;
