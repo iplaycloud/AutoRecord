@@ -172,8 +172,11 @@ public class MainActivity extends Activity {
 					Name.PARK_REC_STATE);
 			if (null != strParkRecord && strParkRecord.trim().length() > 0
 					&& "1".equals(strParkRecord)) {
+				MyApp.isParkRecording = true;
 				acquirePartialWakeLock(10 * 1000);
 				new Thread(new AutoThread()).start(); // 序列任务线程
+			} else {
+				MyApp.isParkRecording = false;
 			}
 		}
 		// 碰撞侦测服务
@@ -214,7 +217,6 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onResume() {
 		MyLog.v("onResume");
-		MyApp.isMainForeground = true;
 		try {
 			refreshFrontButton(); // 更新录像界面按钮状态
 			refreshBackButton();
@@ -236,7 +238,6 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onPause() {
-		MyApp.isMainForeground = false;
 		MyLog.v("onPause,FrontRecording:" + MyApp.isFrontRecording
 				+ ",BackRecording:" + MyApp.isBackRecording);
 
@@ -354,6 +355,20 @@ public class MainActivity extends Activity {
 
 				} else if (Name.ACC_STATE.equals(name)) {
 					MyApp.isAccOn = (SettingUtil.getAccStatus() == 1);
+				} else if (Name.PARK_REC_STATE.equals(name)) {
+					if (!MyApp.isAccOn) {
+						String strParkRecord = ProviderUtil.getValue(context,
+								Name.PARK_REC_STATE);
+						if (null != strParkRecord
+								&& strParkRecord.trim().length() > 0
+								&& "1".equals(strParkRecord)) {
+							MyApp.isParkRecording = true;
+						} else {
+							MyApp.isParkRecording = false;
+						}
+					} else {
+						MyApp.isParkRecording = false;
+					}
 				}
 			}
 			super.onChange(selfChange, uri);
@@ -410,6 +425,12 @@ public class MainActivity extends Activity {
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
 				MyApp.isAccOn = true;
 				MyApp.shouldWakeRecord = true;
+
+				String videoTimeStr = sharedPreferences.getString("videoTime",
+						"1");
+				intervalState = "3".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_3MIN
+						: Constant.Record.STATE_INTERVAL_1MIN;
+				setRecordInterval(("3".equals(videoTimeStr)) ? 3 * 60 : 1 * 60); // 重设视频分段
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
 				cameraBeforeBack = (0 == layoutFront.getVisibility()) ? 0 : 1;
 				acquireFullWakeLock();
@@ -476,9 +497,11 @@ public class MainActivity extends Activity {
 		public void run() {
 			try {
 				StartCheckErrorFileThread(); // 检查并删除异常视频文件
+
+				Thread.sleep(Constant.Record.autoRecordDelay);
+				setRecordInterval(3 * 60); // 防止在分段一分钟的时候，停车守卫录出1分和0秒两段视频
 				// 自动录像:如果已经在录像则不处理
 				if (Constant.Record.autoRecordFront && !MyApp.isFrontRecording) {
-					Thread.sleep(Constant.Record.autoRecordDelay);
 					Message message = new Message();
 					message.what = 1;
 					autoHandler.sendMessage(message);
@@ -572,16 +595,6 @@ public class MainActivity extends Activity {
 					}
 				}
 
-				if (MyApp.shouldCrashRecord) { // 停车侦测录像
-					MyApp.shouldCrashRecord = false;
-					if (!MyApp.isFrontRecording) {
-						if (Constant.Record.parkVideoLock) { // 是否需要加锁
-							MyApp.isFrontLock = true;
-							MyApp.isBackLock = true;
-						}
-						new Thread(new RecordWhenCrashThread()).start();
-					}
-				}
 				if (MyApp.shouldTakePhotoWhenAccOff) { // ACC下电拍照
 					MyApp.shouldTakePhotoWhenAccOff = false;
 					new Thread(new TakePhotoWhenAccOffThread()).start();
@@ -725,60 +738,6 @@ public class MainActivity extends Activity {
 					MyLog.v("isBackRecording:" + MyApp.isBackRecording);
 				} catch (Exception e) {
 					MyLog.e("recordWhenMountHandler catch exception: "
-							+ e.toString());
-				}
-				break;
-
-			default:
-				break;
-			}
-		}
-	};
-
-	/** 底层碰撞后录制一个视频线程 */
-	public class RecordWhenCrashThread implements Runnable {
-
-		@Override
-		public void run() {
-			MyLog.v("run RecordWhenCrashThread");
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			Message message = new Message();
-			message.what = 1;
-			recordWhenCrashHandler.sendMessage(message);
-		}
-	}
-
-	/**
-	 * 以下事件发生时录制视频：
-	 * 
-	 * 停车守卫：底层碰撞
-	 */
-	final Handler recordWhenCrashHandler = new Handler() {
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 1:
-				try {
-					if (!MyApp.isFrontRecording) {
-						if (!MyApp.isMainForeground) { // 发送Home键，回到主界面
-						}
-						setFrontInterval(3 * 60); // 防止在分段一分钟的时候，停车守卫录出1分和0秒两段视频
-
-						StartCheckErrorFileThread();
-						if (!MyApp.isFrontRecording) {
-							if (startFrontRecord() == 0) {
-								setFrontState(true);
-							} else {
-								MyLog.e("Start Record Failed");
-							}
-						}
-					}
-					setupFrontViews();
-				} catch (Exception e) {
-					MyLog.e("recordWhenCrashHandler catch exception: "
 							+ e.toString());
 				}
 				break;
@@ -1121,21 +1080,19 @@ public class MainActivity extends Activity {
 			case R.id.textVideoLength:
 				if (!ClickUtil.isQuickClick(1000)) {
 					if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
-						if (setFrontInterval(1 * 60) == 0) {
+						if (setRecordInterval(1 * 60) == 0) {
 							intervalState = Constant.Record.STATE_INTERVAL_1MIN;
 							editor.putString("videoTime", "1");
 							speakVoice(getResources().getString(
 									R.string.hint_video_time_1));
 						}
-						setBackInterval(1 * 60);
 					} else if (intervalState == Constant.Record.STATE_INTERVAL_1MIN) {
-						if (setFrontInterval(3 * 60) == 0) {
+						if (setRecordInterval(3 * 60) == 0) {
 							intervalState = Constant.Record.STATE_INTERVAL_3MIN;
 							editor.putString("videoTime", "3");
 							speakVoice(getResources().getString(
 									R.string.hint_video_time_3));
 						}
-						setBackInterval(3 * 60);
 					}
 					editor.commit();
 					setupFrontViews();
@@ -1581,11 +1538,7 @@ public class MainActivity extends Activity {
 		try {
 			if (!MyApp.isFrontRecording) {
 				if (!MyApp.isAccOn) {
-					String strParkRecord = ProviderUtil.getValue(context,
-							Name.PARK_REC_STATE);
-					if (null != strParkRecord
-							&& strParkRecord.trim().length() > 0
-							&& "1".equals(strParkRecord)) {
+					if (MyApp.isParkRecording) {
 						new Thread(new StartFrontRecordThread()).start(); // 开始录像
 					} else if (!ClickUtil.isHintSleepTooQuick(3000)) {
 						HintUtil.showToast(MainActivity.this, getResources()
@@ -1610,11 +1563,7 @@ public class MainActivity extends Activity {
 		try {
 			if (!MyApp.isBackRecording) {
 				if (!MyApp.isAccOn) {
-					String strParkRecord = ProviderUtil.getValue(context,
-							Name.PARK_REC_STATE);
-					if (null != strParkRecord
-							&& strParkRecord.trim().length() > 0
-							&& "1".equals(strParkRecord)) {
+					if (MyApp.isParkRecording) {
 						if (startBackRecord() == 0) {
 							setBackState(true);
 						} else {
@@ -1976,13 +1925,7 @@ public class MainActivity extends Activity {
 					updateFrontTimeHandler
 							.sendMessage(messageStopRecordFromVoice);
 					return;
-				} else if (!MyApp.isAccOn
-						&& null != ProviderUtil.getValue(context,
-								Name.PARK_REC_STATE)
-						&& ProviderUtil.getValue(context, Name.PARK_REC_STATE)
-								.trim().length() > 0
-						&& "0".equals(ProviderUtil.getValue(context,
-								Name.PARK_REC_STATE))) { // ACC下电停止录像
+				} else if (!MyApp.isAccOn && !MyApp.isParkRecording) { // ACC下电停止录像
 					MyLog.e("Front.Stop Record:isSleeping = true");
 					Message messageSleep = new Message();
 					messageSleep.what = 5;
@@ -2050,13 +1993,7 @@ public class MainActivity extends Activity {
 					updateBackTimeHandler
 							.sendMessage(messageStopRecordFromVoice);
 					return;
-				} else if (!MyApp.isAccOn
-						&& null != ProviderUtil.getValue(context,
-								Name.PARK_REC_STATE)
-						&& ProviderUtil.getValue(context, Name.PARK_REC_STATE)
-								.trim().length() > 0
-						&& "0".equals(ProviderUtil.getValue(context,
-								Name.PARK_REC_STATE))) { // ACC下电停止录像
+				} else if (!MyApp.isAccOn && !MyApp.isParkRecording) { // ACC下电停止录像
 					Message messageSleep = new Message();
 					messageSleep.what = 5;
 					updateBackTimeHandler.sendMessage(messageSleep);
@@ -2094,11 +2031,7 @@ public class MainActivity extends Activity {
 				}
 
 				if (!MyApp.isAccOn) { // 处理停车守卫录像
-					String strParkRecord = ProviderUtil.getValue(context,
-							Name.PARK_REC_STATE);
-					if (null != strParkRecord
-							&& strParkRecord.trim().length() > 0
-							&& "1".equals(strParkRecord)) {
+					if (MyApp.isParkRecording) {
 						if (MyApp.isFrontRecording
 								&& secondFrontCount == Constant.Record.parkVideoLength) {
 							String videoTimeStr = sharedPreferences.getString(
@@ -2110,10 +2043,11 @@ public class MainActivity extends Activity {
 							stopFrontRecorder5Times(); // 停止录像
 							stopBackRecorder5Times();
 							SettingUtil.setAirplaneMode(context, true);
-							setFrontInterval(("3".equals(videoTimeStr)) ? 3 * 60
+							setRecordInterval(("3".equals(videoTimeStr)) ? 3 * 60
 									: 1 * 60); // 重设视频分段
 							ProviderUtil.setValue(context, Name.PARK_REC_STATE,
 									"0");
+							MyApp.isParkRecording = false;
 						}
 					} else {
 					}
@@ -2230,11 +2164,7 @@ public class MainActivity extends Activity {
 					}
 				}
 				if (!MyApp.isAccOn) { // 处理停车守卫录像
-					String strParkRecord = ProviderUtil.getValue(context,
-							Name.PARK_REC_STATE);
-					if (null != strParkRecord
-							&& strParkRecord.trim().length() > 0
-							&& "1".equals(strParkRecord)) {
+					if (MyApp.isParkRecording) {
 						if (MyApp.isBackRecording
 								&& secondBackCount == Constant.Record.parkVideoLength) {
 							String videoTimeStr = sharedPreferences.getString(
@@ -2245,11 +2175,12 @@ public class MainActivity extends Activity {
 							MyLog.v("Back.updateFrontTimeHandler.Stop Park Record");
 							stopFrontRecorder5Times(); // 停止录像
 							stopBackRecorder5Times();
-							setFrontInterval(("3".equals(videoTimeStr)) ? 3 * 60
+							setRecordInterval(("3".equals(videoTimeStr)) ? 3 * 60
 									: 1 * 60); // 重设视频分段
 							SettingUtil.setAirplaneMode(context, true);
 							ProviderUtil.setValue(context, Name.PARK_REC_STATE,
 									"0");
+							MyApp.isParkRecording = false;
 						}
 					} else {
 					}
@@ -2480,8 +2411,7 @@ public class MainActivity extends Activity {
 				} else {
 					if (!StorageUtil.isFrontCardExist()) {
 						// 如果是休眠状态，且不是停车侦测录像情况，避免线程执行过程中，ACC下电后仍然语音提醒“SD不存在”
-						if (!MyApp.isAccOn
-								&& !MyApp.shouldStopWhenCrashVideoSave) {
+						if (!MyApp.isAccOn && !MyApp.isParkRecording) {
 							return;
 						}
 						i++;
@@ -2530,8 +2460,7 @@ public class MainActivity extends Activity {
 				} else {
 					if (!StorageUtil.isBackCardExist()) {
 						// 如果是休眠状态，且不是停车侦测录像情况，避免线程执行过程中，ACC下电后仍然语音提醒“SD不存在”
-						if (!MyApp.isAccOn
-								&& !MyApp.shouldStopWhenCrashVideoSave) {
+						if (!MyApp.isAccOn && !MyApp.isParkRecording) {
 							return;
 						}
 						i++;
@@ -2652,9 +2581,6 @@ public class MainActivity extends Activity {
 				while (stopFrontRecorder() != 0 && tryTime < 5) { // 停止录像
 					tryTime++;
 				}
-				if (MyApp.shouldStopWhenCrashVideoSave) {
-					MyApp.shouldStopWhenCrashVideoSave = false;
-				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
@@ -2663,11 +2589,9 @@ public class MainActivity extends Activity {
 		}
 		// 处理停车录像过程中，拔卡停止录像或者手动停止录像情况
 		if (!MyApp.isAccOn && !MyApp.isBackRecording) {
-			String strParkRecord = ProviderUtil.getValue(context,
-					Name.PARK_REC_STATE);
-			if (null != strParkRecord && strParkRecord.trim().length() > 0
-					&& "0".equals(strParkRecord)) {
+			if (!MyApp.isParkRecording) {
 			} else {
+				MyApp.isParkRecording = false;
 				ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
 			}
 			new Thread(new CloseRecordThread()).start();
@@ -2682,9 +2606,6 @@ public class MainActivity extends Activity {
 				while (stopBackRecorder() != 0 && tryTime < 5) { // 停止录像
 					tryTime++;
 				}
-				if (MyApp.shouldStopWhenCrashVideoSave) {
-					MyApp.shouldStopWhenCrashVideoSave = false;
-				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
@@ -2693,11 +2614,9 @@ public class MainActivity extends Activity {
 		}
 		// 处理停车录像过程中，拔卡停止录像或者手动停止录像情况
 		if (!MyApp.isAccOn && !MyApp.isFrontRecording) {
-			String strParkRecord = ProviderUtil.getValue(context,
-					Name.PARK_REC_STATE);
-			if (null != strParkRecord && strParkRecord.trim().length() > 0
-					&& "0".equals(strParkRecord)) {
+			if (!MyApp.isParkRecording) {
 			} else {
+				MyApp.isParkRecording = false;
 				ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
 			}
 			new Thread(new CloseRecordThread()).start();
@@ -2757,7 +2676,7 @@ public class MainActivity extends Activity {
 
 	/** 释放Camera */
 	private void releaseFrontCameraZone() {
-		if (!MyApp.isAccOn && !MyApp.isMainForeground) {
+		if (!MyApp.isAccOn) {
 			// 释放录像区域
 			releaseFrontRecorder();
 			closeFrontCamera();
@@ -2774,7 +2693,7 @@ public class MainActivity extends Activity {
 	 * 释放Camera
 	 */
 	private void releaseBackCameraZone() {
-		if (!MyApp.isAccOn && !MyApp.isMainForeground) {
+		if (!MyApp.isAccOn) {
 			// 释放录像区域
 			releaseBackRecorder();
 			closeBackCamera();
@@ -2861,15 +2780,12 @@ public class MainActivity extends Activity {
 		return -1;
 	}
 
-	/** 设置视频分段 */
-	public int setFrontInterval(int seconds) {
+	/** 设置视频分段:前置后置 */
+	public int setRecordInterval(int seconds) {
+		if (recorderBack != null) {
+			recorderBack.setVideoSeconds(seconds);
+		}
 		return (recorderFront != null) ? recorderFront.setVideoSeconds(seconds)
-				: -1;
-	}
-
-	/** 设置视频分段 */
-	public int setBackInterval(int seconds) {
-		return (recorderBack != null) ? recorderBack.setVideoSeconds(seconds)
 				: -1;
 	}
 
@@ -2892,9 +2808,6 @@ public class MainActivity extends Activity {
 		if (recorderFront != null) {
 			MyLog.d("Front.StopRecorder");
 			// 停车守卫不播放声音
-			if (MyApp.shouldStopWhenCrashVideoSave) {
-				MyApp.shouldStopWhenCrashVideoSave = false;
-			}
 			HintUtil.playAudio(getApplicationContext(),
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
 			return recorderFront.stop();
@@ -2909,9 +2822,6 @@ public class MainActivity extends Activity {
 		if (recorderBack != null) {
 			MyLog.d("Back.StopRecorder");
 			// 停车守卫不播放声音
-			if (MyApp.shouldStopWhenCrashVideoSave) {
-				MyApp.shouldStopWhenCrashVideoSave = false;
-			}
 			HintUtil.playAudio(getApplicationContext(),
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
 			return recorderBack.stop();
@@ -3121,17 +3031,14 @@ public class MainActivity extends Activity {
 					if (MyApp.shouldSendPathToDSA) {
 						MyApp.shouldSendPathToDSA = false;
 						String[] picPaths = new String[2]; // 第一张保存前置的图片路径
-															// ；第二张保存后置的，如无可以为空
 						picPaths[0] = path;
 						picPaths[1] = "";
 						Intent intent = new Intent(
 								Constant.Broadcast.SEND_PIC_PATH);
 						intent.putExtra("picture", picPaths);
 						sendBroadcast(intent);
-
 						MyLog.v("SendDSA,Path:" + path);
 					}
-
 					// 通知语音
 					Intent intentImageSave = new Intent(
 							Constant.Broadcast.ACTION_IMAGE_SAVE);

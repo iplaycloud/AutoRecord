@@ -29,11 +29,8 @@ public class MyApp extends Application {
 	/** 休眠唤醒：需要启动录像 */
 	public static boolean shouldWakeRecord = false;
 
-	/** 底层碰撞：需要启动录像 */
-	public static boolean shouldCrashRecord = false;
-
-	/** 录制底层碰撞视频后是否需要停止录像 */
-	public static boolean shouldStopWhenCrashVideoSave = false;
+	/** 是否正在进行停车守卫录像 */
+	public static boolean isParkRecording = false;
 
 	/** 语音拍照 */
 	public static boolean shouldTakeVoicePhoto = false;
@@ -55,7 +52,7 @@ public class MyApp extends Application {
 
 	/** 前录录像预览窗口是否初始化 */
 	public static boolean isFrontPreview = false;
-	
+
 	public static boolean isBackPreview = false;
 
 	/** 更新录像时间线程是否正在运行 */
@@ -99,9 +96,6 @@ public class MyApp extends Application {
 
 	/** 是否初次启动 */
 	public static boolean isFirstLaunch = true;
-
-	/** 录像界面是否可见 */
-	public static boolean isMainForeground = true;
 
 	/** 当前正在录像的视频名称 */
 	public static String nowRecordVideoName = "";
