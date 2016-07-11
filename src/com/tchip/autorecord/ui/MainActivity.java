@@ -108,15 +108,24 @@ public class MainActivity extends Activity {
 	/** Intent是否是新的 */
 	private boolean isIntentInTime = false;
 
+	/** onFileSave时释放空间 */
+	private static final HandlerThread fileSaveHandlerThread = new HandlerThread(
+			"filesave-thread");
+	static {
+		fileSaveHandlerThread.start();
+	}
+	private final Handler releaseStorageWhenFileSaveHandler = new ReleaseStorageWhenFileSaveHandler(
+			fileSaveHandlerThread.getLooper());
 	private Handler mMainHandler; // 主线程Handler
 
-	/** 非UI线程 */
-	private static final HandlerThread taskThread = new HandlerThread(
+	/** startRecord时释放空间 */
+	private static final HandlerThread startRecordHandlerThread = new HandlerThread(
 			"startrecord-thread");
 	static {
-		taskThread.start();
+		startRecordHandlerThread.start();
 	}
-	private final Handler taskHandler = new TaskHandler(taskThread.getLooper());
+	private final Handler releaseStorageWhenStartRecordHandler = new ReleaseStorageWhenStartRecordHandler(
+			startRecordHandlerThread.getLooper());
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -1204,10 +1213,17 @@ public class MainActivity extends Activity {
 	}
 
 	/** 拍照 */
-	public void takePhoto() {
-		Message messageTakePhoto = new Message();
-		messageTakePhoto.what = 5;
-		taskHandler.sendMessage(messageTakePhoto);
+	public int takePhoto() {
+		if (!StorageUtil.isFrontCardExist()) { // 判断SD卡2是否存在，需要耗费一定时间
+			noVideoSDHint(); // SDCard不存在
+			return -1;
+		} else if (recorderFront != null) {
+			setFrontDirectory(Constant.Path.SDCARD_1); // 设置保存路径，否则会保存到内部存储
+			HintUtil.playAudio(getApplicationContext(),
+					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
+			return recorderFront.takePicture();
+		}
+		return -1;
 	}
 
 	/** ACC下电拍照 */
@@ -1235,16 +1251,16 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	class TaskHandler extends Handler {
+	class ReleaseStorageWhenStartRecordHandler extends Handler {
 
-		public TaskHandler(Looper looper) {
+		public ReleaseStorageWhenStartRecordHandler(Looper looper) {
 			super(looper);
 		}
 
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case 1: // 前录:开启时释放存储
+			case 1: // 前录
 				this.removeMessages(1);
 				final boolean isDeleteFrontSuccess = StorageUtil
 						.releaseFrontStorage(context);
@@ -1266,7 +1282,7 @@ public class MainActivity extends Activity {
 				this.removeMessages(1);
 				break;
 
-			case 2: // 后录:开启时释放存储
+			case 2:
 				this.removeMessages(2);
 				final boolean isDeleteBackSuccess = StorageUtil
 						.releaseBackStorage(context);
@@ -1287,31 +1303,50 @@ public class MainActivity extends Activity {
 				});
 				this.removeMessages(2);
 
-			case 3: // 前录:文件保存时释放空间
-				this.removeMessages(3);
-				StorageUtil.releaseFrontStorage(context);
-				this.removeMessages(3);
+			}
+		}
+
+	}
+
+	class ReleaseStorageWhenFileSaveHandler extends Handler {
+
+		public ReleaseStorageWhenFileSaveHandler(Looper looper) {
+			super(looper);
+		}
+
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case 1:
+				this.removeMessages(1);
+				final boolean isDeleteSuccess = StorageUtil
+						.releaseFrontStorage(context);
+				mMainHandler.post(new Runnable() {
+
+					@Override
+					public void run() {
+						if (isDeleteSuccess) {
+						}
+
+					}
+				});
+				this.removeMessages(1);
 				break;
 
-			case 4: // 后录:文件保存时释放空间
-				this.removeMessages(4);
-				StorageUtil.releaseBackStorage(context);
-				this.removeMessages(4);
-				break;
+			case 2:
+				this.removeMessages(2);
+				final boolean isDeleteBackSuccess = StorageUtil
+						.releaseBackStorage(context);
+				mMainHandler.post(new Runnable() {
 
-			case 5: // TODO
-				this.removeMessages(5);
-				if (!MyApp.isFrontRecording && !MyApp.isBackRecording
-						&& !StorageUtil.isFrontCardExist()) { // 判断SD卡2是否存在，需要耗费一定时间
-					noVideoSDHint(); // SDCard不存在
-				} else if (recorderFront != null) {
-					setFrontDirectory(Constant.Path.SDCARD_1); // 设置保存路径，否则会保存到内部存储
-					HintUtil.playAudio(
-							getApplicationContext(),
-							com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
-					recorderFront.takePicture();
-				}
-				this.removeMessages(5);
+					@Override
+					public void run() {
+						if (isDeleteBackSuccess) {
+						}
+
+					}
+				});
+				this.removeMessages(2);
 				break;
 			}
 		}
@@ -1572,7 +1607,8 @@ public class MainActivity extends Activity {
 
 			Message messageReleaseWhenStartRecord = new Message();
 			messageReleaseWhenStartRecord.what = 1;
-			taskHandler.sendMessage(messageReleaseWhenStartRecord);
+			releaseStorageWhenStartRecordHandler
+					.sendMessage(messageReleaseWhenStartRecord);
 			if (!FileUtil.isFrontStorageLess()) {
 				return 0;
 			} else {
@@ -1603,7 +1639,8 @@ public class MainActivity extends Activity {
 
 			Message messageReleaseWhenStartRecord = new Message();
 			messageReleaseWhenStartRecord.what = 2;
-			taskHandler.sendMessage(messageReleaseWhenStartRecord);
+			releaseStorageWhenStartRecordHandler
+					.sendMessage(messageReleaseWhenStartRecord);
 			if (!FileUtil.isBackStorageLess()) {
 				return 0;
 			} else {
@@ -2960,8 +2997,9 @@ public class MainActivity extends Activity {
 			try {
 				if (type == 1) { // 视频
 					Message messageDeleteUnlockVideo = new Message();
-					messageDeleteUnlockVideo.what = 3;
-					taskHandler.sendMessage(messageDeleteUnlockVideo);
+					messageDeleteUnlockVideo.what = 1;
+					releaseStorageWhenFileSaveHandler
+							.sendMessage(messageDeleteUnlockVideo);
 
 					String videoName = path.split("/")[5];
 					int videoResolution = (resolutionState == Constant.Record.STATE_RESOLUTION_720P) ? 720
@@ -3076,8 +3114,9 @@ public class MainActivity extends Activity {
 			try {
 				if (type == 1) { // 视频
 					Message messageDeleteUnlockVideo = new Message();
-					messageDeleteUnlockVideo.what = 4;
-					taskHandler.sendMessage(messageDeleteUnlockVideo);
+					messageDeleteUnlockVideo.what = 2;
+					releaseStorageWhenFileSaveHandler
+							.sendMessage(messageDeleteUnlockVideo);
 
 					String videoName = path.split("/")[5];
 					int videoResolution = 640;
