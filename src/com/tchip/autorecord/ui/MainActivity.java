@@ -11,7 +11,6 @@ import com.tchip.autorecord.db.DriveVideoDbHelper;
 import com.tchip.autorecord.service.SensorWatchService;
 import com.tchip.autorecord.util.ClickUtil;
 import com.tchip.autorecord.util.DateUtil;
-import com.tchip.autorecord.util.FileUtil;
 import com.tchip.autorecord.util.HintUtil;
 import com.tchip.autorecord.util.MyLog;
 import com.tchip.autorecord.util.ProviderUtil;
@@ -224,11 +223,10 @@ public class MainActivity extends Activity {
 		MyLog.v("onPause,FrontRecording:" + MyApp.isFrontRecording
 				+ ",BackRecording:" + MyApp.isBackRecording);
 
-		// ACC在的时候不频繁释放录像区域：ACC在的时候Suspend？
-		if (!MyApp.isAccOn && !MyApp.isFrontRecording) {
+		if (!MyApp.isFrontRecording) {
 			MyApp.isFrontLockSecond = false;
 		}
-		if (!MyApp.isAccOn && !MyApp.isBackRecording) {
+		if (!MyApp.isBackRecording) {
 			MyApp.isBackLockSecond = false;
 		}
 		super.onPause();
@@ -446,7 +444,7 @@ public class MainActivity extends Activity {
 					takePhoto();
 				} else if ("take_park_photo".equals(command)) { // 停车照片
 					MyApp.shouldSendPathToDSA = true;
-					takePhotoWhenAccOff();
+					takePhotoForOther();
 				}
 			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
 				String path = intent.getExtras().getString("path");
@@ -581,69 +579,12 @@ public class MainActivity extends Activity {
 
 				if (MyApp.shouldTakePhotoWhenAccOff) { // ACC下电拍照
 					MyApp.shouldTakePhotoWhenAccOff = false;
-					new Thread(new TakePhotoWhenAccOffThread()).start();
+					takePhotoForOther();
 				}
 				if (MyApp.shouldTakeVoicePhoto) { // 语音拍照
 					MyApp.shouldTakeVoicePhoto = false;
-					new Thread(new TakeVoicePhotoThread()).start();
+					takePhotoForOther();
 				}
-				break;
-
-			default:
-				break;
-			}
-		}
-	};
-
-	public class TakeVoicePhotoThread implements Runnable {
-		@Override
-		public void run() {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			Message messageTakePhotoWhenAccOff = new Message();
-			messageTakePhotoWhenAccOff.what = 2;
-			takePhotoWhenEventHappenHandler
-					.sendMessage(messageTakePhotoWhenAccOff);
-		}
-	}
-
-	/** ACC下电拍照线程 */
-	public class TakePhotoWhenAccOffThread implements Runnable {
-
-		@Override
-		public void run() {
-			try {
-				Thread.sleep(1500);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			Message messageTakePhotoWhenAccOff = new Message();
-			messageTakePhotoWhenAccOff.what = 1;
-			takePhotoWhenEventHappenHandler
-					.sendMessage(messageTakePhotoWhenAccOff);
-		}
-
-	}
-
-	/**
-	 * 处理需要拍照事件：
-	 * 
-	 * 1.ACC_OFF，拍照给DSA
-	 * 
-	 * 2.语音拍照
-	 */
-	final Handler takePhotoWhenEventHappenHandler = new Handler() {
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 1:
-				takePhotoWhenAccOff();
-				break;
-
-			case 2:
-				takePhotoWhenVoiceCommand();
 				break;
 
 			default:
@@ -1168,7 +1109,6 @@ public class MainActivity extends Activity {
 
 	/** 加锁或解锁视频 */
 	private void lockOrUnlockBackVideo() {
-		setupFrontViews();
 		if (!MyApp.isBackLock) {
 			MyApp.isBackLock = true;
 			speakVoice(getResources().getString(R.string.hint_video_lock_back));
@@ -1197,23 +1137,11 @@ public class MainActivity extends Activity {
 		new Thread(new TakePhotoThread()).start();
 	}
 
-	/** ACC下电拍照 */
-	public void takePhotoWhenAccOff() {
+	/** ACC下电,语音命令拍照 */
+	public void takePhotoForOther() {
 		if (recorderFront != null) {
 			if (StorageUtil.isFrontCardExist()) {
 				setFrontDirectory(Constant.Path.SDCARD_0); // 如果录像卡不存在，则会保存到内部存储
-			}
-			HintUtil.playAudio(getApplicationContext(),
-					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
-			recorderFront.takePicture();
-		}
-	}
-
-	/** 语音拍照 */
-	public void takePhotoWhenVoiceCommand() {
-		if (recorderFront != null) {
-			if (StorageUtil.isFrontCardExist()) { // 如果录像卡不存在，则会保存到内部存储
-				setFrontDirectory(Constant.Path.SDCARD_1);
 			}
 			HintUtil.playAudio(getApplicationContext(),
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
@@ -1300,7 +1228,6 @@ public class MainActivity extends Activity {
 				} else {
 					setFrontMute(false, false);
 				}
-				
 				final boolean isDeleteFrontSuccess = StorageUtil
 						.releaseFrontStorage(context);
 				if (isDeleteFrontSuccess) {
@@ -1320,7 +1247,6 @@ public class MainActivity extends Activity {
 					}
 				}
 			}
-
 		}
 	}
 
@@ -1328,7 +1254,6 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-
 			if (!MyApp.isBackRecording && MyApp.isBackPreview
 					&& recorderBack != null) {
 				MyLog.d("Back.Start Record");
@@ -1354,7 +1279,6 @@ public class MainActivity extends Activity {
 					}
 				});
 			}
-
 		}
 
 	}
