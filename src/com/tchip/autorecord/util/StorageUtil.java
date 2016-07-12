@@ -327,7 +327,7 @@ public class StorageUtil {
 	}
 
 	/**
-	 * 删除数据库中不存在的错误视频文件
+	 * 将数据库中不存在的视频文件导入数据库
 	 * 
 	 * @param file
 	 */
@@ -357,7 +357,7 @@ public class StorageUtil {
 								DriveVideo driveVideo = new DriveVideo(
 										fileName, isLock ? 1 : 0, 555, 0);
 								videoDb.addDriveVideo(driveVideo);
-								MyLog.v("StorageUtil.RecursionCheckFile-Insert Video To DB:"
+								MyLog.v("StorageUtil.RecursionCheckFile-InsertVideoToDB:"
 										+ file.getAbsolutePath());
 							}
 						}

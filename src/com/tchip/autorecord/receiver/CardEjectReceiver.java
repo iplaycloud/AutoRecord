@@ -25,6 +25,7 @@ public class CardEjectReceiver extends BroadcastReceiver {
 			if ("/storage/sdcard1".equals(intent.getData().getPath())) { // 插入录像卡自动录像
 				StorageUtil.createRecordDirectory();
 				MyApp.isVideoCardExist = true;
+				MyApp.indexCheck = 0;
 				if (MyApp.isAccOn) {
 					if (!MyApp.isFrontRecording) {
 						MyApp.shouldMountRecordFront = true;

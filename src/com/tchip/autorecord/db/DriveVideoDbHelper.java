@@ -121,7 +121,6 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 			isVideoExist = true;
 		} else {
 			isVideoExist = false;
-			MyLog.v("DriveVideoDbHelper.isVideoExist:false,Name:" + name);
 		}
 		db.close();
 		cursor.close();

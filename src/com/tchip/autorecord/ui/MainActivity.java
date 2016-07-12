@@ -481,7 +481,15 @@ public class MainActivity extends Activity {
 				StartCheckErrorFileThread(); // 检查并删除异常视频文件
 
 				Thread.sleep(Constant.Record.autoRecordDelay);
-				setRecordInterval(3 * 60); // 防止在分段一分钟的时候，停车守卫录出1分和0秒两段视频
+				if (MyApp.isParkRecording) {
+					setRecordInterval(3 * 60); // 防止在分段一分钟的时候，停车守卫录出1分和0秒两段视频
+				} else {
+					if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
+						setRecordInterval(3 * 60);
+					} else {
+						setRecordInterval(1 * 60);
+					}
+				}
 				// 自动录像:如果已经在录像则不处理
 				if (Constant.Record.autoRecordFront && !MyApp.isFrontRecording) {
 					Message message = new Message();
@@ -1398,9 +1406,13 @@ public class MainActivity extends Activity {
 
 	/** 检查并删除异常视频文件：SD存在但数据库中不存在的文件 */
 	private void StartCheckErrorFileThread() {
-		MyLog.v("CheckErrorFile.isVideoChecking:" + isVideoChecking);
-		if (!isVideoChecking) {
+		MyLog.v("CheckErrorFile.indexCheck:" + MyApp.indexCheck);
+		if (!isVideoChecking && MyApp.indexCheck % 5 == 0) {
 			new Thread(new CheckVideoThread()).start();
+		}
+		MyApp.indexCheck++;
+		if (MyApp.indexCheck >= 99) {
+			MyApp.indexCheck = 0;
 		}
 	}
 

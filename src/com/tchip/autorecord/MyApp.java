@@ -25,6 +25,7 @@ public class MyApp extends Application {
 	/** 插入录像卡：需要启动录像 */
 	public static boolean shouldMountRecordFront = false;
 	public static boolean shouldMountRecordBack = false;
+	public static int indexCheck = 0;
 
 	/** 休眠唤醒：需要启动录像 */
 	public static boolean shouldWakeRecord = false;
