@@ -80,7 +80,7 @@ public class MyApp extends Application {
 
 	/** SD卡取出 */
 	public static boolean isVideoCardEject = false;
-	
+
 	/** 视频卡是否存在 */
 	public static boolean isVideoCardExist = false;
 
@@ -143,31 +143,21 @@ public class MyApp extends Application {
 					Context.MODE_PRIVATE);
 
 			String strDetectCrashState = ProviderUtil.getValue(context,
-					Name.SET_DETECT_CRASH_STATE);
-			if (strDetectCrashState != null
-					&& strDetectCrashState.trim().length() > 0) {
-				if ("0".equals(strDetectCrashState)) {
-					isCrashOn = false;
-				} else {
-					isCrashOn = true;
-				}
+					Name.SET_DETECT_CRASH_STATE, "1");
+			if ("0".equals(strDetectCrashState)) {
+				isCrashOn = false;
 			} else {
 				isCrashOn = true;
 			}
 
 			String strDetectCrashLevel = ProviderUtil.getValue(context,
-					Name.SET_DETECT_CRASH_LEVEL);
-			if (strDetectCrashLevel != null
-					&& strDetectCrashLevel.trim().length() > 0) {
-				if ("0".equals(strDetectCrashLevel)) {
-					crashSensitive = 0;
-				} else if ("2".equals(strDetectCrashLevel)) {
-					crashSensitive = 2;
-				} else {
-					crashSensitive = 1;
-				}
-			} else {
+					Name.SET_DETECT_CRASH_LEVEL, "1");
+			if ("0".equals(strDetectCrashLevel)) {
+				crashSensitive = 0;
+			} else if ("2".equals(strDetectCrashLevel)) {
 				crashSensitive = 2;
+			} else {
+				crashSensitive = 1;
 			}
 		} catch (Exception e) {
 			MyLog.e("MyApp.initialCrashData: Catch Exception!" + e.getMessage());

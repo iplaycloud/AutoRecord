@@ -36,13 +36,8 @@ public class SettingUtil {
 
 	/** ACC 是否在 */
 	public static boolean isAccOn(Context context) {
-		String accState = ProviderUtil.getValue(context, Name.ACC_STATE);
-		if (null != accState && accState.trim().length() > 0
-				&& "1".equals(accState)) {
-			return true;
-		} else {
-			return false;
-		}
+		String accState = ProviderUtil.getValue(context, Name.ACC_STATE, "0");
+		return "1".equals(accState);
 	}
 
 	/**

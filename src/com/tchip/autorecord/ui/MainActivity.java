@@ -151,9 +151,8 @@ public class MainActivity extends Activity {
 			MyApp.isAccOn = false; // 同步ACC状态
 			MyLog.v("[Main]ACC Check:OFF");
 			String strParkRecord = ProviderUtil.getValue(context,
-					Name.PARK_REC_STATE);
-			if (null != strParkRecord && strParkRecord.trim().length() > 0
-					&& "1".equals(strParkRecord)) {
+					Name.PARK_REC_STATE, "0");
+			if ("1".equals(strParkRecord)) {
 				MyApp.isParkRecording = true;
 				acquirePartialWakeLock(10 * 1000);
 				new Thread(new AutoThread()).start(); // 序列任务线程
@@ -210,10 +209,8 @@ public class MainActivity extends Activity {
 		}
 		if (cameraBeforeBack == 0) {
 			String strBackState = ProviderUtil.getValue(context,
-					Name.BACK_CAR_STATE);
-			if (null != strBackState && strBackState.trim().length() > 0) {
-				switchCameraTo(Integer.parseInt(strBackState));
-			}
+					Name.BACK_CAR_STATE, "0");
+			switchCameraTo(Integer.parseInt(strBackState));
 		}
 		super.onResume();
 	}
@@ -284,9 +281,8 @@ public class MainActivity extends Activity {
 
 	private void sendHomeKey() {
 		String strBackState = ProviderUtil.getValue(context,
-				Name.BACK_CAR_STATE);
-		if (null != strBackState && strBackState.trim().length() > 0
-				&& "1".equals(strBackState)) { // 倒车不返回主页
+				Name.BACK_CAR_STATE, "0");
+		if ("1".equals(strBackState)) { // 倒车不返回主页
 		} else {
 			sendKeyCode(KeyEvent.KEYCODE_HOME);
 		}
@@ -307,31 +303,21 @@ public class MainActivity extends Activity {
 			} else { // update
 				if (Name.SET_DETECT_CRASH_STATE.equals(name)) {
 					String strDetectCrashState = ProviderUtil.getValue(context,
-							Name.SET_DETECT_CRASH_STATE);
-					if (strDetectCrashState != null
-							&& strDetectCrashState.trim().length() > 0) {
-						if ("0".equals(strDetectCrashState)) {
-							MyApp.isCrashOn = false;
-						} else {
-							MyApp.isCrashOn = true;
-						}
+							Name.SET_DETECT_CRASH_STATE, "1");
+					if ("0".equals(strDetectCrashState)) {
+						MyApp.isCrashOn = false;
 					} else {
 						MyApp.isCrashOn = true;
 					}
 				} else if (Name.SET_DETECT_CRASH_LEVEL.equals(name)) {
 					String strDetectCrashLevel = ProviderUtil.getValue(context,
-							Name.SET_DETECT_CRASH_LEVEL);
-					if (strDetectCrashLevel != null
-							&& strDetectCrashLevel.trim().length() > 0) {
-						if ("0".equals(strDetectCrashLevel)) {
-							MyApp.crashSensitive = 0;
-						} else if ("2".equals(strDetectCrashLevel)) {
-							MyApp.crashSensitive = 2;
-						} else {
-							MyApp.crashSensitive = 1;
-						}
-					} else {
+							Name.SET_DETECT_CRASH_LEVEL, "1");
+					if ("0".equals(strDetectCrashLevel)) {
+						MyApp.crashSensitive = 0;
+					} else if ("2".equals(strDetectCrashLevel)) {
 						MyApp.crashSensitive = 2;
+					} else {
+						MyApp.crashSensitive = 1;
 					}
 				} else if (Name.SET_PARK_MONITOR_STATE.equals(name)) {
 
@@ -340,10 +326,8 @@ public class MainActivity extends Activity {
 				} else if (Name.PARK_REC_STATE.equals(name)) {
 					if (!MyApp.isAccOn) {
 						String strParkRecord = ProviderUtil.getValue(context,
-								Name.PARK_REC_STATE);
-						if (null != strParkRecord
-								&& strParkRecord.trim().length() > 0
-								&& "1".equals(strParkRecord)) {
+								Name.PARK_REC_STATE, "0");
+						if ("1".equals(strParkRecord)) {
 							MyApp.isParkRecording = true;
 						} else {
 							MyApp.isParkRecording = false;
@@ -764,9 +748,8 @@ public class MainActivity extends Activity {
 		imageBackLineReset.setOnClickListener(myOnClickListener);
 
 		String strBackLineShow = ProviderUtil.getValue(context,
-				Name.BACK_LINE_SHOW);
-		if (null != strBackLineShow && strBackLineShow.trim().length() > 0
-				&& "0".equals(strBackLineShow)) {
+				Name.BACK_LINE_SHOW, "1");
+		if ("0".equals(strBackLineShow)) {
 			imageBackLineShow.setImageDrawable(getResources().getDrawable(
 					R.drawable.back_line_hide, null));
 			imageBackLineEdit.setVisibility(View.GONE);
@@ -801,9 +784,8 @@ public class MainActivity extends Activity {
 			layoutFront.setVisibility(View.GONE);
 
 			String strBackState = ProviderUtil.getValue(context,
-					Name.BACK_CAR_STATE);
-			if (null != strBackState && strBackState.trim().length() > 0
-					&& "1".equals(strBackState)) {
+					Name.BACK_CAR_STATE, "0");
+			if ("1".equals(strBackState)) {
 				setBackLineVisible(true);
 			} else {
 				setBackLineVisible(false);
@@ -865,9 +847,8 @@ public class MainActivity extends Activity {
 			layoutBackRecord.setVisibility(View.GONE);
 			layoutBackLineControl.setVisibility(View.VISIBLE);
 			String strBackLineShow = ProviderUtil.getValue(context,
-					Name.BACK_LINE_SHOW);
-			if (null != strBackLineShow && strBackLineShow.trim().length() > 0
-					&& "0".equals(strBackLineShow)) {
+					Name.BACK_LINE_SHOW, "1");
+			if ("0".equals(strBackLineShow)) {
 				layoutBackLine.removeAllViews();
 			} else {
 				backLineView.invalidate(); // 通知view组件重绘
@@ -884,9 +865,8 @@ public class MainActivity extends Activity {
 	/** 更新倒车线控制图标 */
 	private void updateBackLineControlView() {
 		String strBackLineShow = ProviderUtil.getValue(context,
-				Name.BACK_LINE_SHOW);
-		if (null != strBackLineShow && strBackLineShow.trim().length() > 0
-				&& "0".equals(strBackLineShow)) {
+				Name.BACK_LINE_SHOW, "1");
+		if ("0".equals(strBackLineShow)) {
 			imageBackLineShow.setImageDrawable(getResources().getDrawable(
 					R.drawable.back_line_hide, null));
 			layoutBackLine.removeAllViews();
@@ -1073,10 +1053,8 @@ public class MainActivity extends Activity {
 
 			case R.id.imageBackLineShow:
 				String strBackLineShow = ProviderUtil.getValue(context,
-						Name.BACK_LINE_SHOW);
-				if (null != strBackLineShow
-						&& strBackLineShow.trim().length() > 0
-						&& "1".equals(strBackLineShow)) {
+						Name.BACK_LINE_SHOW, "1");
+				if ("1".equals(strBackLineShow)) {
 					ProviderUtil.setValue(context, Name.BACK_LINE_SHOW, "0");
 				} else {
 					ProviderUtil.setValue(context, Name.BACK_LINE_SHOW, "1");
