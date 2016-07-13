@@ -397,6 +397,11 @@ public class MainActivity extends Activity {
 				intervalState = "3".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_3MIN
 						: Constant.Record.STATE_INTERVAL_1MIN;
 				setRecordInterval(("3".equals(videoTimeStr)) ? 3 * 60 : 1 * 60); // 重设视频分段
+
+				// 碰撞侦测服务
+				Intent intentSensor = new Intent(context,
+						SensorWatchService.class);
+				startService(intentSensor);
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
 				cameraBeforeBack = (0 == layoutFront.getVisibility()) ? 0 : 1;
 				acquireFullWakeLock();
