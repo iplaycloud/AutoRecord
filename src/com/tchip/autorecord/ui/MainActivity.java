@@ -1019,12 +1019,6 @@ public class MainActivity extends Activity {
 				if (!ClickUtil.isQuickClick(1500)) {
 					// 切换录音/静音状态停止录像，需要重置时间
 					MyApp.shouldVideoRecordWhenChangeMute = MyApp.isFrontRecording;
-					if (MyApp.isFrontRecording) {
-						stopFrontRecorder5Times();
-						resetFrontTimeText();
-						textFrontTime.setVisibility(View.INVISIBLE);
-						MyApp.isFrontRecording = false;
-					}
 					if (muteState == Constant.Record.STATE_MUTE) {
 						setFrontMute(false, true);
 					} else if (muteState == Constant.Record.STATE_UNMUTE) {
@@ -1032,9 +1026,9 @@ public class MainActivity extends Activity {
 					}
 					setupFrontViews();
 					if (MyApp.shouldVideoRecordWhenChangeMute) { // 修改录音/静音后按需还原录像状态
+						MyApp.shouldVideoRecordWhenChangeMute = false;
 						new Thread(new StartRecordWhenChangeMuteThread())
 								.start();
-						MyApp.shouldVideoRecordWhenChangeMute = false;
 					}
 				}
 				break;
@@ -2269,34 +2263,42 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			try {
-				Thread.sleep(500);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			if (MyApp.isFrontRecording) {
+				if (stopFrontRecorder() == 0) { // 停止录像
+					mMainHandler.post(new Runnable() {
+						@Override
+						public void run() {
+							setFrontState(false);
+						}
+					});
+					try {
+						Thread.sleep(800);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					if (!MyApp.isFrontRecording && recorderFront != null) {
+						MyLog.d("StartRecordWhenChangeMuteThread.Record Start");
+						setFrontDirectory(Constant.Path.SDCARD_1); // 设置保存路径
+						if (MyApp.isFrontPreview && recorderFront.start() == 0) {
+							mMainHandler.post(new Runnable() {
+
+								@Override
+								public void run() {
+									resetFrontTimeText();
+									HintUtil.playAudio(
+											getApplicationContext(),
+											com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
+									setFrontState(true);
+								}
+							});
+						}
+					}
+				}
 			}
-			Message message = new Message();
-			message.what = 1;
-			startRecordWhenChangeSizeOrMute.sendMessage(message);
+
 		}
 
 	}
-
-	final Handler startRecordWhenChangeSizeOrMute = new Handler() {
-
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 1:
-				if (!MyApp.isFrontRecording) {
-					startFrontRecord();
-				}
-				break;
-
-			default:
-				break;
-			}
-		}
-
-	};
 
 	private void initialFrontSurface() {
 		surfaceViewFront = (SurfaceView) findViewById(R.id.surfaceViewFront);
@@ -2572,7 +2574,7 @@ public class MainActivity extends Activity {
 					TachographCallback.FILE_TYPE_IMAGE, "Image");
 			recorderFront.setClientName(this.getPackageName());
 			if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
-				recorderFront.setVideoSize(1920, 1080);
+				recorderFront.setVideoSize(1920, 1080); // 分辨率
 				recorderFront
 						.setVideoFrameRate(Constant.Record.FRONT_FRAME_1080P);
 				recorderFront
@@ -2584,15 +2586,21 @@ public class MainActivity extends Activity {
 				recorderFront
 						.setVideoBiteRate(Constant.Record.FRONT_BITRATE_720P);
 			}
-			if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
+			if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) { // 分段
 				recorderFront.setVideoSeconds(3 * 60);
 			} else {
 				recorderFront.setVideoSeconds(1 * 60);
 			}
-			recorderFront.setVideoOverlap(0);
+			recorderFront.setVideoOverlap(0); // 重叠
+			if (null != sharedPreferences) { // 录音
+				recorderFront.setMute(sharedPreferences.getBoolean("videoMute",
+						Constant.Record.muteDefault));
+			} else {
+				recorderFront.setMute(true);
+			}
 			recorderFront.prepare();
 		} catch (Exception e) {
-			MyLog.e("setupRecorder: Catch Exception!");
+			MyLog.e("setupRecorder: Catch Exception：" + e.toString());
 		}
 	}
 
