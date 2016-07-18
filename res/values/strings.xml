@@ -20,11 +20,11 @@
     <string name="hint_device_going_sleep">进入休眠</string>
     <string name="hint_stop_record_sleeping">正在休眠</string>
     <string name="hint_sd_record_not_exist">录像卡不存在</string>
-    <string name="hint_sd_remove_badly">存储卡异常，停止录像</string>
+    <string name="hint_sd_remove_badly">卸载存储卡，停止录像</string>
     <string name="hint_sd2_format">格式化存储卡，停止录像</string>
     <string name="hint_photo_save">照片已保存</string>
     <string name="hint_storage_full_and_delete_lock">空间不足，将清理加锁视频</string>
-    <string name="hint_storage_full_cause_by_other">空间不足，请清理存储卡2</string>
+    <string name="hint_storage_full_cause_by_other">空间不足，请清理录像卡</string>
     <string name="hint_front_record_start">开始前录</string>
     <string name="hint_front_record_stop">停止前录</string>
     <string name="hint_back_record_start">开始后录</string>
