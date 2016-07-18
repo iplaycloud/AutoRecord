@@ -422,6 +422,17 @@ public class MainActivity extends Activity {
 						}
 					}
 				} else if ("close_dvr".equals(command)) {
+					moveTaskToBack(true); // 只关闭界面,不停止录像
+				} else if ("start_dvr".equals(command)) {
+					if (MyApp.isAccOn) {
+						if (!MyApp.isFrontRecording) {
+							MyApp.shouldMountRecordFront = true;
+						}
+						if (!MyApp.isBackRecording) {
+							MyApp.shouldMountRecordBack = true;
+						}
+					}
+				} else if ("stop_dvr".equals(command)) {
 					if (MyApp.isFrontRecording) {
 						MyApp.shouldStopFrontFromVoice = true;
 					}
