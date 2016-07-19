@@ -39,9 +39,9 @@ public class FileUtil {
 		float sdFree = StorageUtil
 				.getSDAvailableSize(Constant.Path.RECORD_SDCARD); // SD剩余空间
 		float frontUse = (float) FileUtil.getTotalSizeOfFilesInDir(new File(
-				Constant.Path.RECORD_FRONT)); // 前置已用空间
+				Constant.Path.VIDEO_FRONT_SD)); // 前置已用空间
 		float backUse = (float) FileUtil.getTotalSizeOfFilesInDir(new File(
-				Constant.Path.RECORD_BACK)); // 后置已用空间
+				Constant.Path.VIDEO_BACK_SD)); // 后置已用空间
 
 		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
 		float frontTotal = recordTotal * 14 / 15; // 前置归属空间:4/5
@@ -61,9 +61,9 @@ public class FileUtil {
 		float sdFree = StorageUtil
 				.getSDAvailableSize(Constant.Path.RECORD_SDCARD); // SD剩余空间
 		float frontUse = (float) FileUtil.getTotalSizeOfFilesInDir(new File(
-				Constant.Path.RECORD_FRONT)); // 前置已用空间
+				Constant.Path.VIDEO_FRONT_SD)); // 前置已用空间
 		float backUse = (float) FileUtil.getTotalSizeOfFilesInDir(new File(
-				Constant.Path.RECORD_BACK)); // 后置已用空间
+				Constant.Path.VIDEO_BACK_SD)); // 后置已用空间
 
 		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
 		float backTotal = recordTotal * 1 / 15; // 后置归属空间: 1/5

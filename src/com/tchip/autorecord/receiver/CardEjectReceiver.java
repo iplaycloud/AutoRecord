@@ -1,5 +1,6 @@
 package com.tchip.autorecord.receiver;
 
+import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.util.MyLog;
 import com.tchip.autorecord.util.StorageUtil;
@@ -17,12 +18,12 @@ public class CardEjectReceiver extends BroadcastReceiver {
 		if (action.equals(Intent.ACTION_MEDIA_EJECT)
 				|| action.equals(Intent.ACTION_MEDIA_BAD_REMOVAL)
 				|| action.equals(Intent.ACTION_MEDIA_UNMOUNTED)) {
-			if ("/storage/sdcard1".equals(intent.getData().getPath())) {
+			if (Constant.Path.SDCARD_1.equals(intent.getData().getPath())) {
 				MyApp.isVideoCardEject = true;
 				MyApp.isVideoCardExist = false;
 			}
 		} else if (action.equals(Intent.ACTION_MEDIA_MOUNTED)) {
-			if ("/storage/sdcard1".equals(intent.getData().getPath())) { // 插入录像卡自动录像
+			if (Constant.Path.SDCARD_1.equals(intent.getData().getPath())) { // 插入录像卡自动录像
 				StorageUtil.createRecordDirectory();
 				MyApp.isVideoCardExist = true;
 				MyApp.indexCheck = 0;

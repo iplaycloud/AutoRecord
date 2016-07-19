@@ -183,7 +183,7 @@ public interface Constant {
 		public static final int M = 1024 * 1024;
 
 		/** 循环录像保留空间(单位：字节B) */
-		public static final long FRONT_MIN_FREE_STORAGE = 700 * M; // 400M
+		public static final long FRONT_MIN_FREE_STORAGE = 400 * M; // 400M
 		public static final long BACK_MIN_FREE_STORAGE = 100 * M; // 100M
 
 		/** 比特率 */
@@ -299,12 +299,18 @@ public interface Constant {
 		/** 录像存储卡路径 */
 		public static String RECORD_SDCARD = SDCARD_1 + File.separator;
 
+		public static String VIDEO_FRONT_FLASH = "/storage/sdcard0/DrivingRecord/VideoFront/";
+		public static String VIDEO_FRONT_SD = "/storage/sdcard1/DrivingRecord/VideoFront/";
+		public static String VIDEO_FRONT_SD_LOCK = "/storage/sdcard1/DrivingRecord/VideoFront/Lock";
+
+		public static String VIDEO_BACK_FLASH = "/storage/sdcard0/DrivingRecord/VideoBack/";
+		public static String VIDEO_BACK_SD = "/storage/sdcard1/DrivingRecord/VideoBack/";
+		public static String VIDEO_BACK_SD_LOCK = "/storage/sdcard1/DrivingRecord/VideoBack/Lock";
+		
+		public static String IMAGE_FLASH = "/storage/sdcard0/DrivingRecord/Image/";
+		public static String IMAGE_SD = "/storage/sdcard1/DrivingRecord/Image/";
+
 		public static String RECORD_DIRECTORY = "/storage/sdcard1/DrivingRecord/";
-		public static String RECORD_FRONT = "/storage/sdcard1/DrivingRecord/VideoFront/";
-		public static String RECORD_BACK = "/storage/sdcard1/DrivingRecord/VideoBack/";
-		public static String RECORD_FRONT_LOCK = "/storage/sdcard1/DrivingRecord/VideoFront/Lock";
-		public static String RECORD_BACK_LOCK = "/storage/sdcard1/DrivingRecord/VideoBack/Lock";
-		public static String IMAGE = "/storage/sdcard1/DrivingRecord/Image/";
 
 		/** 字体目录 */
 		public static final String FONT = "fonts/";
