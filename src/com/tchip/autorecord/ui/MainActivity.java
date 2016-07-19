@@ -780,6 +780,7 @@ public class MainActivity extends Activity {
 
 	/** 切换前后摄像画面 */
 	private void switchCameraTo(int camera) {
+		MyLog.v("switchCameraTo:" + camera);
 		switch (camera) {
 		case 0:
 			layoutFront.setVisibility(View.VISIBLE);
@@ -822,12 +823,11 @@ public class MainActivity extends Activity {
 	private void switchCameraWhenBackOver(int camera) {
 		switch (camera) {
 		case 0:
+			layoutFront.setVisibility(View.VISIBLE);
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(
 					1184, 480));
 			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
-
-			layoutFront.setVisibility(View.VISIBLE);
 			layoutBack.setVisibility(View.GONE);
 			setBackLineVisible(false);
 			break;
@@ -851,6 +851,7 @@ public class MainActivity extends Activity {
 	 *            是否倒车
 	 */
 	private void setBackLineVisible(boolean isVisible) {
+		MyLog.v("setBackLineVisible:" + isVisible);
 		if (isVisible) {
 			// 确保显示后摄,解决倒车线在前摄界面
 			layoutBack.setVisibility(View.VISIBLE);
@@ -919,6 +920,9 @@ public class MainActivity extends Activity {
 									getResources().getString(
 											R.string.hint_stop_record_sleeping));
 						} else if (StorageUtil.isFrontCardExist()) {
+							if (isFrontRecord()) {
+								recorderFront.stop();
+							}
 							speakVoice(getResources().getString(
 									R.string.hint_front_record_start));
 							startRecordFront();
@@ -935,7 +939,10 @@ public class MainActivity extends Activity {
 						speakVoice(getResources().getString(
 								R.string.hint_back_record_stop));
 						MyLog.v("[onClick]stopRecorder()");
-						stopBackRecorder5Times();
+						// stopBackRecorder5Times();
+						if (stopBackRecorder() == 0) {
+							setBackState(false);
+						}
 					} else {
 						if (!MyApp.isAccOn) {
 							HintUtil.showToast(
@@ -943,6 +950,9 @@ public class MainActivity extends Activity {
 									getResources().getString(
 											R.string.hint_stop_record_sleeping));
 						} else if (StorageUtil.isBackCardExist()) {
+							if (isBackRecord()) {
+								recorderBack.stop();
+							}
 							speakVoice(getResources().getString(
 									R.string.hint_back_record_start));
 							startRecordBack();
@@ -1437,6 +1447,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void surfaceChanged(SurfaceHolder holder, int format, int width,
 				int height) {
+			MyLog.v("Front.surfaceChanged");
 			// surfaceHolder = holder;
 		}
 
@@ -1469,6 +1480,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void surfaceChanged(SurfaceHolder holder, int format, int width,
 				int height) {
+			MyLog.v("Back.surfaceChanged");
 			// surfaceHolder = holder;
 		}
 
@@ -2312,12 +2324,14 @@ public class MainActivity extends Activity {
 	}
 
 	private void initialFrontSurface() {
+		MyLog.v("initialFrontSurface");
 		surfaceViewFront = (SurfaceView) findViewById(R.id.surfaceViewFront);
 		surfaceViewFront.setOnClickListener(new MyOnClickListener());
 		surfaceViewFront.getHolder().addCallback(new FrontCallBack());
 	}
 
 	private void initialBackSurface() {
+		MyLog.v("initialBackSurface");
 		surfaceViewBack = (SurfaceView) findViewById(R.id.surfaceViewBack);
 		surfaceViewBack.setOnClickListener(new MyOnClickListener());
 		surfaceViewBack.getHolder().addCallback(new BackCallBack());
@@ -2916,6 +2930,20 @@ public class MainActivity extends Activity {
 			speakVoice(strVideoCardEject);
 			MyLog.e("showCardEjectMessage");
 		}
+	}
+
+	public boolean isFrontRecord() {
+		if (recorderFront != null) {
+			return 1 == recorderFront.isRecording();
+		} else
+			return false;
+	}
+
+	public boolean isBackRecord() {
+		if (recorderBack != null) {
+			return 1 == recorderBack.isRecording();
+		} else
+			return false;
 	}
 
 }
