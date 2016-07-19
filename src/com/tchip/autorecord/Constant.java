@@ -190,7 +190,7 @@ public interface Constant {
 		// 720P: MTK:9M X1:3.5M 1280x720=921600
 		public static final int FRONT_BITRATE_720P = 4 * M; // 5 * M
 		// 1080P: MTK:17M X1:8M RAW:10M 1920x1080=2073600
-		public static final int FRONT_BITRATE_1080P = 6 * M;
+		public static final int FRONT_BITRATE_1080P = 7 * M;
 		public static final int BACK_BITRATE = 600 * K; // 0.6M,2M
 
 		/** 帧率 */

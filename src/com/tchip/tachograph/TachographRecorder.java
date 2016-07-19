@@ -92,6 +92,8 @@ public class TachographRecorder {
 	public native int close();
 
 	public native int release();
+	
+	public native int isRecording();
 
 	public native int getVersionCode();
 
