@@ -152,8 +152,8 @@ public class StorageUtil {
 		String newFilePath = isFront ? Constant.Path.VIDEO_FRONT_SD
 				: Constant.Path.VIDEO_BACK_SD;
 		if (isLock) {
-			newFilePath = isFront ? Constant.Path.VIDEO_FRONT_SD_LOCK
-					: Constant.Path.VIDEO_BACK_SD_LOCK;
+			newFilePath = (isFront ? Constant.Path.VIDEO_FRONT_SD_LOCK
+					: Constant.Path.VIDEO_BACK_SD_LOCK) + File.separator;
 		}
 		newFilePath = newFilePath + videoName;
 		boolean isSuccess = copyFile(oldFilePath, newFilePath);

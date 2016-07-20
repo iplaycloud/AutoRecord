@@ -2791,7 +2791,6 @@ public class MainActivity extends Activity {
 					String imageName = path.split("/")[5];
 					StorageUtil.moveImageToSD(imageName);
 
-					// FIXME
 					MyApp.writeImageExifPath = path.replace("sdcard0",
 							"sdcard1");
 					new Thread(new WriteImageExifThread()).start();
