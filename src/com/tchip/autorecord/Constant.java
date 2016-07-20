@@ -183,7 +183,7 @@ public interface Constant {
 		public static final int M = 1024 * 1024;
 
 		/** 循环录像保留空间(单位：字节B) */
-		public static final long FRONT_MIN_FREE_STORAGE = 400 * M; // 400M
+		public static final long FRONT_MIN_FREE_STORAGE = 500 * M; // 500M
 		public static final long BACK_MIN_FREE_STORAGE = 100 * M; // 100M
 
 		/** 比特率 */
