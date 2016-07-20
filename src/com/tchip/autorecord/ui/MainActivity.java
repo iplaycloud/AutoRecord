@@ -211,6 +211,9 @@ public class MainActivity extends Activity {
 			String strBackState = ProviderUtil.getValue(context,
 					Name.BACK_CAR_STATE, "0");
 			switchCameraTo(Integer.parseInt(strBackState));
+			if ("1".equals(strBackState)) { // 隐藏格式化对话框
+				sendBroadcast(new Intent(Constant.Broadcast.HIDE_FORMAT_DIALOG));
+			}
 		}
 		super.onResume();
 	}
@@ -409,7 +412,10 @@ public class MainActivity extends Activity {
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
 				releaseFullWakeLock();
 				setBackLineVisible(false);
-				switchCameraWhenBackOver(cameraBeforeBack);
+				if ("com.tchip.autorecord".equals(ProviderUtil.getValue(
+						context, Name.PKG_WHEN_BACK, "com.xxx.xxx"))) {
+					switchCameraWhenBackOver(cameraBeforeBack);
+				}
 			} else if (action.equals(Constant.Broadcast.SPEECH_COMMAND)) {
 				String command = intent.getExtras().getString("command");
 				if ("open_dvr".equals(command)) {

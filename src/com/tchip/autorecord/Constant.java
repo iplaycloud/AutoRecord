@@ -39,6 +39,9 @@ public interface Constant {
 		/** 倒车结束 */
 		public static final String BACK_CAR_OFF = "com.tchip.KEY_BACK_CAR_OFF";
 
+		/** 隐藏格式化对话框 */
+		public static final String HIDE_FORMAT_DIALOG = "com.tchip.HIDE_FORMAT_DIALOG";
+
 		public static final String KILL_APP = "tchip.intent.action.KILL_APP";
 
 		/** 通知设置打开GPS */
@@ -306,7 +309,7 @@ public interface Constant {
 		public static String VIDEO_BACK_FLASH = "/storage/sdcard0/DrivingRecord/VideoBack/";
 		public static String VIDEO_BACK_SD = "/storage/sdcard1/DrivingRecord/VideoBack/";
 		public static String VIDEO_BACK_SD_LOCK = "/storage/sdcard1/DrivingRecord/VideoBack/Lock";
-		
+
 		public static String IMAGE_FLASH = "/storage/sdcard0/DrivingRecord/Image/";
 		public static String IMAGE_SD = "/storage/sdcard1/DrivingRecord/Image/";
 
