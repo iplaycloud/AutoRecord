@@ -414,10 +414,10 @@ public class MainActivity extends Activity {
 				String command = intent.getExtras().getString("command");
 				if ("open_dvr".equals(command)) {
 					if (MyApp.isAccOn) {
-						if (!MyApp.isFrontRecording) {
+						if (!isFrontRecord()) {
 							MyApp.shouldMountRecordFront = true;
 						}
-						if (!MyApp.isBackRecording) {
+						if (!isBackRecord()) {
 							MyApp.shouldMountRecordBack = true;
 						}
 					}
@@ -425,18 +425,18 @@ public class MainActivity extends Activity {
 					moveTaskToBack(true); // 只关闭界面,不停止录像
 				} else if ("start_dvr".equals(command)) {
 					if (MyApp.isAccOn) {
-						if (!MyApp.isFrontRecording) {
+						if (!isFrontRecord()) {
 							MyApp.shouldMountRecordFront = true;
 						}
-						if (!MyApp.isBackRecording) {
+						if (!isBackRecord()) {
 							MyApp.shouldMountRecordBack = true;
 						}
 					}
 				} else if ("stop_dvr".equals(command)) {
-					if (MyApp.isFrontRecording) {
+					if (isFrontRecord()) {
 						MyApp.shouldStopFrontFromVoice = true;
 					}
-					if (MyApp.isBackRecording) {
+					if (isBackRecord()) {
 						MyApp.shouldStopBackFromVoice = true;
 					}
 				} else if ("take_photo".equals(command)
@@ -491,13 +491,13 @@ public class MainActivity extends Activity {
 					}
 				}
 				// 自动录像:如果已经在录像则不处理
-				if (Constant.Record.autoRecordFront && !MyApp.isFrontRecording) {
+				if (Constant.Record.autoRecordFront && !isFrontRecord()) {
 					Message message = new Message();
 					message.what = 1;
 					autoHandler.sendMessage(message);
 				}
 
-				if (Constant.Record.autoRecordBack && !MyApp.isBackRecording) {
+				if (Constant.Record.autoRecordBack && !isBackRecord()) {
 					Message message = new Message();
 					message.what = 2;
 					autoHandler.sendMessage(message);
@@ -568,19 +568,19 @@ public class MainActivity extends Activity {
 			case 1:
 				if (MyApp.shouldWakeRecord) {
 					MyApp.shouldWakeRecord = false;
-					if (MyApp.isAccOn && !MyApp.isFrontRecording) {
+					if (MyApp.isAccOn && !isFrontRecord()) {
 						new Thread(new AutoThread()).start(); // 序列任务线程
 					}
 				}
 				if (MyApp.shouldMountRecordFront) {
 					MyApp.shouldMountRecordFront = false;
-					if (MyApp.isAccOn && !MyApp.isFrontRecording) {
+					if (MyApp.isAccOn && !isFrontRecord()) {
 						new Thread(new RecordFrontWhenMountThread()).start();
 					}
 				}
 				if (MyApp.shouldMountRecordBack) {
 					MyApp.shouldMountRecordBack = false;
-					if (MyApp.isAccOn && !MyApp.isBackRecording) {
+					if (MyApp.isAccOn && !isBackRecord()) {
 						new Thread(new RecordBackWhenMountThread()).start();
 					}
 				}
@@ -625,7 +625,7 @@ public class MainActivity extends Activity {
 			switch (msg.what) {
 			case 1:
 				try {
-					if (!MyApp.isFrontRecording) {
+					if (!isFrontRecord()) {
 						startFrontRecord();
 					}
 					MyLog.v("isFrontRecording:" + MyApp.isFrontRecording);
@@ -665,7 +665,7 @@ public class MainActivity extends Activity {
 			switch (msg.what) {
 			case 1:
 				try {
-					if (!MyApp.isBackRecording) {
+					if (!isBackRecord()) {
 						startBackRecord();
 					}
 					MyLog.v("isBackRecording:" + MyApp.isBackRecording);
@@ -1042,10 +1042,12 @@ public class MainActivity extends Activity {
 					MyApp.shouldVideoRecordWhenChangeMute = MyApp.isFrontRecording;
 					if (muteState == Constant.Record.STATE_MUTE) {
 						setFrontMute(false, true);
+						muteState = Constant.Record.STATE_UNMUTE;
 						editor.putBoolean("videoMute", false);
 						editor.commit();
 					} else if (muteState == Constant.Record.STATE_UNMUTE) {
 						setFrontMute(true, true);
+						muteState = Constant.Record.STATE_MUTE;
 						editor.putBoolean("videoMute", true);
 						editor.commit();
 					}
@@ -1226,7 +1228,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			if (!MyApp.isFrontRecording && MyApp.isFrontPreview
+			if (!isFrontRecord() && MyApp.isFrontPreview
 					&& recorderFront != null) {
 				MyLog.d("Front.Record Start");
 				setFrontDirectory(); // 设置保存路径
@@ -1262,8 +1264,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			if (!MyApp.isBackRecording && MyApp.isBackPreview
-					&& recorderBack != null) {
+			if (!isBackRecord() && MyApp.isBackPreview && recorderBack != null) {
 				MyLog.d("Back.Start Record");
 				setBackDirectory(); // 设置保存路径
 				setBackMute(true, false); // 设置录像静音
@@ -1293,7 +1294,7 @@ public class MainActivity extends Activity {
 
 	/** 停止录像x5 */
 	private void stopFrontRecorder5Times() {
-		if (MyApp.isFrontRecording) {
+		if (isFrontRecord()) {
 			new Thread(new StopFrontRecordThread()).start();
 			textFrontTime.setVisibility(View.INVISIBLE);
 			resetFrontTimeText();
@@ -1302,8 +1303,8 @@ public class MainActivity extends Activity {
 
 	/** 停止录像x5 */
 	private void stopBackRecorder5Times() {
-		if (MyApp.isBackRecording) {
-			new Thread(new CloseBackRecordThread()).start();
+		if (isBackRecord()) {
+			new Thread(new StopBackRecordThread()).start();
 			textBackTime.setVisibility(View.INVISIBLE);
 			resetBackTimeText();
 		}
@@ -1313,7 +1314,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			if (MyApp.isFrontRecording) {
+			if (isFrontRecord()) {
 				try {
 					int tryTime = 0;
 					while (stopFrontRecorder() != 0 && tryTime < 5) { // 停止录像
@@ -1344,7 +1345,7 @@ public class MainActivity extends Activity {
 
 	}
 
-	private class CloseBackRecordThread implements Runnable {
+	private class StopBackRecordThread implements Runnable {
 
 		@Override
 		public void run() {
@@ -1579,7 +1580,7 @@ public class MainActivity extends Activity {
 	/** 启动录像 */
 	private void startRecordFront() {
 		try {
-			if (!MyApp.isFrontRecording) {
+			if (!isFrontRecord()) {
 				if (!MyApp.isAccOn) {
 					if (MyApp.isParkRecording) {
 						StartCheckErrorFileThread();
@@ -1606,7 +1607,7 @@ public class MainActivity extends Activity {
 	/** 启动录像 */
 	private void startRecordBack() {
 		try {
-			if (!MyApp.isBackRecording) {
+			if (!isBackRecord()) {
 				if (!MyApp.isAccOn) {
 					if (MyApp.isParkRecording) {
 						startBackRecord();
@@ -2288,7 +2289,7 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void run() {
-			if (MyApp.isFrontRecording) {
+			if (isFrontRecord()) {
 				if (stopFrontRecorder() == 0) { // 停止录像
 					mMainHandler.post(new Runnable() {
 						@Override
@@ -2297,13 +2298,23 @@ public class MainActivity extends Activity {
 						}
 					});
 					try {
-						Thread.sleep(800);
+						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 					if (!MyApp.isFrontRecording && recorderFront != null) {
 						MyLog.d("StartRecordWhenChangeMuteThread.Record Start");
 						setFrontDirectory(); // 设置保存路径
+						// 开始录像前设置静音，过程中无法设置
+						if (muteState == Constant.Record.STATE_UNMUTE) {
+							if (recorderFront != null) {
+								recorderFront.setMute(false);
+							}
+						} else if (muteState == Constant.Record.STATE_MUTE) {
+							if (recorderFront != null) {
+								recorderFront.setMute(true);
+							}
+						}
 						if (MyApp.isFrontPreview && recorderFront.start() == 0) {
 							mMainHandler.post(new Runnable() {
 
@@ -2320,7 +2331,6 @@ public class MainActivity extends Activity {
 					}
 				}
 			}
-
 		}
 
 	}
@@ -2356,9 +2366,10 @@ public class MainActivity extends Activity {
 	}
 
 	/** 设置录像静音，需要已经初始化recorderFront */
-	private int setFrontMute(boolean mute, boolean isFromUser) {
+	private int setFrontMute(boolean mute, boolean speakVoice) {
+		int result = -1;
 		if (recorderFront != null) {
-			if (isFromUser) {
+			if (speakVoice) {
 				speakVoice(getResources().getString(
 						mute ? R.string.hint_video_mute_on
 								: R.string.hint_video_mute_off));
@@ -2367,9 +2378,10 @@ public class MainActivity extends Activity {
 			editor.commit();
 			muteState = mute ? Constant.Record.STATE_MUTE
 					: Constant.Record.STATE_UNMUTE;
-			return recorderFront.setMute(mute);
+			result = recorderFront.setMute(mute);
 		}
-		return -1;
+		MyLog.v("setFrontMute:" + result);
+		return result;
 	}
 
 	/** 设置录像静音，需要已经初始化recorderBack */
@@ -2424,11 +2436,13 @@ public class MainActivity extends Activity {
 
 	/** 关闭录像程序 */
 	private void killAutoRecord() {
-		releaseFrontCameraZone();
-		releaseBackCameraZone();
-		finish();
-		android.os.Process.killProcess(android.os.Process.myPid());
-		System.exit(1);
+		if (0 == SettingUtil.getAccStatus()) {
+			releaseFrontCameraZone();
+			releaseBackCameraZone();
+			finish();
+			android.os.Process.killProcess(android.os.Process.myPid());
+			System.exit(1);
+		}
 	}
 
 	/** 释放Camera */

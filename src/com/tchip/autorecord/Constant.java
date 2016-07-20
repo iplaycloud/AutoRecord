@@ -184,7 +184,7 @@ public interface Constant {
 
 		/** 循环录像保留空间(单位：字节B) */
 		public static final long FRONT_MIN_FREE_STORAGE = 500 * M; // 500M
-		public static final long BACK_MIN_FREE_STORAGE = 100 * M; // 100M
+		public static final long BACK_MIN_FREE_STORAGE = 35 * M; // 35M
 
 		/** 比特率 */
 		// 720P: MTK:9M X1:3.5M 1280x720=921600

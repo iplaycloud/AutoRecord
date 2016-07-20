@@ -12,7 +12,7 @@ import android.content.Intent;
 public class CardEjectReceiver extends BroadcastReceiver {
 
 	@Override
-	public void onReceive(Context context, Intent intent) {
+	public void onReceive(final Context context, Intent intent) {
 		String action = intent.getAction();
 		MyLog.i("CardEjectReceiver.action:" + action);
 		if (action.equals(Intent.ACTION_MEDIA_EJECT)
@@ -24,6 +24,7 @@ public class CardEjectReceiver extends BroadcastReceiver {
 			}
 		} else if (action.equals(Intent.ACTION_MEDIA_MOUNTED)) {
 			if (Constant.Path.SDCARD_1.equals(intent.getData().getPath())) { // 插入录像卡自动录像
+
 				StorageUtil.createRecordDirectory();
 				MyApp.isVideoCardExist = true;
 				MyApp.indexCheck = 0;
