@@ -254,8 +254,6 @@ public class MainActivity extends Activity {
 		if (mainReceiver != null) {
 			unregisterReceiver(mainReceiver);
 		}
-		// 结束异步线程
-		taskThread.quit();
 		super.onDestroy();
 	}
 
@@ -1152,7 +1150,15 @@ public class MainActivity extends Activity {
 
 	/** 拍照 */
 	public void takePhoto() {
-		new Thread(new TakePhotoThread()).start();
+		if (!MyApp.isFrontRecording && !MyApp.isBackRecording
+				&& !StorageUtil.isFrontCardExist()) { // 判断SD卡2是否存在，需要耗费一定时间
+			noVideoSDHint(); // SDCard不存在
+		} else if (recorderFront != null) {
+			setFrontDirectory(); // 设置保存路径，否则会保存到内部存储
+			HintUtil.playAudio(getApplicationContext(),
+					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
+			recorderFront.takePicture();
+		}
 	}
 
 	/** ACC下电,语音命令拍照 */
@@ -1165,41 +1171,22 @@ public class MainActivity extends Activity {
 		}
 	}
 
-	/** 异步线程 */
-	private static final HandlerThread taskThread = new HandlerThread(
-			"task-thread");
-	static {
-		taskThread.start();
-	}
-
-	/**
-	 * @param 1 前录:文件保存时释放空间
-	 * @param 2 后录:文件保存时释放空间
-	 */
-	private final Handler taskHandler = new TaskHandler(taskThread.getLooper());
-
-	class TaskHandler extends Handler {
-
-		public TaskHandler(Looper looper) {
-			super(looper);
-		}
+	class ReleaseFrontStorageThread implements Runnable {
 
 		@Override
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 1: // 前录:文件保存时释放空间
-				this.removeMessages(1);
-				StorageUtil.releaseFrontStorage(context);
-				this.removeMessages(1);
-				break;
-
-			case 2: // 后录:文件保存时释放空间
-				this.removeMessages(2);
-				StorageUtil.releaseBackStorage(context);
-				this.removeMessages(2);
-				break;
-			}
+		public void run() {
+			StorageUtil.releaseFrontStorage(context);
 		}
+
+	}
+
+	class ReleaseBackStorageThread implements Runnable {
+
+		@Override
+		public void run() {
+			StorageUtil.releaseBackStorage(context);
+		}
+
 	}
 
 	/** 前录:切换分辨率 */
@@ -1380,24 +1367,6 @@ public class MainActivity extends Activity {
 				}
 				new Thread(new CloseRecordThread()).start();
 			}
-		}
-
-	}
-
-	private class TakePhotoThread implements Runnable {
-
-		@Override
-		public void run() {
-			if (!MyApp.isFrontRecording && !MyApp.isBackRecording
-					&& !StorageUtil.isFrontCardExist()) { // 判断SD卡2是否存在，需要耗费一定时间
-				noVideoSDHint(); // SDCard不存在
-			} else if (recorderFront != null) {
-				setFrontDirectory(); // 设置保存路径，否则会保存到内部存储
-				HintUtil.playAudio(getApplicationContext(),
-						com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
-				recorderFront.takePicture();
-			}
-
 		}
 
 	}
@@ -2501,12 +2470,6 @@ public class MainActivity extends Activity {
 		refreshBackButton();
 
 		MyApp.isBackRecording = false;
-
-		// 录音,静音;默认录音
-		boolean videoMute = sharedPreferences.getBoolean("videoMute",
-				Constant.Record.muteDefault);
-		muteState = videoMute ? Constant.Record.STATE_MUTE
-				: Constant.Record.STATE_UNMUTE;
 	}
 
 	private void refreshFrontButton() {
@@ -2771,9 +2734,7 @@ public class MainActivity extends Activity {
 		public void onFileSave(int type, String path) {
 			try {
 				if (type == 1) { // 视频
-					Message messageDeleteUnlockVideo = new Message();
-					messageDeleteUnlockVideo.what = 1;
-					taskHandler.sendMessage(messageDeleteUnlockVideo);
+					new Thread(new ReleaseFrontStorageThread()).start();
 
 					String videoName = path.split("/")[5];
 					int videoResolution = (resolutionState == Constant.Record.STATE_RESOLUTION_720P) ? 720
@@ -2887,9 +2848,7 @@ public class MainActivity extends Activity {
 		public void onFileSave(int type, String path) {
 			try {
 				if (type == 1) { // 视频
-					Message messageDeleteUnlockVideo = new Message();
-					messageDeleteUnlockVideo.what = 2;
-					taskHandler.sendMessage(messageDeleteUnlockVideo);
+					new Thread(new ReleaseBackStorageThread()).start();
 
 					String videoName = path.split("/")[5];
 					int videoResolution = 640;

@@ -171,7 +171,7 @@ public interface Constant {
 		public static final boolean autoRecordBack = true;
 
 		/** 默认是否静音 */
-		public static final boolean muteDefault = Module.isPublic;
+		public static final boolean muteDefault = false;
 
 		/** 停车侦测录像是否加锁 */
 		public static final boolean parkVideoLock = false;
@@ -281,9 +281,6 @@ public interface Constant {
 	}
 
 	public static final class Module {
-		/** 是否是公版软件 */
-		public static final boolean isPublic = true;
-
 		/** 是否使用系统Camera参数 */
 		public static final boolean useSystemCameraParam = true;
 	}
