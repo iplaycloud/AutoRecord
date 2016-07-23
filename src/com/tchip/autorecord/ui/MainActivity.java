@@ -913,7 +913,7 @@ public class MainActivity extends Activity {
 		public void onClick(View v) {
 			switch (v.getId()) {
 			case R.id.imageFrontState:
-				if (!ClickUtil.isQuickClick(2000)) {
+				if (!ClickUtil.isQuickClick(1000)) {
 					if (MyApp.isFrontRecording) {
 						speakVoice(getResources().getString(
 								R.string.hint_front_record_stop));
@@ -940,7 +940,7 @@ public class MainActivity extends Activity {
 				break;
 
 			case R.id.imageBackState:
-				if (!ClickUtil.isQuickClick(2000)) {
+				if (!ClickUtil.isQuickClick(1000)) {
 					if (MyApp.isBackRecording) {
 						speakVoice(getResources().getString(
 								R.string.hint_back_record_stop));
@@ -971,7 +971,7 @@ public class MainActivity extends Activity {
 
 			case R.id.imageFrontLock:
 			case R.id.textFrontLock:
-				if (!ClickUtil.isQuickClick(1000)) {
+				if (!ClickUtil.isQuickClick(500)) {
 					if (MyApp.isFrontRecording) {
 						lockOrUnlockFrontVideo();
 					} else {
@@ -983,7 +983,7 @@ public class MainActivity extends Activity {
 
 			case R.id.imageBackLock:
 			case R.id.textBackLock:
-				if (!ClickUtil.isQuickClick(1000)) {
+				if (!ClickUtil.isQuickClick(500)) {
 					if (MyApp.isBackRecording) {
 						lockOrUnlockBackVideo();
 					} else {
@@ -1020,7 +1020,7 @@ public class MainActivity extends Activity {
 
 			case R.id.imageVideoLength:
 			case R.id.textVideoLength:
-				if (!ClickUtil.isQuickClick(1000)) {
+				if (!ClickUtil.isQuickClick(500)) {
 					if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
 						if (setRecordInterval(1 * 60) == 0) {
 							intervalState = Constant.Record.STATE_INTERVAL_1MIN;
@@ -1043,7 +1043,7 @@ public class MainActivity extends Activity {
 
 			case R.id.imageVideoMute:
 			case R.id.textVideoMute:
-				if (!ClickUtil.isQuickClick(1500)) {
+				if (!ClickUtil.isQuickClick(1000)) {
 					// 切换录音/静音状态停止录像，需要重置时间
 					MyApp.shouldVideoRecordWhenChangeMute = MyApp.isFrontRecording;
 					if (muteState == Constant.Record.STATE_MUTE) {
@@ -1068,7 +1068,7 @@ public class MainActivity extends Activity {
 
 			// case R.id.surfaceView:
 			case R.id.imagePhotoTake:
-				if (!ClickUtil.isQuickClick(1500)) {
+				if (!ClickUtil.isQuickClick(1000)) {
 					takePhoto();
 				}
 				break;
