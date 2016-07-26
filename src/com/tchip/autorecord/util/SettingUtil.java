@@ -157,12 +157,18 @@ public class SettingUtil {
 				InputStreamReader inputStreamReader = new InputStreamReader(
 						inputStream);
 				int ch = 0;
-				if ((ch = inputStreamReader.read()) != -1)
+				if ((ch = inputStreamReader.read()) != -1) {
+					inputStreamReader.close();
 					return Integer.parseInt(String.valueOf((char) ch));
+				} else {
+					inputStreamReader.close();
+				}
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
+				MyLog.e("getFileInt.FileNotFoundException:" + e.toString());
 			} catch (IOException e) {
 				e.printStackTrace();
+				MyLog.e("getFileInt.IOException:" + e.toString());
 			}
 		}
 		return 0;

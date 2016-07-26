@@ -323,7 +323,6 @@ public class MainActivity extends Activity {
 				} else if (Name.SET_PARK_MONITOR_STATE.equals(name)) {
 
 				} else if (Name.ACC_STATE.equals(name)) {
-					MyApp.isAccOn = (SettingUtil.getAccStatus() == 1);
 				} else if (Name.PARK_REC_STATE.equals(name)) {
 					if (!MyApp.isAccOn) {
 						String strParkRecord = ProviderUtil.getValue(context,
@@ -389,8 +388,10 @@ public class MainActivity extends Activity {
 			MyLog.v("MainReceiver.action:" + action);
 			if (action.equals(Constant.Broadcast.ACC_OFF)) {
 				MyApp.isAccOn = false;
+				MyApp.isAccOn = (1 == SettingUtil.getAccStatus());
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
 				MyApp.isAccOn = true;
+				MyApp.isAccOn = (1 == SettingUtil.getAccStatus());
 				MyApp.shouldWakeRecord = true;
 
 				String videoTimeStr = sharedPreferences.getString("videoTime",
