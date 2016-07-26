@@ -391,7 +391,6 @@ public class MainActivity extends Activity {
 				MyApp.isAccOn = (1 == SettingUtil.getAccStatus());
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
 				MyApp.isAccOn = true;
-				MyApp.isAccOn = (1 == SettingUtil.getAccStatus());
 				MyApp.shouldWakeRecord = true;
 
 				String videoTimeStr = sharedPreferences.getString("videoTime",
@@ -927,6 +926,8 @@ public class MainActivity extends Activity {
 						} else if (StorageUtil.isFrontCardExist()) {
 							if (isFrontRecord()) {
 								recorderFront.stop();
+								ProviderUtil.setValue(context,
+										Name.REC_FRONT_STATE, "0");
 							}
 							speakVoice(getResources().getString(
 									R.string.hint_front_record_start));
@@ -957,6 +958,8 @@ public class MainActivity extends Activity {
 						} else if (StorageUtil.isBackCardExist()) {
 							if (isBackRecord()) {
 								recorderBack.stop();
+								ProviderUtil.setValue(context,
+										Name.REC_BACK_STATE, "0");
 							}
 							speakVoice(getResources().getString(
 									R.string.hint_back_record_start));
@@ -1313,10 +1316,12 @@ public class MainActivity extends Activity {
 					int tryTime = 0;
 					while (stopFrontRecorder() != 0 && tryTime < 5) { // 停止录像
 						tryTime++;
+						Thread.sleep(500);
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				} finally {
+					ProviderUtil.setValue(context, Name.REC_FRONT_STATE, "0");
 					mMainHandler.post(new Runnable() {
 
 						@Override
@@ -1347,10 +1352,12 @@ public class MainActivity extends Activity {
 				int tryTime = 0;
 				while (stopBackRecorder() != 0 && tryTime < 5) { // 停止录像
 					tryTime++;
+					Thread.sleep(500);
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
+				ProviderUtil.setValue(context, Name.REC_BACK_STATE, "0");
 				mMainHandler.post(new Runnable() {
 
 					@Override
@@ -2609,6 +2616,7 @@ public class MainActivity extends Activity {
 			} else {
 				recorderFront.setMute(true);
 			}
+			recorderFront.setAudioSampleRate(48000);
 			recorderFront.prepare();
 		} catch (Exception e) {
 			MyLog.e("setupRecorder: Catch Exception：" + e.toString());
@@ -2659,6 +2667,7 @@ public class MainActivity extends Activity {
 		try {
 			if (recorderFront != null) {
 				recorderFront.stop();
+				ProviderUtil.setValue(context, Name.REC_FRONT_STATE, "0");
 				recorderFront.close();
 				recorderFront.release();
 				recorderFront = null;
@@ -2675,6 +2684,7 @@ public class MainActivity extends Activity {
 		try {
 			if (recorderBack != null) {
 				recorderBack.stop();
+				ProviderUtil.setValue(context, Name.REC_BACK_STATE, "0");
 				recorderBack.close();
 				recorderBack.release();
 				recorderBack = null;
