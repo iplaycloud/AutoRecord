@@ -95,6 +95,8 @@ public interface Constant {
 		 * 3.语音停止录像：close_dvr
 		 * 
 		 * 4.停车拍照：take_park_photo
+		 * 
+		 * 5.语音拍照上传：take_photo_dsa
 		 */
 		public static final String SPEECH_COMMAND = "com.tchip.SPEECH_COMMAND";
 
@@ -113,6 +115,13 @@ public interface Constant {
 		 * sendBroadcast(intent);
 		 */
 		public static final String SEND_PIC_PATH = "com.action.http.post.picture";
+		
+		/**
+		 * 语音拍照上传，发送路径给DSA
+		 * 
+		 * intent.putExtra("share_picture",path) String 类型
+		 */
+		public static final String SEND_DSA_UPLOAD_PATH ="com.action.dsa.share.picture";
 
 		/**
 		 * DSA接收到广播之后进行图片的上传成功之后返回广播：

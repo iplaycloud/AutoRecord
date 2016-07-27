@@ -33,18 +33,14 @@ public class MyApp extends Application {
 	/** 是否正在进行停车守卫录像 */
 	public static boolean isParkRecording = false;
 
-	/** 语音拍照 */
-	public static boolean shouldTakeVoicePhoto = false;
-
 	/** 语音停止录像 */
 	public static boolean shouldStopFrontFromVoice = false;
 	public static boolean shouldStopBackFromVoice = false;
 
-	/** ACC下电:拍照 */
-	public static boolean shouldTakePhotoWhenAccOff = false;
-
 	/** ACC拍照后,在onFileSave中传Path给DSA */
 	public static boolean shouldSendPathToDSA = false;
+	
+	public static boolean shouldSendPathToDSAUpload = false;
 
 	/** 前录是否正在录像 */
 	public static boolean isFrontRecording = false;

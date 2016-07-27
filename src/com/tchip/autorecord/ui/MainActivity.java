@@ -389,6 +389,9 @@ public class MainActivity extends Activity {
 			if (action.equals(Constant.Broadcast.ACC_OFF)) {
 				MyApp.isAccOn = false;
 				MyApp.isAccOn = (1 == SettingUtil.getAccStatus());
+
+				MyApp.shouldSendPathToDSA = true;
+				takePhoto();
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
 				MyApp.isAccOn = true;
 				MyApp.shouldWakeRecord = true;
@@ -448,7 +451,10 @@ public class MainActivity extends Activity {
 					takePhoto();
 				} else if ("take_park_photo".equals(command)) { // 停车照片
 					MyApp.shouldSendPathToDSA = true;
-					takePhotoForOther();
+					takePhoto();
+				} else if ("take_photo_dsa".equals(command)) { // 语音拍照上传
+					MyApp.shouldSendPathToDSAUpload = true;
+					takePhoto();
 				}
 			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
 				String path = intent.getExtras().getString("path");
@@ -587,15 +593,6 @@ public class MainActivity extends Activity {
 					if (MyApp.isAccOn && !isBackRecord()) {
 						new Thread(new RecordBackWhenMountThread()).start();
 					}
-				}
-
-				if (MyApp.shouldTakePhotoWhenAccOff) { // ACC下电拍照
-					MyApp.shouldTakePhotoWhenAccOff = false;
-					takePhotoForOther();
-				}
-				if (MyApp.shouldTakeVoicePhoto) { // 语音拍照
-					MyApp.shouldTakeVoicePhoto = false;
-					takePhotoForOther();
 				}
 				break;
 
@@ -1159,16 +1156,6 @@ public class MainActivity extends Activity {
 			noVideoSDHint(); // SDCard不存在
 		} else if (recorderFront != null) {
 			setFrontDirectory(); // 设置保存路径，否则会保存到内部存储
-			HintUtil.playAudio(getApplicationContext(),
-					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
-			recorderFront.takePicture();
-		}
-	}
-
-	/** ACC下电,语音命令拍照 */
-	public void takePhotoForOther() {
-		if (recorderFront != null) {
-			setFrontDirectory();
 			HintUtil.playAudio(getApplicationContext(),
 					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
 			recorderFront.takePicture();
@@ -2651,12 +2638,12 @@ public class MainActivity extends Activity {
 			recorderBack.setClientName(this.getPackageName());
 			recorderBack.setVideoSize(640, 480); // (640, 480)(1280,720)
 			recorderBack.setVideoFrameRate(Constant.Record.BACK_FRAME);
-			
+
 			String strBackBitrate = ProviderUtil.getValue(context,
 					Name.REC_BACK_BITRATE, "" + Constant.Record.BACK_BITRATE);
 			int intBackBitrate = Integer.parseInt(strBackBitrate);
 			recorderBack.setVideoBiteRate(intBackBitrate);
-			
+
 			if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
 				recorderBack.setVideoSeconds(3 * 60);
 			} else {
@@ -2783,7 +2770,7 @@ public class MainActivity extends Activity {
 					MyApp.writeImageExifPath = path;
 					new Thread(new WriteImageExifThread()).start();
 
-					if (MyApp.shouldSendPathToDSA) {
+					if (MyApp.shouldSendPathToDSA) { // 停车守卫拍照
 						MyApp.shouldSendPathToDSA = false;
 						String[] picPaths = new String[2]; // 第一张保存前置的图片路径
 						picPaths[0] = path;
@@ -2793,6 +2780,15 @@ public class MainActivity extends Activity {
 						intent.putExtra("picture", picPaths);
 						sendBroadcast(intent);
 						MyLog.v("SendDSA,Path:" + path);
+					}
+
+					if (MyApp.shouldSendPathToDSAUpload) { // 语音拍照上传
+						MyApp.shouldSendPathToDSAUpload = false;
+						Intent intentDsaUpload = new Intent(
+								Constant.Broadcast.SEND_DSA_UPLOAD_PATH);
+						intentDsaUpload.putExtra("share_picture", path);
+						sendBroadcast(intentDsaUpload);
+						MyLog.v("SendDSAUpload,Path:" + path);
 					}
 					// 通知语音
 					Intent intentImageSave = new Intent(
