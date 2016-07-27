@@ -38,6 +38,12 @@ public class ProviderUtil {
 
 		/** 前录分段:1,3 */
 		public static final String REC_FRONT_TIME = "rec_front_time";
+		
+		/** 前录比特率 */
+		public static final String REC_FRONT_1080_BITRATE = "rec_front_1080_bitrate";
+		
+		/** 后录比特率 */
+		public static final String REC_BACK_BITRATE = "rec_back_bitrate";
 
 		/** 天气定位城市:深圳 */
 		public static final String WEATHER_LOC_CITY = "weather_loc_city";

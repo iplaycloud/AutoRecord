@@ -198,7 +198,8 @@ public interface Constant {
 
 		/** 帧率 */
 		public static final int FRONT_FRAME_720P = 30; // 24>29,30(NotOK:25)
-		public static final int FRONT_FRAME_1080P = 30; // 24>29,30(NotOK:25)
+		// 15>29,24>29,30(NotOK:20,25)
+		public static final int FRONT_FRAME_1080P = 30;//30; 
 		// 5>49(2M),15>26(2M)>49(0.5M),24>43(2M),30>29(0.5M)(NotOK:8,10,12,18)
 		public static final int BACK_FRAME = 30; // 15
 

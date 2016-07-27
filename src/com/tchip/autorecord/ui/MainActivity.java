@@ -2595,8 +2595,12 @@ public class MainActivity extends Activity {
 				recorderFront.setVideoSize(1920, 1080); // 分辨率
 				recorderFront
 						.setVideoFrameRate(Constant.Record.FRONT_FRAME_1080P);
-				recorderFront
-						.setVideoBiteRate(Constant.Record.FRONT_BITRATE_1080P);
+
+				String strFrontBitrate = ProviderUtil.getValue(context,
+						Name.REC_FRONT_1080_BITRATE, ""
+								+ Constant.Record.FRONT_BITRATE_1080P);
+				int intFrontBitrate = Integer.parseInt(strFrontBitrate);
+				recorderFront.setVideoBiteRate(intFrontBitrate);
 			} else {
 				recorderFront.setVideoSize(1280, 720);
 				recorderFront
@@ -2647,7 +2651,12 @@ public class MainActivity extends Activity {
 			recorderBack.setClientName(this.getPackageName());
 			recorderBack.setVideoSize(640, 480); // (640, 480)(1280,720)
 			recorderBack.setVideoFrameRate(Constant.Record.BACK_FRAME);
-			recorderBack.setVideoBiteRate(Constant.Record.BACK_BITRATE);
+			
+			String strBackBitrate = ProviderUtil.getValue(context,
+					Name.REC_BACK_BITRATE, "" + Constant.Record.BACK_BITRATE);
+			int intBackBitrate = Integer.parseInt(strBackBitrate);
+			recorderBack.setVideoBiteRate(intBackBitrate);
+			
 			if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
 				recorderBack.setVideoSeconds(3 * 60);
 			} else {
