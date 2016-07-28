@@ -175,6 +175,9 @@ public interface Constant {
 	}
 
 	public static final class Record {
+		/** 是否先保存到内部存储，然后拷贝到SD卡 */
+		public static final boolean flashToCard = true;
+		
 		/** 是否开机自动录像 */
 		public static final boolean autoRecordFront = true;
 		public static final boolean autoRecordBack = true;

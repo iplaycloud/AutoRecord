@@ -125,19 +125,21 @@ public class StorageUtil {
 
 	/** 将加锁视频移动到加锁文件夹 */
 	public static void lockVideo(boolean isFront, String videoName) {
-		String rawPath = isFront ? Constant.Path.VIDEO_FRONT_SD
-				: Constant.Path.VIDEO_BACK_SD;
-		String lockPath = isFront ? Constant.Path.VIDEO_FRONT_SD_LOCK
-				: Constant.Path.VIDEO_BACK_SD_LOCK;
-		File rawFile = new File(rawPath + videoName);
-		if (rawFile.exists() && rawFile.isFile()) {
-			File lockDir = new File(lockPath);
-			if (!lockDir.exists()) {
-				lockDir.mkdirs();
+		if (!Constant.Record.flashToCard) {
+			String rawPath = isFront ? Constant.Path.VIDEO_FRONT_SD
+					: Constant.Path.VIDEO_BACK_SD;
+			String lockPath = isFront ? Constant.Path.VIDEO_FRONT_SD_LOCK
+					: Constant.Path.VIDEO_BACK_SD_LOCK;
+			File rawFile = new File(rawPath + videoName);
+			if (rawFile.exists() && rawFile.isFile()) {
+				File lockDir = new File(lockPath);
+				if (!lockDir.exists()) {
+					lockDir.mkdirs();
+				}
+				File lockFile = new File(lockDir + File.separator + videoName);
+				rawFile.renameTo(lockFile);
+				MyLog.v("StorageUtil.lockVideo:" + videoName);
 			}
-			File lockFile = new File(lockDir + File.separator + videoName);
-			rawFile.renameTo(lockFile);
-			MyLog.v("StorageUtil.lockVideo:" + videoName);
 		}
 	}
 

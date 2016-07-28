@@ -11,6 +11,7 @@ import com.tchip.autorecord.db.DriveVideoDbHelper;
 import com.tchip.autorecord.service.SensorWatchService;
 import com.tchip.autorecord.util.ClickUtil;
 import com.tchip.autorecord.util.DateUtil;
+import com.tchip.autorecord.util.Flash2SDUtil;
 import com.tchip.autorecord.util.HintUtil;
 import com.tchip.autorecord.util.MyLog;
 import com.tchip.autorecord.util.ProviderUtil;
@@ -34,8 +35,6 @@ import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
@@ -2322,7 +2321,9 @@ public class MainActivity extends Activity {
 	/** 设置保存路径 */
 	public int setFrontDirectory() {
 		if (recorderFront != null) {
-			return recorderFront.setDirectory(Constant.Path.SDCARD_1);
+			return recorderFront
+					.setDirectory(Constant.Record.flashToCard ? Constant.Path.SDCARD_0
+							: Constant.Path.SDCARD_1);
 		}
 		return -1;
 	}
@@ -2330,7 +2331,9 @@ public class MainActivity extends Activity {
 	/** 设置保存路径 */
 	public int setBackDirectory() {
 		if (recorderBack != null) {
-			return recorderBack.setDirectory(Constant.Path.SDCARD_1);
+			return recorderBack
+					.setDirectory(Constant.Record.flashToCard ? Constant.Path.SDCARD_0
+							: Constant.Path.SDCARD_1);
 		}
 		return -1;
 	}
@@ -2752,54 +2755,78 @@ public class MainActivity extends Activity {
 						videoLock = 1;
 						MyApp.isFrontLock = false; // 还原
 						StorageUtil.lockVideo(true, videoName);
+
 						if (MyApp.isFrontRecording && MyApp.isFrontLockSecond) {
 							MyApp.isFrontLock = true;
 							MyApp.isFrontLockSecond = false; // 不录像时修正加锁图标
 						}
 					}
+					Flash2SDUtil.moveVideoToSD(context, true, 1 == videoLock,
+							videoName);
+
 					setupFrontViews(); // 更新录制按钮状态
 					DriveVideo driveVideo = new DriveVideo(videoName,
 							videoLock, videoResolution, 0);
 					videoDb.addDriveVideo(driveVideo);
 
+					Flash2SDUtil.deleteFlashDotFile();
 					StartCheckErrorFileThread(); // 执行onFileSave时，此file已经不隐藏，下个正在录的为隐藏
 				} else { // 图片
 					HintUtil.showToast(MainActivity.this, getResources()
 							.getString(R.string.hint_photo_save));
 
-					MyApp.writeImageExifPath = path;
+					String imageName = path.split("/")[5];
+					Flash2SDUtil.moveImageToSD(imageName);
+
+					MyApp.writeImageExifPath = Constant.Record.flashToCard ? path
+							.replace("sdcard0", "sdcard1") : path;
 					new Thread(new WriteImageExifThread()).start();
 
 					if (MyApp.shouldSendPathToDSA) { // 停车守卫拍照
 						MyApp.shouldSendPathToDSA = false;
 						String[] picPaths = new String[2]; // 第一张保存前置的图片路径
-						picPaths[0] = path;
+						picPaths[0] = Constant.Record.flashToCard ? path
+								.replace("sdcard0", "sdcard1") : path;
 						picPaths[1] = "";
 						Intent intent = new Intent(
 								Constant.Broadcast.SEND_PIC_PATH);
 						intent.putExtra("picture", picPaths);
 						sendBroadcast(intent);
-						MyLog.v("SendDSA,Path:" + path);
+						MyLog.v("SendDSA,Path:" + picPaths[0]);
 					}
 
 					if (MyApp.shouldSendPathToDSAUpload) { // 语音拍照上传
 						MyApp.shouldSendPathToDSAUpload = false;
 						Intent intentDsaUpload = new Intent(
 								Constant.Broadcast.SEND_DSA_UPLOAD_PATH);
-						intentDsaUpload.putExtra("share_picture", path);
+						intentDsaUpload.putExtra(
+								"share_picture",
+								Constant.Record.flashToCard ? path.replace(
+										"sdcard0", "sdcard1") : path);
 						sendBroadcast(intentDsaUpload);
-						MyLog.v("SendDSAUpload,Path:" + path);
+						MyLog.v("SendDSAUpload,Path:"
+								+ (Constant.Record.flashToCard ? path.replace(
+										"sdcard0", "sdcard1") : path));
 					}
 					// 通知语音
 					Intent intentImageSave = new Intent(
 							Constant.Broadcast.ACTION_IMAGE_SAVE);
-					intentImageSave.putExtra("path", path);
+					intentImageSave.putExtra(
+							"path",
+							Constant.Record.flashToCard ? path.replace(
+									"sdcard0", "sdcard1") : path);
 					sendBroadcast(intentImageSave);
 				}
 				// 更新Media Database
 				sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-						Uri.parse("file://" + path)));
-				MyLog.d("Front.onFileSave.Type=" + type + ",Save path:" + path);
+						Uri.parse("file://"
+								+ (Constant.Record.flashToCard ? path.replace(
+										"sdcard0", "sdcard1") : path))));
+				MyLog.d("Front.onFileSave.Type="
+						+ type
+						+ ",Save path:"
+						+ (Constant.Record.flashToCard ? path.replace(
+								"sdcard0", "sdcard1") : path));
 			} catch (Exception e) {
 				e.printStackTrace();
 				MyLog.e("Front.onFileSave.catch Exception:" + e.toString());
@@ -2810,7 +2837,9 @@ public class MainActivity extends Activity {
 		public void onFileStart(int type, String path) {
 			if (type == 1) {
 				MyApp.nowRecordVideoName = path.split("/")[5];
+				Flash2SDUtil.moveOldFrontVideoToSD();
 			}
+			Flash2SDUtil.moveOldImageToSD();
 			MyLog.v("Front.onFileStart.Path:" + path);
 		}
 
@@ -2874,24 +2903,37 @@ public class MainActivity extends Activity {
 						videoLock = 1;
 						MyApp.isBackLock = false; // 还原
 						StorageUtil.lockVideo(false, videoName);
+
 						if (MyApp.isBackRecording && MyApp.isBackLockSecond) {
 							MyApp.isBackRecording = true;
 							MyApp.isBackLockSecond = false; // 不录像时修正加锁图标
 						}
 					}
 
+					Flash2SDUtil.moveVideoToSD(context, false, 1 == videoLock,
+							videoName);
+
 					setupBackViews(); // 更新录制按钮状态
 					DriveVideo driveVideo = new DriveVideo(videoName,
 							videoLock, videoResolution, 1);
 					videoDb.addDriveVideo(driveVideo);
+
+					Flash2SDUtil.deleteFlashDotFile();
 
 					StartCheckErrorFileThread(); // 执行onFileSave时，此file已经不隐藏，下个正在录的为隐藏
 				} else { // 图片
 				}
 
 				sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-						Uri.parse("file://" + path))); // 更新Media Database
-				MyLog.d("Back.onFileSave.Type=" + type + ",Save path:" + path);
+						Uri.parse("file://"
+								+ (Constant.Record.flashToCard ? path.replace(
+										"sdcard0", "sdcard1") : path)))); // 更新Media
+																			// Database
+				MyLog.d("Back.onFileSave.Type="
+						+ type
+						+ ",Save path:"
+						+ (Constant.Record.flashToCard ? path.replace(
+								"sdcard0", "sdcard1") : path));
 			} catch (Exception e) {
 				e.printStackTrace();
 				MyLog.e("Back.onFileSave.catch Exception:" + e.toString());
@@ -2902,6 +2944,7 @@ public class MainActivity extends Activity {
 		public void onFileStart(int type, String path) {
 			if (type == 1) {
 				MyApp.nowRecordVideoName = path.split("/")[5];
+				Flash2SDUtil.moveOldBackVideoToSD();
 			}
 			MyLog.v("Back.onFileStart.Path:" + path);
 		}
