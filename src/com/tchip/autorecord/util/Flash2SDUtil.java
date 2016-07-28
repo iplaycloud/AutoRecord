@@ -7,8 +7,8 @@ import java.io.FileOutputStream;
 import android.content.Context;
 
 import com.tchip.autorecord.Constant;
-import com.tchip.autorecord.CopyThread;
 import com.tchip.autorecord.MyApp;
+import com.tchip.autorecord.thread.MoveThread;
 
 public class Flash2SDUtil {
 
@@ -225,7 +225,7 @@ public class Flash2SDUtil {
 
 	public static boolean copyFile(String oldFilePath, String newFilePath) {
 		boolean isCopySuccess = true;
-		new Thread(new CopyThread(oldFilePath, newFilePath)).start();
+		new Thread(new MoveThread(oldFilePath, newFilePath)).start();
 		return isCopySuccess;
 	}
 

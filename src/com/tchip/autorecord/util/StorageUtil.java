@@ -87,10 +87,13 @@ public class StorageUtil {
 
 	/** 创建前后录像存储卡目录 */
 	public static void createRecordDirectory() {
-		boolean isSuccess = new File(Constant.Path.VIDEO_FRONT_SD).mkdirs();
-		MyLog.v("StorageUtil.createRecordDirectory,mkdirs isSuccess:"
-				+ isSuccess);
-		new File(Constant.Path.VIDEO_BACK_SD).mkdirs();
+		try {
+			new File(Constant.Path.VIDEO_FRONT_FLASH).mkdirs();
+			new File(Constant.Path.VIDEO_BACK_FLASH).mkdirs();
+			new File(Constant.Path.VIDEO_FRONT_SD).mkdirs();
+			new File(Constant.Path.VIDEO_BACK_SD).mkdirs();
+		} catch (Exception e) {
+		}
 	}
 
 	/**

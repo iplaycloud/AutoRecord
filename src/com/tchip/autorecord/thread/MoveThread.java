@@ -1,14 +1,14 @@
-package com.tchip.autorecord;
+package com.tchip.autorecord.thread;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-public class CopyThread extends Thread {
+public class MoveThread extends Thread {
 	String oldFilePath;
 	String newFilePath;
 
-	public CopyThread(String oldFilePath, String newFilePath) {
+	public MoveThread(String oldFilePath, String newFilePath) {
 		this.oldFilePath = oldFilePath;
 		this.newFilePath = newFilePath;
 	}
