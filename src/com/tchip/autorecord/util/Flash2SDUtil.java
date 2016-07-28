@@ -30,16 +30,6 @@ public class Flash2SDUtil {
 		}
 	}
 
-	public static void moveImageToSD(String imageName) {
-		if (Constant.Record.flashToCard) {
-			boolean isSuccess = copyFile(Constant.Path.IMAGE_FLASH + imageName,
-					Constant.Path.IMAGE_SD + imageName);
-			MyLog.v("moveImageToSD,name:" + imageName + ",isSuccess:"
-					+ isSuccess);
-			moveOldImageToSD();
-		}
-	}
-
 	/**
 	 * onFileStart时将拔卡导致没能移动到SD卡的文件移动到SD
 	 */
@@ -58,7 +48,8 @@ public class Flash2SDUtil {
 							fileTemp = new File(Constant.Path.VIDEO_FRONT_FLASH
 									+ File.separator + listFront[i]);
 							if (fileTemp.isFile()
-									&& !fileTemp.getName().startsWith(".")) {
+									&& !fileTemp.getName().startsWith(".")
+									&& fileTemp.getName().endsWith("mp4")) {
 								FileInputStream input = new FileInputStream(
 										fileTemp);
 								FileOutputStream output = new FileOutputStream(
@@ -100,7 +91,8 @@ public class Flash2SDUtil {
 							fileTemp = new File(Constant.Path.VIDEO_BACK_FLASH
 									+ File.separator + listBack[i]);
 							if (fileTemp.isFile()
-									&& !fileTemp.getName().startsWith(".")) {
+									&& !fileTemp.getName().startsWith(".")
+									&& fileTemp.getName().endsWith("mp4")) {
 								FileInputStream input = new FileInputStream(
 										fileTemp);
 								FileOutputStream output = new FileOutputStream(
@@ -142,7 +134,8 @@ public class Flash2SDUtil {
 							fileTemp = new File(Constant.Path.IMAGE_FLASH
 									+ File.separator + listImage[i]);
 							if (fileTemp.isFile()
-									&& !fileTemp.getName().startsWith(".")) {
+									&& !fileTemp.getName().startsWith(".")
+									&& fileTemp.getName().endsWith("jpg")) {
 								FileInputStream input = new FileInputStream(
 										fileTemp);
 								FileOutputStream output = new FileOutputStream(

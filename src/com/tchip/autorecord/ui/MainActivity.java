@@ -9,6 +9,8 @@ import com.tchip.autorecord.Typefaces;
 import com.tchip.autorecord.db.DriveVideo;
 import com.tchip.autorecord.db.DriveVideoDbHelper;
 import com.tchip.autorecord.service.SensorWatchService;
+import com.tchip.autorecord.thread.MoveImageThread;
+import com.tchip.autorecord.thread.WriteImageExifThread;
 import com.tchip.autorecord.util.ClickUtil;
 import com.tchip.autorecord.util.DateUtil;
 import com.tchip.autorecord.util.Flash2SDUtil;
@@ -1361,15 +1363,6 @@ public class MainActivity extends Activity {
 				}
 				new Thread(new CloseRecordThread()).start();
 			}
-		}
-
-	}
-
-	private class WriteImageExifThread implements Runnable {
-
-		@Override
-		public void run() {
-			StorageUtil.writeImageExif();
 		}
 
 	}
@@ -2775,47 +2768,37 @@ public class MainActivity extends Activity {
 					HintUtil.showToast(MainActivity.this, getResources()
 							.getString(R.string.hint_photo_save));
 
-					String imageName = path.split("/")[5];
-					Flash2SDUtil.moveImageToSD(imageName);
+					if (Constant.Record.flashToCard) {
+						String imageName = path.split("/")[5];
+						new Thread(new MoveImageThread(context, imageName)).start();
+					} else {
+						new Thread(new WriteImageExifThread(path)).start();
+						if (MyApp.shouldSendPathToDSA) { // 停车守卫拍照
+							MyApp.shouldSendPathToDSA = false;
+							String[] picPaths = new String[2]; // 第一张保存前置的图片路径
+							picPaths[0] = path;
+							picPaths[1] = "";
+							Intent intent = new Intent(
+									Constant.Broadcast.SEND_PIC_PATH);
+							intent.putExtra("picture", picPaths);
+							sendBroadcast(intent);
+							MyLog.v("SendDSA,Path:" + picPaths[0]);
+						}
 
-					MyApp.writeImageExifPath = Constant.Record.flashToCard ? path
-							.replace("sdcard0", "sdcard1") : path;
-					new Thread(new WriteImageExifThread()).start();
-
-					if (MyApp.shouldSendPathToDSA) { // 停车守卫拍照
-						MyApp.shouldSendPathToDSA = false;
-						String[] picPaths = new String[2]; // 第一张保存前置的图片路径
-						picPaths[0] = Constant.Record.flashToCard ? path
-								.replace("sdcard0", "sdcard1") : path;
-						picPaths[1] = "";
-						Intent intent = new Intent(
-								Constant.Broadcast.SEND_PIC_PATH);
-						intent.putExtra("picture", picPaths);
-						sendBroadcast(intent);
-						MyLog.v("SendDSA,Path:" + picPaths[0]);
+						if (MyApp.shouldSendPathToDSAUpload) { // 语音拍照上传
+							MyApp.shouldSendPathToDSAUpload = false;
+							Intent intentDsaUpload = new Intent(
+									Constant.Broadcast.SEND_DSA_UPLOAD_PATH);
+							intentDsaUpload.putExtra("share_picture", path);
+							sendBroadcast(intentDsaUpload);
+							MyLog.v("SendDSAUpload,Path:" + path);
+						}
+						// 通知语音
+						Intent intentImageSave = new Intent(
+								Constant.Broadcast.ACTION_IMAGE_SAVE);
+						intentImageSave.putExtra("path", path);
+						sendBroadcast(intentImageSave);
 					}
-
-					if (MyApp.shouldSendPathToDSAUpload) { // 语音拍照上传
-						MyApp.shouldSendPathToDSAUpload = false;
-						Intent intentDsaUpload = new Intent(
-								Constant.Broadcast.SEND_DSA_UPLOAD_PATH);
-						intentDsaUpload.putExtra(
-								"share_picture",
-								Constant.Record.flashToCard ? path.replace(
-										"sdcard0", "sdcard1") : path);
-						sendBroadcast(intentDsaUpload);
-						MyLog.v("SendDSAUpload,Path:"
-								+ (Constant.Record.flashToCard ? path.replace(
-										"sdcard0", "sdcard1") : path));
-					}
-					// 通知语音
-					Intent intentImageSave = new Intent(
-							Constant.Broadcast.ACTION_IMAGE_SAVE);
-					intentImageSave.putExtra(
-							"path",
-							Constant.Record.flashToCard ? path.replace(
-									"sdcard0", "sdcard1") : path);
-					sendBroadcast(intentImageSave);
 				}
 				// 更新Media Database
 				sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,

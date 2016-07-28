@@ -388,29 +388,4 @@ public class StorageUtil {
 		}
 	}
 
-	/**
-	 * 写入照片EXIF信息
-	 * 
-	 * @param context
-	 * @param imagePath
-	 */
-	public static void writeImageExif() {
-		if (!MyApp.writeImageExifPath.equals("NULL")
-				&& MyApp.writeImageExifPath.endsWith(".jpg")) {
-			try { // Android Way
-				ExifInterface exif = new ExifInterface(MyApp.writeImageExifPath);
-				exif.setAttribute(ExifInterface.TAG_ORIENTATION, ""
-						+ ExifInterface.ORIENTATION_NORMAL);
-				exif.setAttribute(ExifInterface.TAG_MAKE, "TQ"); // 品牌
-				exif.setAttribute(ExifInterface.TAG_MODEL, "X2"); // 型号/机型
-				exif.saveAttributes();
-			} catch (Exception e) {
-				MyLog.e("writeImageExif.Set Attribute Catch Exception:"
-						+ e.toString());
-				e.printStackTrace();
-			}
-			MyApp.writeImageExifPath = "NULL";
-		} else {
-		}
-	}
 }

@@ -203,17 +203,15 @@ public interface Constant {
 
 		/** 比特率 */
 		// 720P: MTK:9M X1:3.5M 1280x720=921600
-		public static final int FRONT_BITRATE_720P = 4 * M; // 5 * M
+		public static final int FRONT_BITRATE_720P = 6 * M; // 5 * M
 		// 1080P: MTK:17M X1:8M RAW:10M 1920x1080=2073600
 		public static final int FRONT_BITRATE_1080P = 7 * M;
 		public static final int BACK_BITRATE = 1 * M; // 600 * K; // 0.6M,2M
 
 		/** 帧率 */
-		public static final int FRONT_FRAME_720P = 30; // 24>29,30(NotOK:25)
-		// 15>29,24>29,30(NotOK:20,25)
-		public static final int FRONT_FRAME_1080P = 30;//30; 
-		// 5>49(2M),15>26(2M)>49(0.5M),24>43(2M),30>29(0.5M)(NotOK:8,10,12,18)
-		public static final int BACK_FRAME = 30; // 15
+		public static final int FRONT_FRAME_720P = 30;
+		public static final int FRONT_FRAME_1080P = 30;
+		public static final int BACK_FRAME = 30;
 
 		// 分辨率
 		public static final int STATE_RESOLUTION_720P = 0;
@@ -295,7 +293,7 @@ public interface Constant {
 
 	public static final class Module {
 		/** 是否使用系统Camera参数 */
-		public static final boolean useSystemCameraParam = true;
+		public static final boolean useSystemCameraParam = false;
 	}
 
 	/** 路径 */

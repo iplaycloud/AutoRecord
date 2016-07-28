@@ -100,8 +100,6 @@ public class MyApp extends Application {
 	/** 当前正在录像的视频名称 */
 	public static String nowRecordVideoName = "";
 
-	public static String writeImageExifPath = "NULL";
-
 	private Context context;
 
 	public static enum SLEEP_STATE {
