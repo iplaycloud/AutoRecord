@@ -99,6 +99,9 @@ public class MyApp extends Application {
 
 	/** 当前正在录像的视频名称 */
 	public static String nowRecordVideoName = "";
+	
+	/** 是否正在显示内部存储空间过低对话框 */
+	public static boolean isFlashCleanDialogShow = false;
 
 	private Context context;
 

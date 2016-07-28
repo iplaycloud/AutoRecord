@@ -4,7 +4,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.text.DecimalFormat;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
+import android.view.WindowManager;
+
 import com.tchip.autorecord.Constant;
+import com.tchip.autorecord.R;
+import com.tchip.autorecord.view.FlashCleanDialog;
 
 public class FileUtil {
 
@@ -53,6 +62,51 @@ public class FileUtil {
 				|| intSdFree < Constant.Record.FRONT_MIN_FREE_STORAGE;
 		MyLog.v("FileUtil.isFrontStorageLess:" + isStorageLess);
 		return isStorageLess;
+	}
+
+	/** 本机内部存储可用空间低于设定阈值 */
+	public static boolean isFlashStorageLess() {
+		if (Constant.Record.flashToCard) {
+			float flashFree = StorageUtil
+					.getSDAvailableSize(Constant.Path.SDCARD_0);
+			int intFlashFree = (int) flashFree;
+			boolean isFlashStorageLess = intFlashFree < Constant.Record.FLASH_MIN_FREE_STORAGE;
+			MyLog.v("FileUtil.isFlashStorageLess:" + isFlashStorageLess);
+			return isFlashStorageLess;
+		} else {
+			return false;
+		}
+	}
+
+	public static void showFlashCleanDialog(final Context context) {
+		FlashCleanDialog.Builder builder = new FlashCleanDialog.Builder(
+				context.getApplicationContext());
+		builder.setMessage(context.getResources().getString(
+				R.string.dialog_flash_clean_content));
+		builder.setTitle(context.getResources().getString(
+				R.string.dialog_flash_clean_title));
+		builder.setPositiveButton("确认", new OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.dismiss();
+				ComponentName componentFileMtk = new ComponentName(
+						"com.mediatek.filemanager",
+						"com.mediatek.filemanager.FileManagerOperationActivity");
+				Intent intentFileMtk = new Intent();
+				intentFileMtk.setComponent(componentFileMtk);
+				intentFileMtk.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+						| Intent.FLAG_ACTIVITY_TASK_ON_HOME);
+				context.startActivity(intentFileMtk);
+			}
+		});
+
+		FlashCleanDialog flashCleanDialog = builder.create();
+		flashCleanDialog.getWindow().setType(
+				WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+		flashCleanDialog.setCanceledOnTouchOutside(false);
+		if (!flashCleanDialog.isShowing()) {
+			flashCleanDialog.show();
+		}
 	}
 
 	public static boolean isBackStorageLess() {

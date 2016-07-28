@@ -115,13 +115,13 @@ public interface Constant {
 		 * sendBroadcast(intent);
 		 */
 		public static final String SEND_PIC_PATH = "com.action.http.post.picture";
-		
+
 		/**
 		 * 语音拍照上传，发送路径给DSA
 		 * 
 		 * intent.putExtra("share_picture",path) String 类型
 		 */
-		public static final String SEND_DSA_UPLOAD_PATH ="com.action.dsa.share.picture";
+		public static final String SEND_DSA_UPLOAD_PATH = "com.action.dsa.share.picture";
 
 		/**
 		 * DSA接收到广播之后进行图片的上传成功之后返回广播：
@@ -177,7 +177,7 @@ public interface Constant {
 	public static final class Record {
 		/** 是否先保存到内部存储，然后拷贝到SD卡 */
 		public static final boolean flashToCard = true;
-		
+
 		/** 是否开机自动录像 */
 		public static final boolean autoRecordFront = true;
 		public static final boolean autoRecordBack = true;
@@ -200,6 +200,7 @@ public interface Constant {
 		/** 循环录像保留空间(单位：字节B) */
 		public static final long FRONT_MIN_FREE_STORAGE = 500 * M; // 500M
 		public static final long BACK_MIN_FREE_STORAGE = 35 * M; // 35M
+		public static final long FLASH_MIN_FREE_STORAGE = 200 * M;
 
 		/** 比特率 */
 		// 720P: MTK:9M X1:3.5M 1280x720=921600

@@ -13,6 +13,7 @@ import com.tchip.autorecord.thread.MoveImageThread;
 import com.tchip.autorecord.thread.WriteImageExifThread;
 import com.tchip.autorecord.util.ClickUtil;
 import com.tchip.autorecord.util.DateUtil;
+import com.tchip.autorecord.util.FileUtil;
 import com.tchip.autorecord.util.Flash2SDUtil;
 import com.tchip.autorecord.util.HintUtil;
 import com.tchip.autorecord.util.MyLog;
@@ -1377,6 +1378,16 @@ public class MainActivity extends Activity {
 		if (MyApp.indexCheck >= 99) {
 			MyApp.indexCheck = 0;
 		}
+		mMainHandler.post(new Runnable() {
+			@Override
+			public void run() {
+				if (!MyApp.isFlashCleanDialogShow
+						&& FileUtil.isFlashStorageLess()) {
+					FileUtil.showFlashCleanDialog(context);
+					Flash2SDUtil.deleteFlashDotFileForcely();
+				}
+			}
+		});
 	}
 
 	/** 当前是否正在校验错误视频 */
@@ -2703,6 +2714,7 @@ public class MainActivity extends Activity {
 				// if (stopRecorder() == 0) {
 				// setRecordState(false);
 				// }
+				StartCheckErrorFileThread();
 				break;
 
 			case TachographCallback.ERROR_SAVE_IMAGE_FAIL:
@@ -2710,6 +2722,7 @@ public class MainActivity extends Activity {
 						getResources()
 								.getString(R.string.hint_save_photo_error));
 				MyLog.e("Front Record Error : ERROR_SAVE_IMAGE_FAIL");
+				StartCheckErrorFileThread();
 				break;
 
 			case TachographCallback.ERROR_RECORDER_CLOSED:
@@ -2770,7 +2783,8 @@ public class MainActivity extends Activity {
 
 					if (Constant.Record.flashToCard) {
 						String imageName = path.split("/")[5];
-						new Thread(new MoveImageThread(context, imageName)).start();
+						new Thread(new MoveImageThread(context, imageName))
+								.start();
 					} else {
 						new Thread(new WriteImageExifThread(path)).start();
 						if (MyApp.shouldSendPathToDSA) { // 停车守卫拍照
@@ -2844,6 +2858,7 @@ public class MainActivity extends Activity {
 				// if (stopRecorder() == 0) {
 				// setRecordState(false);
 				// }
+				StartCheckErrorFileThread();
 				break;
 
 			case TachographCallback.ERROR_SAVE_IMAGE_FAIL:
@@ -2851,6 +2866,7 @@ public class MainActivity extends Activity {
 						getResources()
 								.getString(R.string.hint_save_photo_error));
 				MyLog.e("Back Record Error : ERROR_SAVE_IMAGE_FAIL");
+				StartCheckErrorFileThread();
 				break;
 
 			case TachographCallback.ERROR_RECORDER_CLOSED:

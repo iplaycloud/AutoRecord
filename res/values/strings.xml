@@ -52,4 +52,10 @@
     <string name="icon_hint_unmute">录音</string>
     <string name="icon_hint_switch">切换</string>
 
+    <!-- FlashCleanDialog -->
+    <string name="dialog_flash_clean_title">提示</string>
+    <string name="dialog_flash_clean_content">本机存储可用空间低于300 MB，请前去清理！</string>
+    <string name="dialog_flash_clean_confirm">确定</string>
+    <string name="dialog_flash_clean_cancel">取消</string>
+
 </resources>

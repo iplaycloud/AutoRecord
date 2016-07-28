@@ -216,6 +216,52 @@ public class Flash2SDUtil {
 		}
 	}
 
+	public static void deleteFlashDotFileForcely() {
+		if (Constant.Record.flashToCard) {
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						File dirFront = new File(
+								Constant.Path.VIDEO_FRONT_FLASH);
+						String[] listFront = dirFront.list();
+						File fileTempFront = null;
+						for (int i = 0; i < listFront.length; i++) {
+							fileTempFront = new File(
+									Constant.Path.VIDEO_FRONT_FLASH
+											+ File.separator + listFront[i]);
+							if (fileTempFront.isFile()
+									&& fileTempFront.getName().startsWith(".")
+									&& !MyApp.isFrontRecording) {
+								fileTempFront.delete();
+								MyLog.v("deleteFlashDotFile:"
+										+ fileTempFront.getName());
+							}
+						}
+						File dirBack = new File(Constant.Path.VIDEO_BACK_FLASH);
+						String[] listBack = dirBack.list();
+						File fileTempBack = null;
+						for (int i = 0; i < listBack.length; i++) {
+							fileTempBack = new File(
+									Constant.Path.VIDEO_BACK_FLASH
+											+ File.separator + listBack[i]);
+							if (fileTempBack.isFile()
+									&& fileTempBack.getName().startsWith(".")
+									&& !MyApp.isBackRecording) {
+								fileTempBack.delete();
+								MyLog.v("deleteFlashDotFile:"
+										+ fileTempBack.getName());
+							}
+						}
+					} catch (Exception e) {
+					}
+				}
+
+			}).start();
+		}
+	}
+
 	public static boolean copyFile(String oldFilePath, String newFilePath) {
 		boolean isCopySuccess = true;
 		new Thread(new MoveThread(oldFilePath, newFilePath)).start();
