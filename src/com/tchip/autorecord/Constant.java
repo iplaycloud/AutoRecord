@@ -204,15 +204,15 @@ public interface Constant {
 
 		/** 比特率 */
 		// 720P: MTK:9M X1:3.5M 1280x720=921600
-		public static final int FRONT_BITRATE_720P = 6 * M; // 5 * M
+		public static final int FRONT_BITRATE_720P = 5 * M; // 5 * M
 		// 1080P: MTK:17M X1:8M RAW:10M 1920x1080=2073600
-		public static final int FRONT_BITRATE_1080P = 7 * M;
+		public static final int FRONT_BITRATE_1080P = 6 * M;
 		public static final int BACK_BITRATE = 1 * M; // 600 * K; // 0.6M,2M
 
 		/** 帧率 */
-		public static final int FRONT_FRAME_720P = 30;
-		public static final int FRONT_FRAME_1080P = 30;
-		public static final int BACK_FRAME = 30;
+		public static final int FRONT_FRAME_720P = 20;
+		public static final int FRONT_FRAME_1080P = 20;
+		public static final int BACK_FRAME = 25;
 
 		// 分辨率
 		public static final int STATE_RESOLUTION_720P = 0;
@@ -274,7 +274,7 @@ public interface Constant {
 				+ "eng-focus-fullscan-frame-interval-min=0;focal-length=3.5;"
 				+ "preview-size=1280x720;rec-mute-ogg=0;"
 				+ "cap-mode-values=normal,face_beauty,continuousshot,smileshot,bestshot,evbracketshot,autorama,mav,asd;"
-				+ "preview-frame-rate-values=15,24,30;max-num-metering-areas=9;fb-sharp-max=4;"
+				+ "preview-frame-rate-values=15,20,24,25,30;max-num-metering-areas=9;fb-sharp-max=4;"
 				+ "sensor-type=252;focus-mode-values=auto,macro,infinity,continuous-picture,continuous-video,manual,fullscan;"
 				+ "fb-sharp-min=-4;jpeg-thumbnail-size-values=0x0,160x128,320x240;"
 				+ "zoom-ratios=100,114,132,151,174,200,229,263,303,348,400;"
@@ -294,7 +294,7 @@ public interface Constant {
 
 	public static final class Module {
 		/** 是否使用系统Camera参数 */
-		public static final boolean useSystemCameraParam = false;
+		public static final boolean useSystemCameraParam = true;
 	}
 
 	/** 路径 */

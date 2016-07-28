@@ -1378,16 +1378,18 @@ public class MainActivity extends Activity {
 		if (MyApp.indexCheck >= 99) {
 			MyApp.indexCheck = 0;
 		}
-		mMainHandler.post(new Runnable() {
-			@Override
-			public void run() {
-				if (!MyApp.isFlashCleanDialogShow
-						&& FileUtil.isFlashStorageLess()) {
-					FileUtil.showFlashCleanDialog(context);
-					Flash2SDUtil.deleteFlashDotFileForcely();
+		if (Constant.Record.flashToCard) {
+			mMainHandler.post(new Runnable() {
+				@Override
+				public void run() {
+					if (!MyApp.isFlashCleanDialogShow
+							&& FileUtil.isFlashStorageLess()) {
+						FileUtil.showFlashCleanDialog(context);
+						Flash2SDUtil.deleteFlashDotFileForcely();
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 
 	/** 当前是否正在校验错误视频 */
