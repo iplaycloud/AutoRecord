@@ -25,8 +25,9 @@ public class HintUtil {
 					mediaPlayer = MediaPlayer.create(context,
 							R.raw.camera_video);
 				}
-
-				mediaPlayer.start();
+				if (mediaPlayer != null) {
+					mediaPlayer.start();
+				}
 			}
 		}
 	}
