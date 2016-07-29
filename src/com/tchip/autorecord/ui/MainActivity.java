@@ -202,7 +202,6 @@ public class MainActivity extends Activity {
 		MyLog.v("onResume");
 		try {
 			refreshFrontButton(); // 更新录像界面按钮状态
-			refreshBackButton();
 			setupFrontViews();
 			setupBackViews();
 		} catch (Exception e) {
@@ -817,7 +816,6 @@ public class MainActivity extends Activity {
 		}
 		// 更新录像界面按钮状态
 		refreshFrontButton();
-		refreshBackButton();
 		setupFrontViews();
 		setupBackViews();
 	}
@@ -2471,23 +2469,11 @@ public class MainActivity extends Activity {
 
 	/** 设置录制初始值 */
 	private void setupBackDefaults() {
-		refreshBackButton();
-
 		MyApp.isBackRecording = false;
 	}
 
 	private void refreshFrontButton() {
-		String videoSizeStr = sharedPreferences.getString("videoSize", "1080");
-		resolutionState = "1080".equals(videoSizeStr) ? Constant.Record.STATE_RESOLUTION_1080P
-				: Constant.Record.STATE_RESOLUTION_720P;
-
-		String videoTimeStr = sharedPreferences.getString("videoTime", "1"); // 视频分段
-		intervalState = "3".equals(videoTimeStr) ? Constant.Record.STATE_INTERVAL_3MIN
-				: Constant.Record.STATE_INTERVAL_1MIN;
-	}
-
-	private void refreshBackButton() {
-		String videoSizeStr = sharedPreferences.getString("videoSize", "1080");
+		String videoSizeStr = sharedPreferences.getString("videoSize", "720");
 		resolutionState = "1080".equals(videoSizeStr) ? Constant.Record.STATE_RESOLUTION_1080P
 				: Constant.Record.STATE_RESOLUTION_720P;
 

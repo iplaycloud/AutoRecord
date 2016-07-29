@@ -143,18 +143,6 @@ public interface Constant {
 
 	}
 
-	public static final class Setting {
-
-		/** 最大亮度 */
-		public static final int MAX_BRIGHTNESS = 196; // 255;
-
-		/** 默认亮度 */
-		public static final int DEFAULT_BRIGHTNESS = 180;
-
-		/** Camera自动调节亮度是否打开 */
-		public static final boolean AUTO_BRIGHT_DEFAULT_ON = false;
-	}
-
 	public static final class GravitySensor {
 		/** 碰撞侦测是否默认打开 */
 		public static final boolean DEFAULT_ON = true;
@@ -176,7 +164,7 @@ public interface Constant {
 
 	public static final class Record {
 		/** 是否先保存到内部存储，然后拷贝到SD卡 */
-		public static final boolean flashToCard = true;
+		public static final boolean flashToCard = false;
 
 		/** 是否开机自动录像 */
 		public static final boolean autoRecordFront = true;
