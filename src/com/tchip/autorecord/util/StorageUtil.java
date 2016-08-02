@@ -9,6 +9,7 @@ import com.tchip.autorecord.db.DriveVideo;
 import com.tchip.autorecord.db.DriveVideoDbHelper;
 
 import android.content.Context;
+import android.content.Intent;
 import android.media.ExifInterface;
 import android.os.StatFs;
 
@@ -88,8 +89,10 @@ public class StorageUtil {
 	/** 创建前后录像存储卡目录 */
 	public static void createRecordDirectory() {
 		try {
-			new File(Constant.Path.VIDEO_FRONT_FLASH).mkdirs();
-			new File(Constant.Path.VIDEO_BACK_FLASH).mkdirs();
+			if (Constant.Record.flashToCard) {
+				new File(Constant.Path.VIDEO_FRONT_FLASH).mkdirs();
+				new File(Constant.Path.VIDEO_BACK_FLASH).mkdirs();
+			}
 			new File(Constant.Path.VIDEO_FRONT_SD).mkdirs();
 			new File(Constant.Path.VIDEO_BACK_SD).mkdirs();
 		} catch (Exception e) {
@@ -190,19 +193,12 @@ public class StorageUtil {
 					if (oldestVideoId == -1) {
 						if (FileUtil.isFrontStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
 							MyLog.e("StorageUtil:Storage is full...");
-							String strNoStorage = context
-									.getResources()
-									.getString(
-											R.string.hint_storage_full_cause_by_other);
-							HintUtil.showToast(context, strNoStorage);
+							// TODO:显示格式化对话框
+							speakVoice(context, context.getResources()
+									.getString(R.string.sd_storage_too_low));
 							return false;
 						}
-					} else { // 提示用户清理空间，删除较旧的视频（加锁）
-						String strStorageFull = context
-								.getResources()
-								.getString(
-										R.string.hint_storage_full_and_delete_lock);
-						HintUtil.showToast(context, strStorageFull);
+					} else { // 删除较旧的视频（加锁）
 						String oldestVideoName = videoDb
 								.getVideNameById(oldestVideoId);
 						File file;
@@ -214,12 +210,12 @@ public class StorageUtil {
 									+ File.separator + oldestVideoName);
 						}
 						if (file.exists() && file.isFile()) {
-							MyLog.d("StorageUtil.Delete Old Unlock Video:"
+							MyLog.d("StorageUtil.Delete Old lock Front Video:"
 									+ file.getPath());
 							int i = 0;
-							while (!file.delete() && i < 3) {
+							while (file.exists() && !file.delete() && i < 3) {
 								i++;
-								MyLog.d("StorageUtil.Delete Old lock Video:"
+								MyLog.d("StorageUtil.Delete Old lock Front Video:"
 										+ file.getName() + " Filed!!! Try:" + i);
 							}
 						}
@@ -267,12 +263,12 @@ public class StorageUtil {
 					}
 
 					if (file.exists() && file.isFile()) {
-						MyLog.d("StorageUtil.Delete Old Unlock Video:"
+						MyLog.d("StorageUtil.Delete Old Unlock Back Video:"
 								+ file.getPath());
 						int i = 0;
 						while (!file.delete() && i < 3) {
 							i++;
-							MyLog.d("StorageUtil.Delete Old Unlock Video:"
+							MyLog.d("StorageUtil.Delete Old Unlock Back Video:"
 									+ file.getName() + " Filed!!! Try:" + i);
 						}
 					}
@@ -282,19 +278,12 @@ public class StorageUtil {
 					if (oldestVideoId == -1) {
 						if (FileUtil.isFrontStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
 							MyLog.e("StorageUtil:Storage is full...");
-							String strNoStorage = context
-									.getResources()
-									.getString(
-											R.string.hint_storage_full_cause_by_other);
-							HintUtil.showToast(context, strNoStorage);
+							// TODO
+							speakVoice(context, context.getResources()
+									.getString(R.string.sd_storage_too_low));
 							return false;
 						}
-					} else { // 提示用户清理空间，删除较旧的视频（加锁）
-						String strStorageFull = context
-								.getResources()
-								.getString(
-										R.string.hint_storage_full_and_delete_lock);
-						HintUtil.showToast(context, strStorageFull);
+					} else { // 删除较旧的视频（加锁）
 						String oldestVideoName = videoDb
 								.getVideNameById(oldestVideoId);
 						File file;
@@ -306,12 +295,12 @@ public class StorageUtil {
 									+ File.separator + oldestVideoName);
 						}
 						if (file.exists() && file.isFile()) {
-							MyLog.d("StorageUtil.Delete Old Unlock Back Video:"
+							MyLog.d("StorageUtil.Delete Old lock Back Video:"
 									+ file.getPath());
 							int i = 0;
-							while (!file.delete() && i < 3) {
+							while (file.exists() && !file.delete() && i < 3) {
 								i++;
-								MyLog.d("StorageUtil.Delete Old lock Video:"
+								MyLog.d("StorageUtil.Delete Old lock Back Video:"
 										+ file.getName() + " Filed!!! Try:" + i);
 							}
 						}
@@ -386,6 +375,11 @@ public class StorageUtil {
 			}
 
 		}
+	}
+
+	private static void speakVoice(Context context, String content) {
+		context.sendBroadcast(new Intent(Constant.Broadcast.TTS_SPEAK)
+				.putExtra("content", content));
 	}
 
 }

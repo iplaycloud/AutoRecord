@@ -57,5 +57,8 @@
     <string name="dialog_flash_clean_content">本机存储可用空间低于300 MB，请前去清理！</string>
     <string name="dialog_flash_clean_confirm">确定</string>
     <string name="dialog_flash_clean_cancel">取消</string>
+    
+    <!-- SD free storage is too low -->
+    <string name="sd_storage_too_low">录像卡需要清理</string>
 
 </resources>
