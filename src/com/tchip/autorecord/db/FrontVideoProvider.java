@@ -8,9 +8,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
-public class DriveVideoProvider extends ContentProvider {
+public class FrontVideoProvider extends ContentProvider {
 
-	private DriveVideoDbHelper driveVideoDbHelper;
+	private FrontVideoDbHelper driveVideoDbHelper;
 
 	private static final UriMatcher VIDEO_MATCHER = new UriMatcher(
 			UriMatcher.NO_MATCH);
@@ -20,17 +20,17 @@ public class DriveVideoProvider extends ContentProvider {
 	private static final int VIDEO_NAME = 3;
 
 	static {
-		VIDEO_MATCHER.addURI("com.tchip.autorecord.db.DriveVideoProvider",
+		VIDEO_MATCHER.addURI("com.tchip.autorecord.db.FrontVideoProvider",
 				"videos", VIDEOS);
-		VIDEO_MATCHER.addURI("com.tchip.autorecord.db.DriveVideoProvider",
+		VIDEO_MATCHER.addURI("com.tchip.autorecord.db.FrontVideoProvider",
 				"video/#", VIDEO);
-		VIDEO_MATCHER.addURI("com.tchip.autorecord.db.DriveVideoProvider",
+		VIDEO_MATCHER.addURI("com.tchip.autorecord.db.FrontVideoProvider",
 				"video/name/*", VIDEO_NAME);
 	}
 
 	@Override
 	public boolean onCreate() {
-		this.driveVideoDbHelper = new DriveVideoDbHelper(getContext());
+		this.driveVideoDbHelper = new FrontVideoDbHelper(getContext());
 		return false;
 	}
 

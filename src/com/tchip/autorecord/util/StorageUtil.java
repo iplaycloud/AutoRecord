@@ -5,12 +5,12 @@ import java.io.File;
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.R;
+import com.tchip.autorecord.db.BackVideoDbHelper;
 import com.tchip.autorecord.db.DriveVideo;
-import com.tchip.autorecord.db.DriveVideoDbHelper;
+import com.tchip.autorecord.db.FrontVideoDbHelper;
 
 import android.content.Context;
 import android.content.Intent;
-import android.media.ExifInterface;
 import android.os.StatFs;
 
 public class StorageUtil {
@@ -163,11 +163,11 @@ public class StorageUtil {
 		}
 		try {
 			// 视频数据库
-			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context);
+			FrontVideoDbHelper frontvideoDb = new FrontVideoDbHelper(context);
 			while (FileUtil.isFrontStorageLess()) {
-				int oldestUnlockVideoId = videoDb.getOldestUnlockFrontVideoId();
+				int oldestUnlockVideoId = frontvideoDb.getOldestUnlockVideoId();
 				if (oldestUnlockVideoId != -1) { // 删除较旧未加锁视频文件
-					String oldestUnlockVideoName = videoDb
+					String oldestUnlockVideoName = frontvideoDb
 							.getVideNameById(oldestUnlockVideoId);
 					File file;
 					if (oldestUnlockVideoName.endsWith("_1.mp4")) { // 后录
@@ -187,9 +187,9 @@ public class StorageUtil {
 									+ file.getName() + " Filed!!! Try:" + i);
 						}
 					}
-					videoDb.deleteDriveVideoById(oldestUnlockVideoId); // 删除数据库记录
+					frontvideoDb.deleteDriveVideoById(oldestUnlockVideoId); // 删除数据库记录
 				} else {
-					int oldestVideoId = videoDb.getOldestVideoId();
+					int oldestVideoId = frontvideoDb.getOldestVideoId();
 					if (oldestVideoId == -1) {
 						if (FileUtil.isFrontStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
 							MyLog.e("StorageUtil:Storage is full...");
@@ -199,7 +199,7 @@ public class StorageUtil {
 							return false;
 						}
 					} else { // 删除较旧的视频（加锁）
-						String oldestVideoName = videoDb
+						String oldestVideoName = frontvideoDb
 								.getVideNameById(oldestVideoId);
 						File file;
 						if (oldestVideoName.endsWith("_1.mp4")) { // 后录文件
@@ -219,7 +219,7 @@ public class StorageUtil {
 										+ file.getName() + " Filed!!! Try:" + i);
 							}
 						}
-						videoDb.deleteDriveVideoById(oldestVideoId); // 删除数据库记录
+						frontvideoDb.deleteDriveVideoById(oldestVideoId); // 删除数据库记录
 					}
 				}
 			}
@@ -247,11 +247,11 @@ public class StorageUtil {
 		}
 		try {
 			// 视频数据库
-			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context);
+			BackVideoDbHelper backVideoDb = new BackVideoDbHelper(context);
 			while (FileUtil.isBackStorageLess()) {
-				int oldestUnlockVideoId = videoDb.getOldestUnlockBackVideoId();
+				int oldestUnlockVideoId = backVideoDb.getOldestUnlockVideoId();
 				if (oldestUnlockVideoId != -1) { // 删除较旧未加锁视频文件
-					String oldestUnlockVideoName = videoDb
+					String oldestUnlockVideoName = backVideoDb
 							.getVideNameById(oldestUnlockVideoId);
 					File file;
 					if (oldestUnlockVideoName.endsWith("_1.mp4")) { // 后录
@@ -272,9 +272,9 @@ public class StorageUtil {
 									+ file.getName() + " Filed!!! Try:" + i);
 						}
 					}
-					videoDb.deleteDriveVideoById(oldestUnlockVideoId); // 删除数据库记录
+					backVideoDb.deleteDriveVideoById(oldestUnlockVideoId); // 删除数据库记录
 				} else {
-					int oldestVideoId = videoDb.getOldestVideoId();
+					int oldestVideoId = backVideoDb.getOldestVideoId();
 					if (oldestVideoId == -1) {
 						if (FileUtil.isFrontStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
 							MyLog.e("StorageUtil:Storage is full...");
@@ -284,7 +284,7 @@ public class StorageUtil {
 							return false;
 						}
 					} else { // 删除较旧的视频（加锁）
-						String oldestVideoName = videoDb
+						String oldestVideoName = backVideoDb
 								.getVideNameById(oldestVideoId);
 						File file;
 						if (oldestVideoName.endsWith("_1.mp4")) { // 后录文件
@@ -304,7 +304,7 @@ public class StorageUtil {
 										+ file.getName() + " Filed!!! Try:" + i);
 							}
 						}
-						videoDb.deleteDriveVideoById(oldestVideoId); // 删除数据库记录
+						backVideoDb.deleteDriveVideoById(oldestVideoId); // 删除数据库记录
 					}
 				}
 			}
@@ -328,7 +328,6 @@ public class StorageUtil {
 	public static void RecursionCheckFile(Context context, File file) {
 
 		if (file.exists()) {
-			DriveVideoDbHelper videoDb = new DriveVideoDbHelper(context); // 视频数据库
 			try {
 				String fileName = file.getName();
 				if (file.isFile()) {
@@ -336,23 +335,48 @@ public class StorageUtil {
 						if (fileName.startsWith(".")) {
 							// Delete file start with dot but not the recording
 							// one
+
 							if (!MyApp.isFrontRecording
-									&& !MyApp.isBackRecording) {
+									&& fileName.endsWith("_0.mp4")) {
+								file.delete();
+								MyLog.v("StorageUtil.RecursionCheckFile-Delete DOT File:"
+										+ fileName);
+							}
+							if (!MyApp.isBackRecording
+									&& fileName.endsWith("_1.mp4")) {
 								file.delete();
 								MyLog.v("StorageUtil.RecursionCheckFile-Delete DOT File:"
 										+ fileName);
 							}
 						} else {
-							boolean isVideoExist = videoDb
-									.isVideoExist(fileName);
-							if (!isVideoExist) {
-								boolean isLock = file.getPath()
-										.contains("Lock");
-								DriveVideo driveVideo = new DriveVideo(
-										fileName, isLock ? 1 : 0, 555, 0);
-								videoDb.addDriveVideo(driveVideo);
-								MyLog.v("StorageUtil.RecursionCheckFile-InsertVideoToDB:"
-										+ file.getAbsolutePath());
+							if (fileName.endsWith("_0.mp4")) { // 前录
+								FrontVideoDbHelper frontVideoDb = new FrontVideoDbHelper(
+										context); // 视频数据库
+								boolean isVideoExist = frontVideoDb
+										.isVideoExist(fileName);
+								if (!isVideoExist) {
+									boolean isLock = file.getPath().contains(
+											"Lock");
+									DriveVideo driveVideo = new DriveVideo(
+											fileName, isLock ? 1 : 0, 555, 0);
+									frontVideoDb.addDriveVideo(driveVideo);
+									MyLog.v("StorageUtil.RecursionCheckFile-InsertFrontVideoToDB:"
+											+ file.getAbsolutePath());
+								}
+							} else if (fileName.endsWith("_1.mp4")) { // 后录
+								BackVideoDbHelper backVideoDb = new BackVideoDbHelper(
+										context);
+								boolean isVideoExist = backVideoDb
+										.isVideoExist(fileName);
+								if (!isVideoExist) {
+									boolean isLock = file.getPath().contains(
+											"Lock");
+									DriveVideo driveVideo = new DriveVideo(
+											fileName, isLock ? 1 : 0, 555, 1);
+									backVideoDb.addDriveVideo(driveVideo);
+									MyLog.v("StorageUtil.RecursionCheckFile-InsertBackVideoToDB:"
+											+ file.getAbsolutePath());
+								}
 							}
 						}
 						return;

@@ -3,17 +3,15 @@ package com.tchip.autorecord.db;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tchip.autorecord.util.MyLog;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-public class DriveVideoDbHelper extends SQLiteOpenHelper {
+public class BackVideoDbHelper extends SQLiteOpenHelper {
 	private static final int DATABASE_VERSION = 2;
-	private static final String DATABASE_NAME = "video_db";
+	private static final String DATABASE_NAME = "video_back";
 
 	private static final String VIDEO_TABLE_NAME = "video";
 	private static final String VIDEO_COL_ID = "_id";
@@ -25,7 +23,7 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 	private static final String[] VIDEO_COL_PROJECTION = new String[] {
 			VIDEO_COL_ID, VIDEO_COL_NAME, VIDEO_COL_LOCK, VIDEO_COL_RESOLUTION, };
 
-	public DriveVideoDbHelper(Context context) {
+	public BackVideoDbHelper(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 	}
 
@@ -210,40 +208,11 @@ public class DriveVideoDbHelper extends SQLiteOpenHelper {
 	}
 
 	/**
-	 * 获取最旧且未加锁视频ID(Front)
-	 * 
-	 * @return
-	 */
-	public int getOldestUnlockFrontVideoId() {
-		String sqlLine = "SELECT * FROM " + VIDEO_TABLE_NAME + " WHERE "
-				+ VIDEO_COL_LOCK + "=?";
-		String selection[] = new String[] { "0" };
-		SQLiteDatabase db = this.getReadableDatabase();
-		Cursor cursor = db.rawQuery(sqlLine, selection);
-		if (cursor.moveToFirst()) {
-			int id = -1;
-			String videoName = "";
-			do {
-				id = cursor.getInt(cursor.getColumnIndex(VIDEO_COL_ID));
-				videoName = cursor.getString(cursor
-						.getColumnIndex(VIDEO_COL_NAME));
-			} while (!videoName.endsWith("_0.mp4") && cursor.moveToNext());
-			db.close();
-			cursor.close();
-			return id;
-		} else {
-			db.close();
-			cursor.close();
-			return -1;
-		}
-	}
-
-	/**
 	 * 获取最旧且未加锁视频ID(Back)
 	 * 
 	 * @return
 	 */
-	public int getOldestUnlockBackVideoId() {
+	public int getOldestUnlockVideoId() {
 		String sqlLine = "SELECT * FROM " + VIDEO_TABLE_NAME + " WHERE "
 				+ VIDEO_COL_LOCK + "=?";
 		String selection[] = new String[] { "0" };

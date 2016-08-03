@@ -4,7 +4,7 @@
     package="com.tchip.autorecord"
     android:sharedUserId="android.uid.system"
     android:versionCode="1"
-    android:versionName="2016.08.02-19:00" >
+    android:versionName="2016.08.03-10:00" >
 
     <uses-sdk
         android:minSdkVersion="21"
@@ -44,8 +44,12 @@
         </activity>
 
         <provider
-            android:name="com.tchip.autorecord.db.DriveVideoProvider"
-            android:authorities="com.tchip.autorecord.db.DriveVideoProvider"
+            android:name="com.tchip.autorecord.db.FrontVideoProvider"
+            android:authorities="com.tchip.autorecord.db.FrontVideoProvider"
+            android:exported="true" />
+        <provider
+            android:name="com.tchip.autorecord.db.BackVideoProvider"
+            android:authorities="com.tchip.autorecord.db.BackVideoProvider"
             android:exported="true" />
 
         <receiver android:name="com.tchip.autorecord.receiver.CardEjectReceiver" >
