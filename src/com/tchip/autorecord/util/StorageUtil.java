@@ -162,21 +162,14 @@ public class StorageUtil {
 			return false;
 		}
 		try {
-			// 视频数据库
-			FrontVideoDbHelper frontvideoDb = new FrontVideoDbHelper(context);
+			FrontVideoDbHelper frontvideoDb = new FrontVideoDbHelper(context); // 视频数据库
 			while (FileUtil.isFrontStorageLess()) {
 				int oldestUnlockVideoId = frontvideoDb.getOldestUnlockVideoId();
 				if (oldestUnlockVideoId != -1) { // 删除较旧未加锁视频文件
 					String oldestUnlockVideoName = frontvideoDb
 							.getVideNameById(oldestUnlockVideoId);
-					File file;
-					if (oldestUnlockVideoName.endsWith("_1.mp4")) { // 后录
-						file = new File(Constant.Path.VIDEO_BACK_SD
-								+ oldestUnlockVideoName);
-					} else {
-						file = new File(Constant.Path.VIDEO_FRONT_SD
-								+ oldestUnlockVideoName);
-					}
+					File file = new File(Constant.Path.VIDEO_FRONT_SD
+							+ oldestUnlockVideoName);
 					if (file.exists() && file.isFile()) {
 						MyLog.d("StorageUtil.Delete Old Unlock Video:"
 								+ file.getPath());
@@ -188,7 +181,7 @@ public class StorageUtil {
 						}
 					}
 					frontvideoDb.deleteDriveVideoById(oldestUnlockVideoId); // 删除数据库记录
-				} else {
+				} else { // 不存在未加锁视频
 					int oldestVideoId = frontvideoDb.getOldestVideoId();
 					if (oldestVideoId == -1) {
 						if (FileUtil.isFrontStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
@@ -198,26 +191,19 @@ public class StorageUtil {
 									.getString(R.string.sd_storage_too_low));
 							return false;
 						}
-					} else { // 删除较旧的视频（加锁）
+					} else { // 删除加锁视频
 						String oldestVideoName = frontvideoDb
 								.getVideNameById(oldestVideoId);
-						File file;
-						if (oldestVideoName.endsWith("_1.mp4")) { // 后录文件
-							file = new File(Constant.Path.VIDEO_BACK_SD_LOCK
-									+ File.separator + oldestVideoName);
-						} else { // 前录文件
-							file = new File(Constant.Path.VIDEO_FRONT_SD_LOCK
-									+ File.separator + oldestVideoName);
-						}
-						if (file.exists() && file.isFile()) {
+						File file = new File(Constant.Path.VIDEO_FRONT_SD_LOCK
+								+ File.separator + oldestVideoName);
+						MyLog.d("StorageUtil.Delete Old lock Front Video:"
+								+ file.getPath());
+						int i = 0;
+						while (file.exists() && file.isFile() && !file.delete()
+								&& i < 3) {
+							i++;
 							MyLog.d("StorageUtil.Delete Old lock Front Video:"
-									+ file.getPath());
-							int i = 0;
-							while (file.exists() && !file.delete() && i < 3) {
-								i++;
-								MyLog.d("StorageUtil.Delete Old lock Front Video:"
-										+ file.getName() + " Filed!!! Try:" + i);
-							}
+									+ file.getName() + " Filed!!! Try:" + i);
 						}
 						frontvideoDb.deleteDriveVideoById(oldestVideoId); // 删除数据库记录
 					}

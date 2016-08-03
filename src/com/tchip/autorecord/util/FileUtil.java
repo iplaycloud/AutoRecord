@@ -53,7 +53,7 @@ public class FileUtil {
 				Constant.Path.VIDEO_BACK_SD)); // 后置已用空间
 
 		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
-		float frontTotal = recordTotal * 14 / 15; // 前置归属空间:4/5
+		float frontTotal = recordTotal * 6 / 7; // 前置归属空间:6/7
 		float frontFree = frontTotal - frontUse; // 前置剩余空间
 		int intFrontFree = (int) frontFree;
 		int intSdFree = (int) sdFree;
@@ -120,7 +120,7 @@ public class FileUtil {
 				Constant.Path.VIDEO_BACK_SD)); // 后置已用空间
 
 		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
-		float backTotal = recordTotal * 1 / 15; // 后置归属空间: 1/5
+		float backTotal = recordTotal * 1 / 7; // 后置归属空间: 1/7
 		float backFree = backTotal - backUse; // 后置剩余空间
 		int intBackFree = (int) backFree;
 		int intSdFree = (int) sdFree;
