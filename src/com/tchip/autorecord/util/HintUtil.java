@@ -1,6 +1,5 @@
 package com.tchip.autorecord.util;
 
-import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.R;
 import com.tchip.autorecord.service.FloatWindowService;
 
@@ -12,8 +11,8 @@ import android.widget.Toast;
 
 public class HintUtil {
 
-	public static void playAudio(Context context, int type) {
-		if (MyApp.isAccOn) {
+	public static void playAudio(Context context, int type, boolean playSound) {
+		if (playSound) {
 			AudioManager audioManager = (AudioManager) context
 					.getSystemService(Context.AUDIO_SERVICE);
 			MediaPlayer mediaPlayer;

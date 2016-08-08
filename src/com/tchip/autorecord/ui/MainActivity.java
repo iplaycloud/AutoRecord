@@ -396,7 +396,7 @@ public class MainActivity extends Activity {
 				MyApp.isAccOn = (1 == SettingUtil.getAccStatus());
 
 				MyApp.shouldSendPathToDSA = true;
-				takePhoto();
+				takePhoto(true);
 			} else if (action.equals(Constant.Broadcast.ACC_ON)) {
 				MyApp.isAccOn = true;
 				MyApp.shouldWakeRecord = true;
@@ -453,13 +453,13 @@ public class MainActivity extends Activity {
 					}
 				} else if ("take_photo".equals(command)
 						|| "take_photo_wenxin".equals(command)) {
-					takePhoto();
+					takePhoto(MyApp.isAccOn);
 				} else if ("take_park_photo".equals(command)) { // 停车照片
 					MyApp.shouldSendPathToDSA = true;
-					takePhoto();
+					takePhoto(MyApp.isAccOn);
 				} else if ("take_photo_dsa".equals(command)) { // 语音拍照上传
 					MyApp.shouldSendPathToDSAUpload = true;
-					takePhoto();
+					takePhoto(MyApp.isAccOn);
 				}
 			} else if (action.equals(Constant.Broadcast.MEDIA_FORMAT)) {
 				String path = intent.getExtras().getString("path");
@@ -1072,7 +1072,7 @@ public class MainActivity extends Activity {
 			// case R.id.surfaceView:
 			case R.id.imagePhotoTake:
 				if (!ClickUtil.isQuickClick(1000)) {
-					takePhoto();
+					takePhoto(false);
 				}
 				break;
 
@@ -1154,14 +1154,15 @@ public class MainActivity extends Activity {
 	}
 
 	/** 拍照 */
-	public void takePhoto() {
+	public void takePhoto(boolean playSound) {
 		if (!MyApp.isFrontRecording && !MyApp.isBackRecording
 				&& !StorageUtil.isFrontCardExist()) { // 判断SD卡2是否存在，需要耗费一定时间
 			noVideoSDHint(); // SDCard不存在
 		} else if (recorderFront != null) {
 			setFrontDirectory(); // 设置保存路径，否则会保存到内部存储
 			HintUtil.playAudio(getApplicationContext(),
-					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE);
+					com.tchip.tachograph.TachographCallback.FILE_TYPE_IMAGE,
+					playSound);
 			recorderFront.takePicture();
 		}
 	}
@@ -1237,7 +1238,8 @@ public class MainActivity extends Activity {
 								resetFrontTimeText();
 								HintUtil.playAudio(
 										getApplicationContext(),
-										com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
+										com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO,
+										MyApp.isAccOn);
 
 								setFrontState(true);
 							}
@@ -1267,7 +1269,8 @@ public class MainActivity extends Activity {
 						if (isDeleteBackSuccess) {
 							HintUtil.playAudio(
 									getApplicationContext(),
-									com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
+									com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO,
+									MyApp.isAccOn);
 							if (MyApp.isBackPreview
 									&& recorderBack.start() == 0) {
 								setBackState(true);
@@ -2300,7 +2303,8 @@ public class MainActivity extends Activity {
 									resetFrontTimeText();
 									HintUtil.playAudio(
 											getApplicationContext(),
-											com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
+											com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO,
+											MyApp.isAccOn);
 									setFrontState(true);
 								}
 							});
@@ -2535,7 +2539,8 @@ public class MainActivity extends Activity {
 			MyLog.d("Front.StopRecorder");
 			// 停车守卫不播放声音
 			HintUtil.playAudio(getApplicationContext(),
-					com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
+					com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO,
+					MyApp.isAccOn);
 			return recorderFront.stop();
 		}
 		return -1;
@@ -2549,7 +2554,8 @@ public class MainActivity extends Activity {
 			MyLog.d("Back.StopRecorder");
 			// 停车守卫不播放声音
 			HintUtil.playAudio(getApplicationContext(),
-					com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO);
+					com.tchip.tachograph.TachographCallback.FILE_TYPE_VIDEO,
+					MyApp.isAccOn);
 			return recorderBack.stop();
 		}
 		return -1;
@@ -2581,7 +2587,8 @@ public class MainActivity extends Activity {
 				recorderFront.setVideoSize(1920, 1080); // 分辨率
 				recorderFront
 						.setVideoFrameRate(Constant.Record.FRONT_FRAME_1080P);
-				recorderFront.setVideoBiteRate(Constant.Record.FRONT_BITRATE_1080P);
+				recorderFront
+						.setVideoBiteRate(Constant.Record.FRONT_BITRATE_1080P);
 			} else {
 				recorderFront.setVideoSize(1280, 720);
 				recorderFront
@@ -2632,7 +2639,7 @@ public class MainActivity extends Activity {
 			recorderBack.setClientName(this.getPackageName());
 			recorderBack.setVideoSize(640, 480); // (640, 480)(1280,720)
 			recorderBack.setVideoFrameRate(Constant.Record.BACK_FRAME);
-			recorderBack.setVideoBiteRate( Constant.Record.BACK_BITRATE);
+			recorderBack.setVideoBiteRate(Constant.Record.BACK_BITRATE);
 			if (intervalState == Constant.Record.STATE_INTERVAL_3MIN) {
 				recorderBack.setVideoSeconds(3 * 60);
 			} else {
