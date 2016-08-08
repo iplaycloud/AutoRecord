@@ -21,14 +21,32 @@ public class BackLineView extends View {
 	private Context context;
 	private SharedPreferences sharedPreferences;
 	private Editor editor;
-	int[] point1 = { 270, 480 };
-	int[] point2 = { 325, 380 };
-	int[] point3 = { 375, 280 };
-	int[] point4 = { 430, 180 };
-	int[] point5 = { 750, 180 };
-	int[] point6 = { 805, 280 };
-	int[] point7 = { 855, 380 };
-	int[] point8 = { 910, 480 };
+
+	private static final int DEFALT_1X = 150;
+	private static final int DEFALT_1Y = 480;
+	private static final int DEFALT_2X = 206;
+	private static final int DEFALT_2Y = 400;
+	private static final int DEFALT_3X = 292;
+	private static final int DEFALT_3Y = 318;
+	private static final int DEFALT_4X = 345;
+	private static final int DEFALT_4Y = 227;
+	private static final int DEFALT_5X = 820;
+	private static final int DEFALT_5Y = DEFALT_4Y;
+	private static final int DEFALT_6X = 914;
+	private static final int DEFALT_6Y = DEFALT_3Y;
+	private static final int DEFALT_7X = 977;
+	private static final int DEFALT_7Y = DEFALT_2Y;
+	private static final int DEFALT_8X = 1034;
+	private static final int DEFALT_8Y = DEFALT_1Y;
+
+	int[] point1 = { DEFALT_1X, DEFALT_1Y };
+	int[] point2 = { DEFALT_2X, DEFALT_2Y };
+	int[] point3 = { DEFALT_3X, DEFALT_3Y };
+	int[] point4 = { DEFALT_4X, DEFALT_4Y };
+	int[] point5 = { DEFALT_5X, DEFALT_5Y };
+	int[] point6 = { DEFALT_6X, DEFALT_6Y };
+	int[] point7 = { DEFALT_7X, DEFALT_7Y };
+	int[] point8 = { DEFALT_8X, DEFALT_8Y };
 
 	/** 线短粗细 */
 	private int LINE_WIDTH = 8;
@@ -192,22 +210,22 @@ public class BackLineView extends View {
 	}
 
 	public void clearPonitConfig() {
-		editor.putInt("point1x", 270);
-		editor.putInt("point1y", 480);
-		editor.putInt("point2x", 325);
-		editor.putInt("point2y", 380);
-		editor.putInt("point3x", 375);
-		editor.putInt("point3y", 280);
-		editor.putInt("point4x", 430);
-		editor.putInt("point4y", 180);
-		editor.putInt("point5x", 750);
-		editor.putInt("point5y", 180);
-		editor.putInt("point6x", 805);
-		editor.putInt("point6y", 280);
-		editor.putInt("point7x", 855);
-		editor.putInt("point7y", 380);
-		editor.putInt("point8x", 910);
-		editor.putInt("point8y", 480);
+		editor.putInt("point1x", DEFALT_1X);
+		editor.putInt("point1y", DEFALT_1Y);
+		editor.putInt("point2x", DEFALT_2X);
+		editor.putInt("point2y", DEFALT_2Y);
+		editor.putInt("point3x", DEFALT_3X);
+		editor.putInt("point3y", DEFALT_3Y);
+		editor.putInt("point4x", DEFALT_4X);
+		editor.putInt("point4y", DEFALT_4Y);
+		editor.putInt("point5x", DEFALT_5X);
+		editor.putInt("point5y", DEFALT_5Y);
+		editor.putInt("point6x", DEFALT_6X);
+		editor.putInt("point6y", DEFALT_6Y);
+		editor.putInt("point7x", DEFALT_7X);
+		editor.putInt("point7y", DEFALT_7Y);
+		editor.putInt("point8x", DEFALT_8X);
+		editor.putInt("point8y", DEFALT_8Y);
 		editor.commit();
 	}
 
