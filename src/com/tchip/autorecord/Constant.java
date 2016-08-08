@@ -24,6 +24,9 @@ public interface Constant {
 
 		/** 手动设置的亮度[int] */
 		public static final String STR_MANUL_LIGHT_VALUE = "manulLightValue";
+		
+		/** 是否开启后录[boolean:false] */
+		public static final String STR_SHOULD_RECORD_BACK = "shouldRecordBack";
 	}
 
 	/** 广播 */
@@ -168,7 +171,7 @@ public interface Constant {
 
 		/** 是否开机自动录像 */
 		public static final boolean autoRecordFront = true;
-		public static final boolean autoRecordBack = true;
+		public static final boolean autoRecordBack = false;
 
 		/** 默认是否静音 */
 		public static final boolean muteDefault = false;

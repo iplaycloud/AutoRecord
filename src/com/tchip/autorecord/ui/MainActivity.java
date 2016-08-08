@@ -27,6 +27,8 @@ import com.tchip.tachograph.TachographCallback;
 import com.tchip.tachograph.TachographRecorder;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.Instrumentation;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -512,7 +514,7 @@ public class MainActivity extends Activity {
 					autoHandler.sendMessage(message);
 				}
 
-				if (Constant.Record.autoRecordBack && !isBackRecord()) {
+				if (shouldRecordBack() && !isBackRecord()) {
 					Message message = new Message();
 					message.what = 2;
 					autoHandler.sendMessage(message);
@@ -522,6 +524,13 @@ public class MainActivity extends Activity {
 				MyLog.e("AutoThread: Catch Exception!");
 			}
 		}
+	}
+
+	/** 是否开启后录 */
+	private boolean shouldRecordBack() {
+		return sharedPreferences.getBoolean(
+				Constant.MySP.STR_SHOULD_RECORD_BACK,
+				Constant.Record.autoRecordBack);
 	}
 
 	final Handler autoHandler = new Handler() {
@@ -595,7 +604,7 @@ public class MainActivity extends Activity {
 				}
 				if (MyApp.shouldMountRecordBack) {
 					MyApp.shouldMountRecordBack = false;
-					if (MyApp.isAccOn && !isBackRecord()) {
+					if (MyApp.isAccOn && shouldRecordBack() && !isBackRecord()) {
 						new Thread(new RecordBackWhenMountThread()).start();
 					}
 				}
@@ -942,32 +951,93 @@ public class MainActivity extends Activity {
 
 			case R.id.imageBackState:
 				if (!ClickUtil.isQuickClick(1000)) {
-					if (MyApp.isBackRecording) {
-						speakVoice(getResources().getString(
-								R.string.hint_back_record_stop));
-						MyLog.v("[onClick]stopRecorder()");
-						// stopBackRecorder5Times();
-						if (stopBackRecorder() == 0) {
-							setBackState(false);
-						}
-					} else {
-						if (!MyApp.isAccOn) {
-							HintUtil.showToast(
-									context,
-									getResources().getString(
-											R.string.hint_stop_record_sleeping));
-						} else if (StorageUtil.isBackCardExist()) {
-							if (isBackRecord()) {
-								recorderBack.stop();
-								ProviderUtil.setValue(context,
-										Name.REC_BACK_STATE, "0");
-							}
+					if (shouldRecordBack()) { // 后录功能开启
+						if (MyApp.isBackRecording) {
 							speakVoice(getResources().getString(
-									R.string.hint_back_record_start));
-							startRecordBack();
+									R.string.hint_back_record_stop));
+							MyLog.v("[onClick]stopRecorder()");
+							// stopBackRecorder5Times();
+							if (stopBackRecorder() == 0) {
+								setBackState(false);
+							}
+							editor.putBoolean(
+									Constant.MySP.STR_SHOULD_RECORD_BACK, false);
+							editor.commit();
 						} else {
-							noVideoSDHint();
+							if (!MyApp.isAccOn) {
+								HintUtil.showToast(
+										context,
+										getResources()
+												.getString(
+														R.string.hint_stop_record_sleeping));
+							} else if (StorageUtil.isBackCardExist()) {
+								if (isBackRecord()) {
+									recorderBack.stop();
+									ProviderUtil.setValue(context,
+											Name.REC_BACK_STATE, "0");
+								}
+								speakVoice(getResources().getString(
+										R.string.hint_back_record_start));
+								startRecordBack();
+							} else {
+								noVideoSDHint();
+							}
 						}
+					} else { // 后录功能关闭：显示对话框
+						AlertDialog.Builder builder = new Builder(
+								MainActivity.this);
+						builder.setMessage(getResources().getString(
+								R.string.hint_enable_record_back));
+						builder.setTitle("提示");
+						builder.setPositiveButton(
+								getResources()
+										.getString(R.string.enable_cancel),
+								new android.content.DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(
+											android.content.DialogInterface dialog,
+											int which) {
+										dialog.dismiss();
+									}
+								});
+						builder.setNegativeButton(
+								getResources().getString(
+										R.string.enable_confirm),
+								new android.content.DialogInterface.OnClickListener() {
+									@Override
+									public void onClick(
+											android.content.DialogInterface dialog,
+											int which) {
+										dialog.dismiss();
+										editor.putBoolean(
+												Constant.MySP.STR_SHOULD_RECORD_BACK,
+												true);
+										editor.commit();
+
+										if (!MyApp.isAccOn) {
+											HintUtil.showToast(
+													context,
+													getResources()
+															.getString(
+																	R.string.hint_stop_record_sleeping));
+										} else if (StorageUtil
+												.isBackCardExist()) {
+											if (isBackRecord()) {
+												recorderBack.stop();
+												ProviderUtil.setValue(context,
+														Name.REC_BACK_STATE,
+														"0");
+											}
+											speakVoice(getResources()
+													.getString(
+															R.string.hint_back_record_start));
+											startRecordBack();
+										} else {
+											noVideoSDHint();
+										}
+									}
+								});
+						builder.create().show();
 					}
 				}
 				break;
