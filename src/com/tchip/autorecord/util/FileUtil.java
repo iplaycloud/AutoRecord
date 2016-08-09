@@ -53,10 +53,10 @@ public class FileUtil {
 				Constant.Path.VIDEO_BACK_SD)); // 后置已用空间
 
 		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
-		float frontTotal = recordTotal * 6 / 7; // 前置归属空间:6/7
+		float frontTotal = recordTotal * 5 / 6; // 前置归属空间:5/6
 		float frontFree = frontTotal - frontUse; // 前置剩余空间
-		int intFrontFree = (int) frontFree;
-		int intSdFree = (int) sdFree;
+		long intFrontFree = (long) frontFree;
+		long intSdFree = (long) sdFree;
 
 		boolean isStorageLess = intFrontFree < Constant.Record.FRONT_MIN_FREE_STORAGE
 				|| intSdFree < Constant.Record.FRONT_MIN_FREE_STORAGE;
@@ -64,12 +64,26 @@ public class FileUtil {
 		return isStorageLess;
 	}
 
+	public static boolean isFrontLockLess() {
+		float sdTotal = StorageUtil.getSDTotalSize(Constant.Path.RECORD_SDCARD); // SD卡总空间
+		float frontLockUse = (float) FileUtil
+				.getTotalSizeOfFilesInDir(new File(
+						Constant.Path.VIDEO_FRONT_SD_LOCK)); // 前置加锁已用空间
+		long intFrontLockUse = (long) frontLockUse;
+		long intFrontLockMax = (long) (sdTotal * Constant.Record.FRONT_LOCK_MAX_PERCENT);
+
+		boolean isFrontLockLess = intFrontLockUse > intFrontLockMax;
+		MyLog.v("FileUtil.isFrontLockLess:" + isFrontLockLess + ",USE:"
+				+ intFrontLockUse + ",MAX:" + intFrontLockMax);
+		return isFrontLockLess;
+	}
+
 	/** 本机内部存储可用空间低于设定阈值 */
 	public static boolean isFlashStorageLess() {
 		if (Constant.Record.flashToCard) {
 			float flashFree = StorageUtil
 					.getSDAvailableSize(Constant.Path.SDCARD_0);
-			int intFlashFree = (int) flashFree;
+			long intFlashFree = (int) flashFree;
 			boolean isFlashStorageLess = intFlashFree < Constant.Record.FLASH_MIN_FREE_STORAGE;
 			MyLog.v("FileUtil.isFlashStorageLess:" + isFlashStorageLess);
 			return isFlashStorageLess;
@@ -120,7 +134,7 @@ public class FileUtil {
 				Constant.Path.VIDEO_BACK_SD)); // 后置已用空间
 
 		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
-		float backTotal = recordTotal * 1 / 7; // 后置归属空间: 1/7
+		float backTotal = recordTotal * 1 / 6; // 后置归属空间: 1/6
 		float backFree = backTotal - backUse; // 后置剩余空间
 		int intBackFree = (int) backFree;
 		int intSdFree = (int) sdFree;
@@ -129,6 +143,19 @@ public class FileUtil {
 				|| intSdFree < Constant.Record.FRONT_MIN_FREE_STORAGE;
 		MyLog.v("FileUtil.isBackStorageLess:" + isStorageLess);
 		return isStorageLess;
+	}
+
+	public static boolean isBackLockLess() {
+		float sdTotal = StorageUtil.getSDTotalSize(Constant.Path.RECORD_SDCARD); // SD卡总空间
+		float backLockUse = (float) FileUtil.getTotalSizeOfFilesInDir(new File(
+				Constant.Path.VIDEO_BACK_SD_LOCK)); // 前置加锁已用空间
+		long intBackLockUse = (long) backLockUse;
+		long intBackLockMax = (long) (sdTotal * Constant.Record.BACK_LOCK_MAX_PERCENT);
+
+		boolean isBackLockLess = intBackLockUse > intBackLockMax;
+		MyLog.v("FileUtil.isBackLockLess:" + isBackLockLess + ",USE:"
+				+ intBackLockUse + ",MAX:" + intBackLockMax);
+		return isBackLockLess;
 	}
 
 	// ****************************************Below is OLD

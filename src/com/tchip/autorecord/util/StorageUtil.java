@@ -209,6 +209,25 @@ public class StorageUtil {
 					}
 				}
 			}
+			// 前置加锁
+			while (FileUtil.isFrontLockLess()) {
+				int oldestLockVideoId = frontvideoDb.getOldestLockVideoId();
+				String oldestVideoName = frontvideoDb
+						.getVideNameById(oldestLockVideoId);
+				File file = new File(Constant.Path.VIDEO_FRONT_SD_LOCK
+						+ File.separator + oldestVideoName);
+				MyLog.d("StorageUtil.Delete Old lock Front Video:"
+						+ file.getPath());
+				int i = 0;
+				while (file.exists() && file.isFile() && !file.delete()
+						&& i < 3) {
+					i++;
+					MyLog.d("StorageUtil.Delete Old lock Front Video:"
+							+ file.getName() + " Filed!!! Try:" + i);
+				}
+				frontvideoDb.deleteDriveVideoById(oldestLockVideoId); // 删除数据库记录
+			}
+
 			return true;
 		} catch (Exception e) {
 			/* 异常原因：1.文件由用户手动删除 */
@@ -272,28 +291,44 @@ public class StorageUtil {
 					} else { // 删除较旧的视频（加锁）
 						String oldestVideoName = backVideoDb
 								.getVideNameById(oldestVideoId);
-						File file;
-						if (oldestVideoName.endsWith("_1.mp4")) { // 后录文件
-							file = new File(Constant.Path.VIDEO_BACK_SD_LOCK
-									+ File.separator + oldestVideoName);
-						} else { // 前录文件
-							file = new File(Constant.Path.VIDEO_FRONT_SD_LOCK
-									+ File.separator + oldestVideoName);
-						}
-						if (file.exists() && file.isFile()) {
+						File file = new File(Constant.Path.VIDEO_BACK_SD_LOCK
+								+ File.separator + oldestVideoName);
+
+						MyLog.d("StorageUtil.Delete Old lock Back Video:"
+								+ file.getPath());
+
+						int i = 0;
+						while (file.exists() && file.isFile() && !file.delete()
+								&& i < 3) {
+							i++;
 							MyLog.d("StorageUtil.Delete Old lock Back Video:"
-									+ file.getPath());
-							int i = 0;
-							while (file.exists() && !file.delete() && i < 3) {
-								i++;
-								MyLog.d("StorageUtil.Delete Old lock Back Video:"
-										+ file.getName() + " Filed!!! Try:" + i);
-							}
+									+ file.getName() + " Filed!!! Try:" + i);
 						}
 						backVideoDb.deleteDriveVideoById(oldestVideoId); // 删除数据库记录
 					}
 				}
 			}
+			// 后置加锁视频
+			while (FileUtil.isBackLockLess()) {
+				int oldestLockVideoId = backVideoDb.getOldestLockVideoId();
+				String oldestVideoName = backVideoDb
+						.getVideNameById(oldestLockVideoId);
+				File file = new File(Constant.Path.VIDEO_BACK_SD_LOCK
+						+ File.separator + oldestVideoName);
+
+				MyLog.d("StorageUtil.Delete Old lock Back Video:"
+						+ file.getPath());
+
+				int i = 0;
+				while (file.exists() && file.isFile() && !file.delete()
+						&& i < 3) {
+					i++;
+					MyLog.d("StorageUtil.Delete Old lock Back Video:"
+							+ file.getName() + " Filed!!! Try:" + i);
+				}
+				backVideoDb.deleteDriveVideoById(oldestLockVideoId); // 删除数据库记录
+			}
+
 			return true;
 		} catch (Exception e) {
 			/*

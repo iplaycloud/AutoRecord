@@ -237,6 +237,30 @@ public class BackVideoDbHelper extends SQLiteOpenHelper {
 	}
 
 	/**
+	 * 获取最旧加锁视频ID
+	 * 
+	 * @return
+	 */
+	public int getOldestLockVideoId() {
+		String sqlLine = "SELECT * FROM " + VIDEO_TABLE_NAME + " WHERE "
+				+ VIDEO_COL_LOCK + "=?";
+		String selection[] = new String[] { "1" };
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor = db.rawQuery(sqlLine, selection);
+		if (cursor.moveToFirst()) {
+			int id = -1;
+			id = cursor.getInt(cursor.getColumnIndex(VIDEO_COL_ID));
+			db.close();
+			cursor.close();
+			return id;
+		} else {
+			db.close();
+			cursor.close();
+			return -1;
+		}
+	}
+
+	/**
 	 * 获取最旧视频(包括加锁)ID
 	 * 
 	 * @return

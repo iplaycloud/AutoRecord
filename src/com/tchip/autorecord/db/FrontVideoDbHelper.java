@@ -168,7 +168,6 @@ public class FrontVideoDbHelper extends SQLiteOpenHelper {
 		SQLiteDatabase db = this.getWritableDatabase();
 		Cursor cursor = db.rawQuery(selectQuery, null);
 
-		// looping through all rows and adding to list
 		if (cursor.moveToFirst()) {
 			do {
 				DriveVideo driveVideo = new DriveVideo(cursor.getInt(0),
@@ -177,11 +176,8 @@ public class FrontVideoDbHelper extends SQLiteOpenHelper {
 				driveVideoList.add(driveVideo);
 			} while (cursor.moveToNext());
 		}
-
 		db.close();
 		cursor.close();
-
-		// return list
 		return driveVideoList;
 	}
 
@@ -226,6 +222,30 @@ public class FrontVideoDbHelper extends SQLiteOpenHelper {
 				videoName = cursor.getString(cursor
 						.getColumnIndex(VIDEO_COL_NAME));
 			} while (!videoName.endsWith("_0.mp4") && cursor.moveToNext());
+			db.close();
+			cursor.close();
+			return id;
+		} else {
+			db.close();
+			cursor.close();
+			return -1;
+		}
+	}
+
+	/**
+	 * 获取最旧加锁视频ID
+	 * 
+	 * @return
+	 */
+	public int getOldestLockVideoId() {
+		String sqlLine = "SELECT * FROM " + VIDEO_TABLE_NAME + " WHERE "
+				+ VIDEO_COL_LOCK + "=?";
+		String selection[] = new String[] { "1" };
+		SQLiteDatabase db = this.getReadableDatabase();
+		Cursor cursor = db.rawQuery(sqlLine, selection);
+		if (cursor.moveToFirst()) {
+			int id = -1;
+			id = cursor.getInt(cursor.getColumnIndex(VIDEO_COL_ID));
 			db.close();
 			cursor.close();
 			return id;
