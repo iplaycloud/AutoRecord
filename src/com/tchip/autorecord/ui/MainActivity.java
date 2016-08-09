@@ -39,6 +39,7 @@ import android.content.SharedPreferences.Editor;
 import android.database.ContentObserver;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -115,6 +116,24 @@ public class MainActivity extends Activity {
 
 	private Handler mMainHandler; // 主线程Handler
 
+	private enum UIConfig {
+		/** 公版 6.86 */
+		TQ6,
+		/** 善领 6.86 */
+		SL6,
+		/** 公版 9.76 */
+		TQ9,
+		/** 善领 9.76 */
+		SL9
+	}
+
+	private String brand = "TQ";
+	private String model = "TX2";
+	/** UI配置 */
+	private UIConfig uiConfig = UIConfig.TQ6;
+	private int CAMERA_WIDTH = 1184;
+	private int CAMERA_HEIGHT = 480;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -122,6 +141,26 @@ public class MainActivity extends Activity {
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
 				WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+		brand = Build.BRAND;
+		model = Build.MODEL;
+		if ("TX2S".equals(model)) { // TX2S-9.76
+			CAMERA_WIDTH = 1280;
+			CAMERA_HEIGHT = 445;
+			if ("SL".equals(brand)) {
+				uiConfig = UIConfig.SL9;
+			} else {
+				uiConfig = UIConfig.TQ9;
+			}
+		} else { // TX2-6.86
+			CAMERA_WIDTH = 1184;
+			CAMERA_HEIGHT = 480;
+			if ("SL".equals(brand)) {
+				uiConfig = UIConfig.SL6;
+			} else {
+				uiConfig = UIConfig.TQ6;
+			}
+		}
 		setContentView(R.layout.activity_main);
 		context = getApplicationContext();
 		powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE); // 获取屏幕状态
@@ -800,7 +839,7 @@ public class MainActivity extends Activity {
 		case 0:
 			layoutFront.setVisibility(View.VISIBLE);
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(
-					1184, 480));
+					CAMERA_WIDTH, CAMERA_HEIGHT));
 			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
 			layoutBack.setVisibility(View.GONE);
@@ -810,7 +849,7 @@ public class MainActivity extends Activity {
 		case 1:
 			layoutBack.setVisibility(View.VISIBLE);
 			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
-					1184, 480)); // 854,480
+					CAMERA_WIDTH, CAMERA_HEIGHT)); // 854,480
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
 			layoutFront.setVisibility(View.GONE);
@@ -839,7 +878,7 @@ public class MainActivity extends Activity {
 		case 0:
 			layoutFront.setVisibility(View.VISIBLE);
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(
-					1184, 480));
+					CAMERA_WIDTH, CAMERA_HEIGHT));
 			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
 			layoutBack.setVisibility(View.GONE);
@@ -849,7 +888,7 @@ public class MainActivity extends Activity {
 		case 1:
 			layoutBack.setVisibility(View.VISIBLE);
 			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
-					1184, 480)); // 854,480
+					CAMERA_WIDTH, CAMERA_HEIGHT)); // 854,480
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
 			layoutFront.setVisibility(View.GONE);
@@ -870,7 +909,7 @@ public class MainActivity extends Activity {
 			// 确保显示后摄,解决倒车线在前摄界面
 			layoutBack.setVisibility(View.VISIBLE);
 			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
-					1184, 480)); // 854,480
+					CAMERA_WIDTH, CAMERA_HEIGHT)); // 854,480
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
 			layoutFront.setVisibility(View.GONE);
