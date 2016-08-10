@@ -13,6 +13,7 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathEffect;
+import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -22,6 +23,9 @@ public class BackLineView extends View {
 	private SharedPreferences sharedPreferences;
 	private Editor editor;
 
+	private String model = "TX2";
+
+	// TX2-6.76
 	private static final int DEFALT_1X = 150;
 	private static final int DEFALT_1Y = 480;
 	private static final int DEFALT_2X = 206;
@@ -38,6 +42,51 @@ public class BackLineView extends View {
 	private static final int DEFALT_7Y = DEFALT_2Y;
 	private static final int DEFALT_8X = 1034;
 	private static final int DEFALT_8Y = DEFALT_1Y;
+
+	private static final int MIN_1X = DEFALT_1X;
+	private static final int MAX_1X = DEFALT_8X;
+	private static final int MIN_1Y = DEFALT_1Y - 30;
+	private static final int MAX_1Y = DEFALT_1Y;
+	private static final int MIN_8Y = MIN_1Y;
+
+	// TX2S-9.76
+	private static final int DEFALT_1X_S = 150;
+	private static final int DEFALT_1Y_S = 445;
+	private static final int DEFALT_2X_S = 206;
+	private static final int DEFALT_2Y_S = 365;
+	private static final int DEFALT_3X_S = 292;
+	private static final int DEFALT_3Y_S = 285;
+	private static final int DEFALT_4X_S = 345;
+	private static final int DEFALT_4Y_S = 212;
+	private static final int DEFALT_5X_S = 910;
+	private static final int DEFALT_5Y_S = DEFALT_4Y_S;
+	private static final int DEFALT_6X_S = 1004;
+	private static final int DEFALT_6Y_S = DEFALT_3Y_S;
+	private static final int DEFALT_7X_S = 1067;
+	private static final int DEFALT_7Y_S = DEFALT_2Y_S;
+	private static final int DEFALT_8X_S = 1124;
+	private static final int DEFALT_8Y_S = DEFALT_1Y_S;
+
+	private static final int MIN_1X_S = DEFALT_1X_S;
+	private static final int MAX_1X_S = DEFALT_8X_S;
+	private static final int MIN_1Y_S = DEFALT_1Y_S - 30;
+	private static final int MIN_8Y_S = MIN_1Y_S;
+	private static final int MAX_1Y_S = DEFALT_1Y_S;
+
+	/** 点1最小X坐标 */
+	private int min1x = MIN_1X;
+	/** 点1最大X坐标 */
+	private int max1x = MAX_1X;
+	/** 点1最小Y坐标 */
+	private int min1y = MIN_1Y;
+	/** 点1最大X坐标 **/
+	private int max1y = MAX_1Y;
+	/** 点8最小Y坐标 */
+	private int min8y = MIN_8Y;
+
+	private int colorRed = Color.RED;
+	private int colorYellow = Color.YELLOW;
+	private int colorGreen = Color.GREEN;
 
 	int[] point1 = { DEFALT_1X, DEFALT_1Y };
 	int[] point2 = { DEFALT_2X, DEFALT_2Y };
@@ -65,6 +114,63 @@ public class BackLineView extends View {
 		sharedPreferences = context.getSharedPreferences("BackLine",
 				Context.MODE_PRIVATE);
 		editor = sharedPreferences.edit();
+
+		model = Build.MODEL;
+		if ("TX2S".equals(model)) { // TX2S-9.76
+			point1[0] = DEFALT_1X_S;
+			point1[1] = DEFALT_1Y_S;
+			point2[0] = DEFALT_2X_S;
+			point2[1] = DEFALT_2Y_S;
+			point3[0] = DEFALT_3X_S;
+			point3[1] = DEFALT_3Y_S;
+			point4[0] = DEFALT_4X_S;
+			point4[1] = DEFALT_4Y_S;
+			point5[0] = DEFALT_5X_S;
+			point5[1] = DEFALT_5Y_S;
+			point6[0] = DEFALT_6X_S;
+			point6[1] = DEFALT_6Y_S;
+			point7[0] = DEFALT_7X_S;
+			point7[1] = DEFALT_7Y_S;
+			point8[0] = DEFALT_8X_S;
+			point8[1] = DEFALT_8Y_S;
+
+			min1x = MIN_1X_S;
+			max1x = MAX_1X_S;
+			min1y = MIN_1Y_S;
+			max1y = MAX_1Y_S;
+			min8y = MIN_8Y_S;
+
+			colorRed = Color.RED;
+			colorYellow = 0xFFfbfb28;
+			colorGreen = 0xFF089908;
+		} else { // TX2-6.86
+			point1[0] = DEFALT_1X;
+			point1[1] = DEFALT_1Y;
+			point2[0] = DEFALT_2X;
+			point2[1] = DEFALT_2Y;
+			point3[0] = DEFALT_3X;
+			point3[1] = DEFALT_3Y;
+			point4[0] = DEFALT_4X;
+			point4[1] = DEFALT_4Y;
+			point5[0] = DEFALT_5X;
+			point5[1] = DEFALT_5Y;
+			point6[0] = DEFALT_6X;
+			point6[1] = DEFALT_6Y;
+			point7[0] = DEFALT_7X;
+			point7[1] = DEFALT_7Y;
+			point8[0] = DEFALT_8X;
+			point8[1] = DEFALT_8Y;
+
+			min1x = MIN_1X;
+			max1x = MAX_1X;
+			min1y = MIN_1Y;
+			max1y = MAX_1Y;
+			min8y = MIN_8Y;
+
+			colorRed = Color.RED;
+			colorYellow = Color.YELLOW;
+			colorGreen = Color.GREEN;
+		}
 	}
 
 	@Override
@@ -79,7 +185,7 @@ public class BackLineView extends View {
 		Path path = new Path();
 
 		// Line 3-4 5-6
-		paint.setColor(Color.GREEN);
+		paint.setColor(colorGreen);
 		path.moveTo(point3[0], point3[1]); // 3
 		path.lineTo(point4[0], point4[1]); // 4
 		path.moveTo(point5[0], point5[1]); // 5
@@ -87,7 +193,7 @@ public class BackLineView extends View {
 		canvas.drawPath(path, paint);
 
 		// Line 2-3 6-7
-		paint.setColor(Color.YELLOW);
+		paint.setColor(colorYellow);
 		path.reset();
 		path.moveTo(point2[0], point2[1]); // 2
 		path.lineTo(point3[0], point3[1]); // 3
@@ -96,7 +202,7 @@ public class BackLineView extends View {
 		canvas.drawPath(path, paint);
 
 		// Line 1-2 7-8
-		paint.setColor(Color.RED);
+		paint.setColor(colorRed);
 		path.reset();
 		path.moveTo(point1[0], point1[1]); // 1
 		path.lineTo(point2[0], point2[1]); // 2
@@ -109,19 +215,19 @@ public class BackLineView extends View {
 		paint.setPathEffect(effect);
 		// 4--5
 		path.reset();
-		paint.setColor(Color.GREEN);
+		paint.setColor(colorGreen);
 		path.moveTo(point4[0], point4[1]); // 4
 		path.lineTo(point5[0], point5[1]); // 5
 		canvas.drawPath(path, paint);
 		// 3--6
 		path.reset();
-		paint.setColor(Color.YELLOW);
+		paint.setColor(colorYellow);
 		path.moveTo(point3[0], point3[1]); // 3
 		path.lineTo(point6[0], point6[1]); // 6
 		canvas.drawPath(path, paint);
 		// 2--7
 		path.reset();
-		paint.setColor(Color.RED);
+		paint.setColor(colorRed);
 		path.moveTo(point2[0], point2[1]); // 2
 		path.lineTo(point7[0], point7[1]); // 7
 		canvas.drawPath(path, paint);
@@ -210,33 +316,55 @@ public class BackLineView extends View {
 	}
 
 	public void clearPonitConfig() {
-		editor.putInt("point1x", DEFALT_1X);
-		editor.putInt("point1y", DEFALT_1Y);
-		editor.putInt("point2x", DEFALT_2X);
-		editor.putInt("point2y", DEFALT_2Y);
-		editor.putInt("point3x", DEFALT_3X);
-		editor.putInt("point3y", DEFALT_3Y);
-		editor.putInt("point4x", DEFALT_4X);
-		editor.putInt("point4y", DEFALT_4Y);
-		editor.putInt("point5x", DEFALT_5X);
-		editor.putInt("point5y", DEFALT_5Y);
-		editor.putInt("point6x", DEFALT_6X);
-		editor.putInt("point6y", DEFALT_6Y);
-		editor.putInt("point7x", DEFALT_7X);
-		editor.putInt("point7y", DEFALT_7Y);
-		editor.putInt("point8x", DEFALT_8X);
-		editor.putInt("point8y", DEFALT_8Y);
-		editor.commit();
+		if ("TX2S".equals(model)) {
+			editor.putInt("point1x", DEFALT_1X_S);
+			editor.putInt("point1y", DEFALT_1Y_S);
+			editor.putInt("point2x", DEFALT_2X_S);
+			editor.putInt("point2y", DEFALT_2Y_S);
+			editor.putInt("point3x", DEFALT_3X_S);
+			editor.putInt("point3y", DEFALT_3Y_S);
+			editor.putInt("point4x", DEFALT_4X_S);
+			editor.putInt("point4y", DEFALT_4Y_S);
+			editor.putInt("point5x", DEFALT_5X_S);
+			editor.putInt("point5y", DEFALT_5Y_S);
+			editor.putInt("point6x", DEFALT_6X_S);
+			editor.putInt("point6y", DEFALT_6Y_S);
+			editor.putInt("point7x", DEFALT_7X_S);
+			editor.putInt("point7y", DEFALT_7Y_S);
+			editor.putInt("point8x", DEFALT_8X_S);
+			editor.putInt("point8y", DEFALT_8Y_S);
+			editor.commit();
+		} else {
+			editor.putInt("point1x", DEFALT_1X);
+			editor.putInt("point1y", DEFALT_1Y);
+			editor.putInt("point2x", DEFALT_2X);
+			editor.putInt("point2y", DEFALT_2Y);
+			editor.putInt("point3x", DEFALT_3X);
+			editor.putInt("point3y", DEFALT_3Y);
+			editor.putInt("point4x", DEFALT_4X);
+			editor.putInt("point4y", DEFALT_4Y);
+			editor.putInt("point5x", DEFALT_5X);
+			editor.putInt("point5y", DEFALT_5Y);
+			editor.putInt("point6x", DEFALT_6X);
+			editor.putInt("point6y", DEFALT_6Y);
+			editor.putInt("point7x", DEFALT_7X);
+			editor.putInt("point7y", DEFALT_7Y);
+			editor.putInt("point8x", DEFALT_8X);
+			editor.putInt("point8y", DEFALT_8Y);
+			editor.commit();
+		}
 	}
 
 	private void setPointLocation(int point, int x, int y) {
-		if (x < 150) { // x:0-1184
-			x = 150;
-		} else if (x > 1034) {
-			x = 1034;
+		if (x < min1x) { // x:0-1184
+			x = min1x;
+		} else if (x > max1x) {
+			x = max1x;
 		}
 		if (y < 50) { // y:0-480
 			y = 50;
+		} else if (y > max1y) {
+			y = max1y;
 		}
 		switch (point) {
 		case 1:
@@ -247,12 +375,12 @@ public class BackLineView extends View {
 				point1[0] = point8[0] - POINT_HINT_RADIUS * 2;
 				editor.putInt("point1x", point8[0] - POINT_HINT_RADIUS * 2);
 			}
-			if (y > 450) {
+			if (y > min1y) {
 				point1[1] = y;
 				editor.putInt("point1y", y);
 			} else {
-				point1[1] = 450;
-				editor.putInt("point1y", 450);
+				point1[1] = min1y;
+				editor.putInt("point1y", min1y);
 			}
 			break;
 
@@ -377,12 +505,12 @@ public class BackLineView extends View {
 				point8[0] = point1[0] + POINT_HINT_RADIUS * 2;
 				editor.putInt("point8x", point1[0] + POINT_HINT_RADIUS * 2);
 			}
-			if (y > 450) {
+			if (y > min8y) {
 				point8[1] = y;
 				editor.putInt("point8y", y);
 			} else {
-				point8[1] = 450;
-				editor.putInt("point8y", 450);
+				point8[1] = min8y;
+				editor.putInt("point8y", min8y);
 			}
 			break;
 
