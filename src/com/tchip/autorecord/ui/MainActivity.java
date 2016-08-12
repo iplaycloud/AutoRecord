@@ -1181,7 +1181,7 @@ public class MainActivity extends Activity {
 			// case R.id.surfaceView:
 			case R.id.imagePhotoTake:
 				if (!ClickUtil.isQuickClick(1000)) {
-					takePhoto(false);
+					takePhoto(true);
 				}
 				break;
 
@@ -2219,7 +2219,7 @@ public class MainActivity extends Activity {
 				String strGoingShutdown = getResources().getString(
 						R.string.hint_going_shutdown);
 				HintUtil.showToast(MainActivity.this, strGoingShutdown);
-				speakVoice(strGoingShutdown);
+				// speakVoice(strGoingShutdown);
 				this.removeMessages(9);
 				break;
 
@@ -3053,7 +3053,7 @@ public class MainActivity extends Activity {
 			String strVideoCardEject = getResources().getString(
 					R.string.hint_sd_remove_badly);
 			HintUtil.showToast(MainActivity.this, strVideoCardEject);
-			speakVoice(strVideoCardEject);
+			// speakVoice(strVideoCardEject);
 			MyLog.e("showCardEjectMessage");
 		}
 	}
