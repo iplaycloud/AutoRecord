@@ -61,6 +61,8 @@ public interface Constant {
 
 		/** 关掉录像：释放预览 */
 		public static final String RELEASE_RECORD = "tchip.intent.action.RELEASE_RECORD";
+		
+		public static final String RELEASE_RECORD_TEST = "tchip.intent.action.RELEASE_RECORD_TEST";
 
 		// ================ Below is OLD ===============
 

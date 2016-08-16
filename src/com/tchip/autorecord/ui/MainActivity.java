@@ -222,6 +222,7 @@ public class MainActivity extends Activity {
 		intentFilter.addAction(Constant.Broadcast.MEDIA_FORMAT);
 		intentFilter.addAction(Constant.Broadcast.GOING_SHUTDOWN);
 		intentFilter.addAction(Constant.Broadcast.RELEASE_RECORD);
+		intentFilter.addAction(Constant.Broadcast.RELEASE_RECORD_TEST);
 		registerReceiver(mainReceiver, intentFilter);
 
 		// 接收额外信息
@@ -512,6 +513,8 @@ public class MainActivity extends Activity {
 				MyApp.isGoingShutdown = true;
 			} else if (Constant.Broadcast.RELEASE_RECORD.equals(action)) { // 退出录像
 				killAutoRecord();
+			} else if(Constant.Broadcast.RELEASE_RECORD_TEST.equals(action)){
+				killAutoRecordForTest();
 			}
 		}
 	}
@@ -2365,7 +2368,7 @@ public class MainActivity extends Activity {
 				e.printStackTrace();
 			}
 			if (!MyApp.isAccOn) {
-				sendBroadcast(new Intent(Constant.Broadcast.RELEASE_RECORD));
+				killAutoRecord();
 				sendBroadcast(new Intent(Constant.Broadcast.KILL_APP).putExtra(
 						"name", "com.tchip.autorecord"));
 			}
@@ -2537,6 +2540,15 @@ public class MainActivity extends Activity {
 			android.os.Process.killProcess(android.os.Process.myPid());
 			System.exit(1);
 		}
+	}
+
+	/** 关闭录像程序 */
+	private void killAutoRecordForTest() {
+		releaseFrontCameraZone();
+		releaseBackCameraZone();
+		finish();
+		android.os.Process.killProcess(android.os.Process.myPid());
+		System.exit(1);
 	}
 
 	/** 释放Camera */
