@@ -173,7 +173,7 @@ public interface Constant {
 
 		/** 是否开机自动录像 */
 		public static final boolean autoRecordFront = true;
-		public static final boolean autoRecordBack = false;
+		public static final boolean autoRecordBack = true;
 
 		/** 默认是否静音 */
 		public static final boolean muteDefault = false;
@@ -191,8 +191,8 @@ public interface Constant {
 		public static final int M = 1024 * 1024;
 
 		/** 循环录像保留空间(单位：字节B) */
-		public static final long FRONT_MIN_FREE_STORAGE = 700 * M; // 700M
-		public static final long BACK_MIN_FREE_STORAGE = 100 * M; // 100M
+		public static final long FRONT_MIN_FREE_STORAGE = 900 * M; // 900M
+		public static final long BACK_MIN_FREE_STORAGE = 150 * M; // 150M
 		public static final long FLASH_MIN_FREE_STORAGE = 200 * M;
 		public static final float FRONT_LOCK_MAX_PERCENT = 0.4f; // 40%
 		public static final float BACK_LOCK_MAX_PERCENT = 0.1f; // 10%
