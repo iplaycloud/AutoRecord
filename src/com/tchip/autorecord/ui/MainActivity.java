@@ -31,6 +31,7 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.Instrumentation;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -233,10 +234,14 @@ public class MainActivity extends Activity {
 			isIntentInTime = ClickUtil.isIntentInTime(sendTime);
 			MyLog.v("isIntentInTime:" + isIntentInTime + ",reason:" + reason);
 			if (isIntentInTime) {
-				if ("autoui_oncreate".equals(reason) || "acc_on".equals(reason)) { // 回到主界面
+				if ("autoui_oncreate".equals(reason)) { // 回到主界面
 					MyApp.shouldMountRecordFront = true;
 					MyApp.shouldMountRecordBack = true;
-					new Thread(new BackHomeThread()).start();
+					// new Thread(new BackHomeWhenBootThread()).start();
+				} else if ("acc_on".equals(reason)) {
+					MyApp.shouldMountRecordFront = true;
+					MyApp.shouldMountRecordBack = true;
+					new Thread(new BackHomeWhenAccOnThread()).start();
 				}
 			}
 		}
@@ -313,18 +318,48 @@ public class MainActivity extends Activity {
 			return super.onKeyDown(keyCode, event);
 	}
 
-	class BackHomeThread implements Runnable {
+	class BackHomeWhenBootThread implements Runnable {
 
 		@Override
 		public void run() {
 			try {
-				Thread.sleep(3000);
+				Thread.sleep(7000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			// sendHomeKey()
+			// startLauncher();
+			String strBackState = ProviderUtil.getValue(context,
+					Name.BACK_CAR_STATE, "0");
+			if ("1".equals(strBackState)) { // 倒车不返回主页
+			} else {
+				moveTaskToBack(true);
+			}
+		}
+
+	}
+
+	class BackHomeWhenAccOnThread implements Runnable {
+
+		@Override
+		public void run() {
+			try {
+				Thread.sleep(5000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			sendHomeKey(); // moveTaskToBack(true);
 		}
 
+	}
+
+	private void startLauncher() {
+		ComponentName componentLauncher = new ComponentName("com.tchip.autoui",
+				"com.tchip.autoui.MainActivity");
+		Intent intentLauncher = new Intent();
+		intentLauncher.setComponent(componentLauncher);
+		startActivity(intentLauncher);
+		MyLog.w("startLuncher");
 	}
 
 	private void sendHomeKey() {
@@ -513,7 +548,7 @@ public class MainActivity extends Activity {
 				MyApp.isGoingShutdown = true;
 			} else if (Constant.Broadcast.RELEASE_RECORD.equals(action)) { // 退出录像
 				killAutoRecord();
-			} else if(Constant.Broadcast.RELEASE_RECORD_TEST.equals(action)){
+			} else if (Constant.Broadcast.RELEASE_RECORD_TEST.equals(action)) {
 				killAutoRecordForTest();
 			}
 		}
@@ -570,9 +605,13 @@ public class MainActivity extends Activity {
 
 	/** 是否开启后录 */
 	private boolean shouldRecordBack() {
-		return sharedPreferences.getBoolean(
-				Constant.MySP.STR_SHOULD_RECORD_BACK,
-				Constant.Record.autoRecordBack);
+		return Constant.Record.autoRecordBack;
+		/*
+		 * if (uiConfig == UIConfig.SL6 || uiConfig == UIConfig.SL9) { return
+		 * true; } else return sharedPreferences.getBoolean(
+		 * Constant.MySP.STR_SHOULD_RECORD_BACK,
+		 * Constant.Record.autoRecordBack);
+		 */
 	}
 
 	final Handler autoHandler = new Handler() {
@@ -2136,7 +2175,6 @@ public class MainActivity extends Activity {
 					} else {
 					}
 				}
-
 				switch (intervalState) { // 重置时间
 				case Constant.Record.STATE_INTERVAL_3MIN:
 					if (secondFrontCount >= 180) {
