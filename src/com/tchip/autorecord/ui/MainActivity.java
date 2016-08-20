@@ -344,22 +344,13 @@ public class MainActivity extends Activity {
 		@Override
 		public void run() {
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(6000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			sendHomeKey(); // moveTaskToBack(true);
 		}
 
-	}
-
-	private void startLauncher() {
-		ComponentName componentLauncher = new ComponentName("com.tchip.autoui",
-				"com.tchip.autoui.MainActivity");
-		Intent intentLauncher = new Intent();
-		intentLauncher.setComponent(componentLauncher);
-		startActivity(intentLauncher);
-		MyLog.w("startLuncher");
 	}
 
 	private void sendHomeKey() {
@@ -2582,6 +2573,9 @@ public class MainActivity extends Activity {
 
 	/** 关闭录像程序 */
 	private void killAutoRecordForTest() {
+		// Reset Record State
+		ProviderUtil.setValue(context, Name.REC_FRONT_STATE, "0");
+		ProviderUtil.setValue(context, Name.REC_BACK_STATE, "0");
 		releaseFrontCameraZone();
 		releaseBackCameraZone();
 		finish();
