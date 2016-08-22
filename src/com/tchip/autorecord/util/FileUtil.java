@@ -12,6 +12,7 @@ import android.content.DialogInterface.OnClickListener;
 import android.view.WindowManager;
 
 import com.tchip.autorecord.Constant;
+import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.R;
 import com.tchip.autorecord.view.FlashCleanDialog;
 
@@ -35,6 +36,24 @@ public class FileUtil {
 	}
 
 	/**
+	 * 获取不同分辨率下，前后录像所占空间比率
+	 * 
+	 * @param resolution
+	 * @param isFront
+	 * @return
+	 */
+	private static float getVideoRate(int resolution, boolean isFront) {
+		switch (resolution) {
+		case Constant.Record.STATE_RESOLUTION_1080P:
+			return isFront ? 6.0f / 7 : 1.0f / 7;
+
+		case Constant.Record.STATE_RESOLUTION_720P:
+		default:
+			return isFront ? 14.0f / 17 : 3.0f / 17;
+		}
+	}
+
+	/**
 	 * [双录到同一张SD卡]空间是否不足，需要删除旧视频
 	 * 
 	 * 前录路径：/storage/sdcard1/DrivingRecord/VideoFront/ *.mp4
@@ -53,7 +72,8 @@ public class FileUtil {
 				Constant.Path.VIDEO_BACK_SD)); // 后置已用空间
 
 		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
-		float frontTotal = recordTotal * 5 / 6; // 前置归属空间:5/6
+		float frontTotal = recordTotal
+				* getVideoRate(MyApp.resolutionState, true); // 前置归属空间
 		float frontFree = frontTotal - frontUse; // 前置剩余空间
 		long intFrontFree = (long) frontFree;
 		long intSdFree = (long) sdFree;
@@ -134,7 +154,8 @@ public class FileUtil {
 				Constant.Path.VIDEO_BACK_SD)); // 后置已用空间
 
 		float recordTotal = sdFree + frontUse + backUse; // 录像可用空间
-		float backTotal = recordTotal * 1 / 6; // 后置归属空间: 1/6
+		float backTotal = recordTotal
+				* getVideoRate(MyApp.resolutionState, false); // 后置归属空间
 		float backFree = backTotal - backUse; // 后置剩余空间
 		int intBackFree = (int) backFree;
 		int intSdFree = (int) sdFree;

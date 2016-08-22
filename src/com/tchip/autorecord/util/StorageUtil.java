@@ -253,14 +253,14 @@ public class StorageUtil {
 			File dirBack = new File(Constant.Path.VIDEO_BACK_SD);
 			File[] childFiles = dirBack.listFiles();
 			for (File childFile : childFiles) {
-				if (childFile.getPath().startsWith(videoPrefix)) {
+				if (childFile.getName().startsWith(videoPrefix)
+						&& childFile.exists()) {
 					childFile.delete();
 					MyLog.w("[deleteBackByFront]Delte Back:"
 							+ childFile.getPath());
 				}
 			}
 		}
-
 	}
 
 	/**
@@ -301,6 +301,8 @@ public class StorageUtil {
 							MyLog.d("StorageUtil.Delete Old Unlock Back Video:"
 									+ file.getName() + " Filed!!! Try:" + i);
 						}
+						// 删除同时段前录视频
+						deleteFrontByBack(context, oldestUnlockVideoName);
 					}
 					backVideoDb.deleteDriveVideoById(oldestUnlockVideoId); // 删除数据库记录
 				} else {
@@ -363,6 +365,29 @@ public class StorageUtil {
 					+ e.toString());
 			e.printStackTrace();
 			return true;
+		}
+	}
+
+	/**
+	 * 删除后录文件，同时删除对应时段前录视频
+	 * 
+	 * @param context
+	 * @param backVideoName
+	 */
+	private static void deleteFrontByBack(Context context, String backVideoName) {
+		if (null != backVideoName && backVideoName.trim().length() > 19) {
+			String videoPrefix = backVideoName.substring(0, 15);
+			MyLog.v("[deleteFrontByBack]videoPrefix:" + videoPrefix);
+			File dirBack = new File(Constant.Path.VIDEO_FRONT_SD);
+			File[] childFiles = dirBack.listFiles();
+			for (File childFile : childFiles) {
+				if (childFile.getName().startsWith(videoPrefix)
+						&& childFile.exists()) {
+					childFile.delete();
+					MyLog.w("[deleteFrontByBack]Delte Front:"
+							+ childFile.getPath());
+				}
+			}
 		}
 	}
 

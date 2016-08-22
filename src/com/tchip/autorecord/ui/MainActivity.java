@@ -89,7 +89,7 @@ public class MainActivity extends Activity {
 	private SurfaceView surfaceViewFront;
 	private SurfaceHolder surfaceHolderFront;
 	private TachographRecorder recorderFront;
-	private int resolutionState, intervalState, muteState;
+	private int intervalState, muteState;
 
 	// 后置
 	private RelativeLayout layoutBack;
@@ -1146,13 +1146,13 @@ public class MainActivity extends Activity {
 					MyApp.isFrontRecording = false;
 					resetFrontTimeText();
 					textFrontTime.setVisibility(View.INVISIBLE);
-					if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
+					if (MyApp.resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
 						setFrontResolution(Constant.Record.STATE_RESOLUTION_720P);
 						editor.putString("videoSize", "720");
 						MyApp.isFrontRecording = false;
 						speakVoice(getResources().getString(
 								R.string.hint_video_size_720));
-					} else if (resolutionState == Constant.Record.STATE_RESOLUTION_720P) {
+					} else if (MyApp.resolutionState == Constant.Record.STATE_RESOLUTION_720P) {
 						setFrontResolution(Constant.Record.STATE_RESOLUTION_1080P);
 						editor.putString("videoSize", "1080");
 						MyApp.isFrontRecording = false;
@@ -1637,12 +1637,12 @@ public class MainActivity extends Activity {
 	/** 绘制录像按钮 */
 	private void setupFrontViews() {
 		// 视频分辨率
-		if (resolutionState == Constant.Record.STATE_RESOLUTION_720P) {
+		if (MyApp.resolutionState == Constant.Record.STATE_RESOLUTION_720P) {
 			imageVideoSize.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_size_hd, null));
 			textVideoSize.setText(getResources().getString(
 					R.string.icon_hint_720p));
-		} else if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
+		} else if (MyApp.resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
 			imageVideoSize.setImageDrawable(getResources().getDrawable(
 					R.drawable.video_size_fhd, null));
 			textVideoSize.setText(getResources().getString(
@@ -2635,7 +2635,7 @@ public class MainActivity extends Activity {
 
 	private void refreshFrontButton() {
 		String videoSizeStr = sharedPreferences.getString("videoSize", "720");
-		resolutionState = "1080".equals(videoSizeStr) ? Constant.Record.STATE_RESOLUTION_1080P
+		MyApp.resolutionState = "1080".equals(videoSizeStr) ? Constant.Record.STATE_RESOLUTION_1080P
 				: Constant.Record.STATE_RESOLUTION_720P;
 
 		String videoTimeStr = sharedPreferences.getString("videoTime", "1"); // 视频分段
@@ -2645,16 +2645,16 @@ public class MainActivity extends Activity {
 
 	/** 设置分辨率 */
 	public void setFrontResolution(int state) {
-		if (state != resolutionState) {
-			resolutionState = state;
+		if (state != MyApp.resolutionState) {
+			MyApp.resolutionState = state;
 			new Thread(new ChangeFrontSizeThread()).start();
 		}
 	}
 
 	/** 设置分辨率 */
 	public int setBackResolution(int state) {
-		if (state != resolutionState) {
-			resolutionState = state;
+		if (state != MyApp.resolutionState) {
+			MyApp.resolutionState = state;
 			// 释放录像区域
 			releaseBackRecorder();
 			closeBackCamera();
@@ -2736,7 +2736,7 @@ public class MainActivity extends Activity {
 			recorderFront.setMediaFileDirectory(
 					TachographCallback.FILE_TYPE_IMAGE, "Image");
 			recorderFront.setClientName(this.getPackageName());
-			if (resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
+			if (MyApp.resolutionState == Constant.Record.STATE_RESOLUTION_1080P) {
 				recorderFront.setVideoSize(1920, 1080); // 分辨率
 				recorderFront
 						.setVideoFrameRate(Constant.Record.FRONT_FRAME_1080P);
@@ -2895,7 +2895,7 @@ public class MainActivity extends Activity {
 					new Thread(new ReleaseFrontStorageThread()).start();
 
 					String videoName = path.split("/")[5];
-					int videoResolution = (resolutionState == Constant.Record.STATE_RESOLUTION_720P) ? 720
+					int videoResolution = (MyApp.resolutionState == Constant.Record.STATE_RESOLUTION_720P) ? 720
 							: 1080;
 					int videoLock = 0;
 

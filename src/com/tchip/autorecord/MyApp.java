@@ -25,8 +25,17 @@ public class MyApp extends Application {
 	/** 插入录像卡：需要启动录像 */
 	public static boolean shouldMountRecordFront = false;
 	public static boolean shouldMountRecordBack = false;
-	
+
 	public static int indexCheck = 0;
+
+	/**
+	 * 分辨率
+	 * 
+	 * Constant.Record.STATE_RESOLUTION_1080P
+	 * 
+	 * Constant.Record.STATE_RESOLUTION_720P
+	 */
+	public static int resolutionState;
 
 	/** 休眠唤醒：需要启动录像 */
 	public static boolean shouldWakeRecord = false;
@@ -40,7 +49,7 @@ public class MyApp extends Application {
 
 	/** ACC拍照后,在onFileSave中传Path给DSA */
 	public static boolean shouldSendPathToDSA = false;
-	
+
 	public static boolean shouldSendPathToDSAUpload = false;
 
 	/** 前录是否正在录像 */
@@ -100,7 +109,7 @@ public class MyApp extends Application {
 
 	/** 当前正在录像的视频名称 */
 	public static String nowRecordVideoName = "";
-	
+
 	/** 是否正在显示内部存储空间过低对话框 */
 	public static boolean isFlashCleanDialogShow = false;
 
