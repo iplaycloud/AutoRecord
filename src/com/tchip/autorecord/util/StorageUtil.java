@@ -179,6 +179,8 @@ public class StorageUtil {
 							MyLog.d("StorageUtil.Delete Old Unlock Video:"
 									+ file.getName() + " Filed!!! Try:" + i);
 						}
+						// 删除同时段后录视频
+						deleteBackByFront(context, oldestUnlockVideoName);
 					}
 					frontvideoDb.deleteDriveVideoById(oldestUnlockVideoId); // 删除数据库记录
 				} else { // 不存在未加锁视频
@@ -236,6 +238,29 @@ public class StorageUtil {
 			e.printStackTrace();
 			return true;
 		}
+	}
+
+	/**
+	 * 删除前录文件，同时删除对应时段后录视频
+	 * 
+	 * @param context
+	 * @param frontVideoName
+	 */
+	private static void deleteBackByFront(Context context, String frontVideoName) {
+		if (null != frontVideoName && frontVideoName.trim().length() > 19) {
+			String videoPrefix = frontVideoName.substring(0, 15);
+			MyLog.v("[deleteBackByFront]videoPrefix:" + videoPrefix);
+			File dirBack = new File(Constant.Path.VIDEO_BACK_SD);
+			File[] childFiles = dirBack.listFiles();
+			for (File childFile : childFiles) {
+				if (childFile.getPath().startsWith(videoPrefix)) {
+					childFile.delete();
+					MyLog.w("[deleteBackByFront]Delte Back:"
+							+ childFile.getPath());
+				}
+			}
+		}
+
 	}
 
 	/**
