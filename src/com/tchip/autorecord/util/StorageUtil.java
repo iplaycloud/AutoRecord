@@ -12,6 +12,7 @@ import com.tchip.autorecord.db.FrontVideoDbHelper;
 import android.content.Context;
 import android.content.Intent;
 import android.os.StatFs;
+import android.util.Log;
 
 public class StorageUtil {
 
@@ -247,19 +248,106 @@ public class StorageUtil {
 	 * @param frontVideoName
 	 */
 	private static void deleteBackByFront(Context context, String frontVideoName) {
-		if (null != frontVideoName && frontVideoName.trim().length() > 19) {
-			String videoPrefix = frontVideoName.substring(0, 15);
-			MyLog.v("[deleteBackByFront]videoPrefix:" + videoPrefix);
-			File dirBack = new File(Constant.Path.VIDEO_BACK_SD);
-			File[] childFiles = dirBack.listFiles();
-			for (File childFile : childFiles) {
-				if (childFile.getName().startsWith(videoPrefix)
-						&& childFile.exists()) {
-					childFile.delete();
-					MyLog.w("[deleteBackByFront]Delte Back:"
-							+ childFile.getPath());
+		try {
+			if (null != frontVideoName && frontVideoName.trim().length() > 19
+					&& !frontVideoName.startsWith(".")) {
+				String videoPrefix = frontVideoName.substring(0, 15);
+				MyLog.v("[deleteBackByFront]videoPrefix:" + videoPrefix);
+				File dirBack = new File(Constant.Path.VIDEO_BACK_SD);
+				File[] childFiles = dirBack.listFiles();
+				for (File childFile : childFiles) {
+					if (childFile.getName().startsWith(videoPrefix)
+							&& childFile.exists()) {
+						childFile.delete();
+						MyLog.w("[deleteBackByFront]Delte Back:"
+								+ childFile.getPath());
+						for (File childFileOld : childFiles) { // 比删除视频的日期旧的视频也删除
+							// 2016-08-22_203957_1.mp4
+							// 0123456789A12345678
+							String childFileName = childFileOld.getName();
+							if (null != childFileName
+									&& childFileName.trim().length() > 19
+									&& !childFileName.startsWith(".")) {
+								int childYear = Integer.parseInt(childFileName
+										.substring(0, 4));
+								int thisYear = Integer.parseInt(frontVideoName
+										.substring(0, 4));
+								if (childYear < thisYear) {
+									if (childFileOld.exists()) {
+										MyLog.w("[deleteBackByFront]Delte Back OLD:"
+												+ childFileOld.getPath());
+										childFileOld.delete();
+									}
+								} else if (childYear == thisYear) {
+									int childMonth = Integer
+											.parseInt(childFileName.substring(
+													5, 7));
+									int thisMonth = Integer
+											.parseInt(frontVideoName.substring(
+													5, 7));
+									if (childMonth < thisMonth) {
+										if (childFileOld.exists()) {
+											MyLog.w("[deleteBackByFront]Delte Back OLD:"
+													+ childFileOld.getPath());
+											childFileOld.delete();
+										}
+									} else if (childMonth == thisMonth) {
+										int childDay = Integer
+												.parseInt(childFileName
+														.substring(8, 10));
+										int thisDay = Integer
+												.parseInt(frontVideoName
+														.substring(8, 10));
+
+										if (childDay < thisDay) {
+											if (childFileOld.exists()) {
+												MyLog.w("[deleteBackByFront]Delte Back OLD:"
+														+ childFileOld
+																.getPath());
+												childFileOld.delete();
+											}
+										} else if (childDay == thisDay) {
+											int childHour = Integer
+													.parseInt(childFileName
+															.substring(11, 13));
+											int thisHour = Integer
+													.parseInt(frontVideoName
+															.substring(11, 13));
+											if (childHour < thisHour) {
+												if (childFileOld.exists()) {
+													MyLog.w("[deleteBackByFront]Delte Back OLD:"
+															+ childFileOld
+																	.getPath());
+													childFileOld.delete();
+												}
+											} else if (childHour == thisHour) {
+												int childMinute = Integer
+														.parseInt(childFileName
+																.substring(13,
+																		15));
+												int thisMinute = Integer
+														.parseInt(frontVideoName
+																.substring(13,
+																		15));
+												if (childMinute < thisMinute) {
+													if (childFileOld.exists()) {
+														MyLog.w("[deleteBackByFront]Delte Back OLD:"
+																+ childFileOld
+																		.getPath());
+														childFileOld.delete();
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
 				}
 			}
+		} catch (Exception e) {
+			MyLog.e("deleteBackByFront catch:" + e.toString());
 		}
 	}
 
@@ -375,19 +463,106 @@ public class StorageUtil {
 	 * @param backVideoName
 	 */
 	private static void deleteFrontByBack(Context context, String backVideoName) {
-		if (null != backVideoName && backVideoName.trim().length() > 19) {
-			String videoPrefix = backVideoName.substring(0, 15);
-			MyLog.v("[deleteFrontByBack]videoPrefix:" + videoPrefix);
-			File dirBack = new File(Constant.Path.VIDEO_FRONT_SD);
-			File[] childFiles = dirBack.listFiles();
-			for (File childFile : childFiles) {
-				if (childFile.getName().startsWith(videoPrefix)
-						&& childFile.exists()) {
-					childFile.delete();
-					MyLog.w("[deleteFrontByBack]Delte Front:"
-							+ childFile.getPath());
+		try {
+			if (null != backVideoName && backVideoName.trim().length() > 19
+					&& !backVideoName.startsWith(".")) {
+				String videoPrefix = backVideoName.substring(0, 15);
+				MyLog.v("[deleteFrontByBack]videoPrefix:" + videoPrefix);
+				File dirBack = new File(Constant.Path.VIDEO_FRONT_SD);
+				File[] childFiles = dirBack.listFiles();
+				for (File childFile : childFiles) {
+					if (childFile.getName().startsWith(videoPrefix)
+							&& childFile.exists()) {
+						childFile.delete();
+						MyLog.w("[deleteFrontByBack]Delte Front:"
+								+ childFile.getPath());
+						for (File childFileOld : childFiles) { // 比删除视频的日期旧的视频也删除
+							// 2016-08-22_203957_0.mp4
+							// 0123456789A12345678
+							String childFileName = childFileOld.getName();
+							if (null != childFileName
+									&& childFileName.trim().length() > 19
+									&& !childFileName.startsWith(".")) {
+								int childYear = Integer.parseInt(childFileName
+										.substring(0, 4));
+								int thisYear = Integer.parseInt(backVideoName
+										.substring(0, 4));
+								if (childYear < thisYear) {
+									if (childFileOld.exists()) {
+										MyLog.w("[deleteFrontByBack]Delte Front OLD:"
+												+ childFileOld.getPath());
+										childFileOld.delete();
+									}
+								} else if (childYear == thisYear) {
+									int childMonth = Integer
+											.parseInt(childFileName.substring(
+													5, 7));
+									int thisMonth = Integer
+											.parseInt(backVideoName.substring(
+													5, 7));
+									if (childMonth < thisMonth) {
+										if (childFileOld.exists()) {
+											MyLog.w("[deleteFrontByBack]Delte Front OLD:"
+													+ childFileOld.getPath());
+											childFileOld.delete();
+										}
+									} else if (childMonth == thisMonth) {
+										int childDay = Integer
+												.parseInt(childFileName
+														.substring(8, 10));
+										int thisDay = Integer
+												.parseInt(backVideoName
+														.substring(8, 10));
+
+										if (childDay < thisDay) {
+											if (childFileOld.exists()) {
+												MyLog.w("[deleteFrontByBack]Delte Front OLD:"
+														+ childFileOld
+																.getPath());
+												childFileOld.delete();
+											}
+										} else if (childDay == thisDay) {
+											int childHour = Integer
+													.parseInt(childFileName
+															.substring(11, 13));
+											int thisHour = Integer
+													.parseInt(backVideoName
+															.substring(11, 13));
+											if (childHour < thisHour) {
+												if (childFileOld.exists()) {
+													MyLog.w("[deleteFrontByBack]Delte Front OLD:"
+															+ childFileOld
+																	.getPath());
+													childFileOld.delete();
+												}
+											} else if (childHour == thisHour) {
+												int childMinute = Integer
+														.parseInt(childFileName
+																.substring(13,
+																		15));
+												int thisMinute = Integer
+														.parseInt(backVideoName
+																.substring(13,
+																		15));
+												if (childMinute < thisMinute) {
+													if (childFileOld.exists()) {
+														MyLog.w("[deleteFrontByBack]Delte Front OLD:"
+																+ childFileOld
+																		.getPath());
+														childFileOld.delete();
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
 				}
 			}
+		} catch (Exception e) {
+			MyLog.e("deleteFrontByBack catch:" + e.toString());
 		}
 	}
 
