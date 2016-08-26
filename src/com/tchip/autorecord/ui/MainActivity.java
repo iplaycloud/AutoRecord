@@ -122,6 +122,10 @@ public class MainActivity extends Activity {
 		TQ6,
 		/** 善领 6.86 */
 		SL6,
+		/** 公版 7.84 */
+		TQ7,
+		/** 善领 7.84 */
+		SL7,
 		/** 公版 9.76 */
 		TQ9,
 		/** 善领 9.76 */
@@ -152,6 +156,14 @@ public class MainActivity extends Activity {
 				uiConfig = UIConfig.SL9;
 			} else {
 				uiConfig = UIConfig.TQ9;
+			}
+		} else if ("TX3".equals(model)) { // TX3-7.84
+			CAMERA_WIDTH = 1184;
+			CAMERA_HEIGHT = 400;
+			if ("SL".equals(brand)) {
+				uiConfig = UIConfig.SL7;
+			} else {
+				uiConfig = UIConfig.TQ7;
 			}
 		} else { // TX2-6.86
 			CAMERA_WIDTH = 1184;

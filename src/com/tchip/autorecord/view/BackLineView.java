@@ -50,28 +50,52 @@ public class BackLineView extends View {
 	private static final int MIN_8Y = MIN_1Y;
 
 	// TX2S-9.76
-	private static final int DEFALT_1X_S = 150;
-	private static final int DEFALT_1Y_S = 445;
-	private static final int DEFALT_2X_S = 206;
-	private static final int DEFALT_2Y_S = 365;
-	private static final int DEFALT_3X_S = 292;
-	private static final int DEFALT_3Y_S = 285;
-	private static final int DEFALT_4X_S = 345;
-	private static final int DEFALT_4Y_S = 212;
-	private static final int DEFALT_5X_S = 910;
-	private static final int DEFALT_5Y_S = DEFALT_4Y_S;
-	private static final int DEFALT_6X_S = 1004;
-	private static final int DEFALT_6Y_S = DEFALT_3Y_S;
-	private static final int DEFALT_7X_S = 1067;
-	private static final int DEFALT_7Y_S = DEFALT_2Y_S;
-	private static final int DEFALT_8X_S = 1124;
-	private static final int DEFALT_8Y_S = DEFALT_1Y_S;
+	private static final int DEFALT_1X_X2S = 150;
+	private static final int DEFALT_1Y_X2S = 445;
+	private static final int DEFALT_2X_X2S = 206;
+	private static final int DEFALT_2Y_X2S = 365;
+	private static final int DEFALT_3X_X2S = 292;
+	private static final int DEFALT_3Y_X2S = 285;
+	private static final int DEFALT_4X_X2S = 345;
+	private static final int DEFALT_4Y_X2S = 212;
+	private static final int DEFALT_5X_X2S = 910;
+	private static final int DEFALT_5Y_X2S = DEFALT_4Y_X2S;
+	private static final int DEFALT_6X_X2S = 1004;
+	private static final int DEFALT_6Y_X2S = DEFALT_3Y_X2S;
+	private static final int DEFALT_7X_X2S = 1067;
+	private static final int DEFALT_7Y_X2S = DEFALT_2Y_X2S;
+	private static final int DEFALT_8X_X2S = 1124;
+	private static final int DEFALT_8Y_X2S = DEFALT_1Y_X2S;
 
-	private static final int MIN_1X_S = DEFALT_1X_S;
-	private static final int MAX_1X_S = DEFALT_8X_S;
-	private static final int MIN_1Y_S = DEFALT_1Y_S - 30;
-	private static final int MIN_8Y_S = MIN_1Y_S;
-	private static final int MAX_1Y_S = DEFALT_1Y_S;
+	private static final int MIN_1X_X2S = DEFALT_1X_X2S;
+	private static final int MAX_1X_X2S = DEFALT_8X_X2S;
+	private static final int MIN_1Y_X2S = DEFALT_1Y_X2S - 30;
+	private static final int MIN_8Y_X2S = MIN_1Y_X2S;
+	private static final int MAX_1Y_X2S = DEFALT_1Y_X2S;
+
+	// TX3-7.84
+	private static final int DEFALT_1X_X3 = 150;
+	private static final int DEFALT_1Y_X3 = 400;
+	private static final int DEFALT_2X_X3 = 206;
+	private static final int DEFALT_2Y_X3 = 320;
+	private static final int DEFALT_3X_X3 = 292;
+	private static final int DEFALT_3Y_X3 = 238;
+	private static final int DEFALT_4X_X3 = 345;
+	private static final int DEFALT_4Y_X3 = 167;
+	private static final int DEFALT_5X_X3 = 820;
+	private static final int DEFALT_5Y_X3 = DEFALT_4Y_X3;
+	private static final int DEFALT_6X_X3 = 914;
+	private static final int DEFALT_6Y_X3 = DEFALT_3Y_X3;
+	private static final int DEFALT_7X_X3 = 977;
+	private static final int DEFALT_7Y_X3 = DEFALT_2Y_X3;
+	private static final int DEFALT_8X_X3 = 1034;
+	private static final int DEFALT_8Y_X3 = DEFALT_1Y_X3;
+
+	private static final int MIN_1X_X3 = DEFALT_1X_X3;
+	private static final int MAX_1X_X3 = DEFALT_8X_X3;
+	private static final int MIN_1Y_X3 = DEFALT_1Y_X3 - 30;
+	private static final int MAX_1Y_X3 = DEFALT_1Y_X3;
+	private static final int MIN_8Y_X3 = MIN_1Y_X3;
 
 	/** 点1最小X坐标 */
 	private int min1x = MIN_1X;
@@ -117,32 +141,59 @@ public class BackLineView extends View {
 
 		model = Build.MODEL;
 		if ("TX2S".equals(model)) { // TX2S-9.76
-			point1[0] = DEFALT_1X_S;
-			point1[1] = DEFALT_1Y_S;
-			point2[0] = DEFALT_2X_S;
-			point2[1] = DEFALT_2Y_S;
-			point3[0] = DEFALT_3X_S;
-			point3[1] = DEFALT_3Y_S;
-			point4[0] = DEFALT_4X_S;
-			point4[1] = DEFALT_4Y_S;
-			point5[0] = DEFALT_5X_S;
-			point5[1] = DEFALT_5Y_S;
-			point6[0] = DEFALT_6X_S;
-			point6[1] = DEFALT_6Y_S;
-			point7[0] = DEFALT_7X_S;
-			point7[1] = DEFALT_7Y_S;
-			point8[0] = DEFALT_8X_S;
-			point8[1] = DEFALT_8Y_S;
+			point1[0] = DEFALT_1X_X2S;
+			point1[1] = DEFALT_1Y_X2S;
+			point2[0] = DEFALT_2X_X2S;
+			point2[1] = DEFALT_2Y_X2S;
+			point3[0] = DEFALT_3X_X2S;
+			point3[1] = DEFALT_3Y_X2S;
+			point4[0] = DEFALT_4X_X2S;
+			point4[1] = DEFALT_4Y_X2S;
+			point5[0] = DEFALT_5X_X2S;
+			point5[1] = DEFALT_5Y_X2S;
+			point6[0] = DEFALT_6X_X2S;
+			point6[1] = DEFALT_6Y_X2S;
+			point7[0] = DEFALT_7X_X2S;
+			point7[1] = DEFALT_7Y_X2S;
+			point8[0] = DEFALT_8X_X2S;
+			point8[1] = DEFALT_8Y_X2S;
 
-			min1x = MIN_1X_S;
-			max1x = MAX_1X_S;
-			min1y = MIN_1Y_S;
-			max1y = MAX_1Y_S;
-			min8y = MIN_8Y_S;
+			min1x = MIN_1X_X2S;
+			max1x = MAX_1X_X2S;
+			min1y = MIN_1Y_X2S;
+			max1y = MAX_1Y_X2S;
+			min8y = MIN_8Y_X2S;
 
 			colorRed = Color.RED;
 			colorYellow = 0xFFfbfb28;
 			colorGreen = 0xFF089908;
+		} else if ("TX3".equals(model)) { // TX3-7.84
+			point1[0] = DEFALT_1X_X3;
+			point1[1] = DEFALT_1Y_X3;
+			point2[0] = DEFALT_2X_X3;
+			point2[1] = DEFALT_2Y_X3;
+			point3[0] = DEFALT_3X_X3;
+			point3[1] = DEFALT_3Y_X3;
+			point4[0] = DEFALT_4X_X3;
+			point4[1] = DEFALT_4Y_X3;
+			point5[0] = DEFALT_5X_X3;
+			point5[1] = DEFALT_5Y_X3;
+			point6[0] = DEFALT_6X_X3;
+			point6[1] = DEFALT_6Y_X3;
+			point7[0] = DEFALT_7X_X3;
+			point7[1] = DEFALT_7Y_X3;
+			point8[0] = DEFALT_8X_X3;
+			point8[1] = DEFALT_8Y_X3;
+
+			min1x = MIN_1X_X3;
+			max1x = MAX_1X_X3;
+			min1y = MIN_1Y_X3;
+			max1y = MAX_1Y_X3;
+			min8y = MIN_8Y_X3;
+
+			colorRed = Color.RED;
+			colorYellow = Color.YELLOW;
+			colorGreen = Color.GREEN;
 		} else { // TX2-6.86
 			point1[0] = DEFALT_1X;
 			point1[1] = DEFALT_1Y;
@@ -316,25 +367,43 @@ public class BackLineView extends View {
 	}
 
 	public void clearPonitConfig() {
-		if ("TX2S".equals(model)) {
-			editor.putInt("point1x", DEFALT_1X_S);
-			editor.putInt("point1y", DEFALT_1Y_S);
-			editor.putInt("point2x", DEFALT_2X_S);
-			editor.putInt("point2y", DEFALT_2Y_S);
-			editor.putInt("point3x", DEFALT_3X_S);
-			editor.putInt("point3y", DEFALT_3Y_S);
-			editor.putInt("point4x", DEFALT_4X_S);
-			editor.putInt("point4y", DEFALT_4Y_S);
-			editor.putInt("point5x", DEFALT_5X_S);
-			editor.putInt("point5y", DEFALT_5Y_S);
-			editor.putInt("point6x", DEFALT_6X_S);
-			editor.putInt("point6y", DEFALT_6Y_S);
-			editor.putInt("point7x", DEFALT_7X_S);
-			editor.putInt("point7y", DEFALT_7Y_S);
-			editor.putInt("point8x", DEFALT_8X_S);
-			editor.putInt("point8y", DEFALT_8Y_S);
+		if ("TX2S".equals(model)) { // TX2S
+			editor.putInt("point1x", DEFALT_1X_X2S);
+			editor.putInt("point1y", DEFALT_1Y_X2S);
+			editor.putInt("point2x", DEFALT_2X_X2S);
+			editor.putInt("point2y", DEFALT_2Y_X2S);
+			editor.putInt("point3x", DEFALT_3X_X2S);
+			editor.putInt("point3y", DEFALT_3Y_X2S);
+			editor.putInt("point4x", DEFALT_4X_X2S);
+			editor.putInt("point4y", DEFALT_4Y_X2S);
+			editor.putInt("point5x", DEFALT_5X_X2S);
+			editor.putInt("point5y", DEFALT_5Y_X2S);
+			editor.putInt("point6x", DEFALT_6X_X2S);
+			editor.putInt("point6y", DEFALT_6Y_X2S);
+			editor.putInt("point7x", DEFALT_7X_X2S);
+			editor.putInt("point7y", DEFALT_7Y_X2S);
+			editor.putInt("point8x", DEFALT_8X_X2S);
+			editor.putInt("point8y", DEFALT_8Y_X2S);
 			editor.commit();
-		} else {
+		} else if ("TX3".equals(model)) { // TX3
+			editor.putInt("point1x", DEFALT_1X_X3);
+			editor.putInt("point1y", DEFALT_1Y_X3);
+			editor.putInt("point2x", DEFALT_2X_X3);
+			editor.putInt("point2y", DEFALT_2Y_X3);
+			editor.putInt("point3x", DEFALT_3X_X3);
+			editor.putInt("point3y", DEFALT_3Y_X3);
+			editor.putInt("point4x", DEFALT_4X_X3);
+			editor.putInt("point4y", DEFALT_4Y_X3);
+			editor.putInt("point5x", DEFALT_5X_X3);
+			editor.putInt("point5y", DEFALT_5Y_X3);
+			editor.putInt("point6x", DEFALT_6X_X3);
+			editor.putInt("point6y", DEFALT_6Y_X3);
+			editor.putInt("point7x", DEFALT_7X_X3);
+			editor.putInt("point7y", DEFALT_7Y_X3);
+			editor.putInt("point8x", DEFALT_8X_X3);
+			editor.putInt("point8y", DEFALT_8Y_X3);
+			editor.commit();
+		} else { // TX2
 			editor.putInt("point1x", DEFALT_1X);
 			editor.putInt("point1y", DEFALT_1Y);
 			editor.putInt("point2x", DEFALT_2X);
