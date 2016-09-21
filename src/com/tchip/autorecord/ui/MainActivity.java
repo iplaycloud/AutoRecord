@@ -144,14 +144,12 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		mMainHandler = new Handler(this.getMainLooper());
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
-		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-				WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
 		brand = Build.BRAND;
 		model = Build.MODEL;
 		if ("TX2S".equals(model)) { // TX2S-9.76
 			CAMERA_WIDTH = 1280;
-			CAMERA_HEIGHT = 445;
+			CAMERA_HEIGHT = 450;
 			if ("SL".equals(brand)) {
 				uiConfig = UIConfig.SL9;
 			} else {
@@ -174,7 +172,15 @@ public class MainActivity extends Activity {
 				uiConfig = UIConfig.TQ6;
 			}
 		}
-		setContentView(R.layout.activity_main);
+
+		if ("TX2S".equals(model)) {
+			setStatusBarVisible(true);
+			setContentView(R.layout.activity_main_tx2s);
+		} else {
+			setStatusBarVisible(false);
+			setContentView(R.layout.activity_main);
+		}
+
 		context = getApplicationContext();
 		powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE); // 获取屏幕状态
 		fullWakeLock = powerManager.newWakeLock(
@@ -275,6 +281,7 @@ public class MainActivity extends Activity {
 					Name.BACK_CAR_STATE, "0");
 			switchCameraTo(Integer.parseInt(strBackState));
 			if ("1".equals(strBackState)) { // 隐藏格式化对话框
+				setBackPreviewBig(true);
 				sendBroadcast(new Intent(Constant.Broadcast.HIDE_FORMAT_DIALOG));
 			}
 		}
@@ -328,6 +335,57 @@ public class MainActivity extends Activity {
 			return true;
 		} else
 			return super.onKeyDown(keyCode, event);
+	}
+
+	private void setStatusBarVisible(boolean show) {
+		if (show) {
+			int uiFlags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+			uiFlags |= 0x00001000;
+			getWindow().getDecorView().setSystemUiVisibility(uiFlags);
+
+		} else {
+			int uiFlags = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+					| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+					| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+					| View.SYSTEM_UI_FLAG_FULLSCREEN;
+			uiFlags |= 0x00001000;
+			getWindow().getDecorView().setSystemUiVisibility(uiFlags);
+		}
+	}
+
+	private void setBackPreviewBig(boolean big) {
+		if ("TX2S".equals(model)) {
+			MyLog.i("setBackPreviewBig:" + big);
+			if (big) {
+				setStatusBarVisible(false);
+				layoutBack.setVisibility(View.VISIBLE);
+				surfaceViewBack
+						.setLayoutParams(new RelativeLayout.LayoutParams(1920,
+								CAMERA_HEIGHT));
+				surfaceViewFront
+						.setLayoutParams(new RelativeLayout.LayoutParams(1, 1));
+				layoutFront.setVisibility(View.GONE);
+
+				String strBackState = ProviderUtil.getValue(context,
+						Name.BACK_CAR_STATE, "0");
+				if ("1".equals(strBackState)) {
+					setBackLineVisible(true);
+				} else {
+					setBackLineVisible(false);
+				}
+			} else {
+				setBackLineVisible(false);
+				setStatusBarVisible(true);
+				layoutBack.setVisibility(View.VISIBLE);
+				surfaceViewBack
+						.setLayoutParams(new RelativeLayout.LayoutParams(
+								CAMERA_WIDTH, CAMERA_HEIGHT)); // 854,480
+				surfaceViewFront
+						.setLayoutParams(new RelativeLayout.LayoutParams(1, 1));
+				layoutFront.setVisibility(View.GONE);
+			}
+		}
 	}
 
 	class BackHomeWhenBootThread implements Runnable {
@@ -492,11 +550,16 @@ public class MainActivity extends Activity {
 						SensorWatchService.class);
 				startService(intentSensor);
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
-				cameraBeforeBack = (0 == layoutFront.getVisibility()) ? 0 : 1;
+				if (ClickUtil.shouldSaveBackPkg(2500)) {
+					cameraBeforeBack = (0 == layoutFront.getVisibility()) ? 0
+							: 1;
+				}
 				acquireFullWakeLock();
 				setBackLineVisible(true);
+				setBackPreviewBig(true);
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
 				releaseFullWakeLock();
+				setBackPreviewBig(false);
 				setBackLineVisible(false);
 				if ("com.tchip.autorecord".equals(ProviderUtil.getValue(
 						context, Name.PKG_WHEN_BACK, "com.xxx.xxx"))) {
@@ -953,8 +1016,15 @@ public class MainActivity extends Activity {
 		if (isVisible) {
 			// 确保显示后摄,解决倒车线在前摄界面
 			layoutBack.setVisibility(View.VISIBLE);
-			surfaceViewBack.setLayoutParams(new RelativeLayout.LayoutParams(
-					CAMERA_WIDTH, CAMERA_HEIGHT)); // 854,480
+			if ("TX2S".equals(model)) {
+				surfaceViewBack
+						.setLayoutParams(new RelativeLayout.LayoutParams(1920,
+								CAMERA_HEIGHT));
+			} else {
+				surfaceViewBack
+						.setLayoutParams(new RelativeLayout.LayoutParams(
+								CAMERA_WIDTH, CAMERA_HEIGHT)); // 854,480
+			}
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
 			layoutFront.setVisibility(View.GONE);

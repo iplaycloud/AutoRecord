@@ -50,25 +50,25 @@ public class BackLineView extends View {
 	private static final int MIN_8Y = MIN_1Y;
 
 	// TX2S-9.76
-	private static final int DEFALT_1X_X2S = 150;
+	private static final int DEFALT_1X_X2S = 470;
 	private static final int DEFALT_1Y_X2S = 445;
-	private static final int DEFALT_2X_X2S = 206;
+	private static final int DEFALT_2X_X2S = 526;
 	private static final int DEFALT_2Y_X2S = 365;
-	private static final int DEFALT_3X_X2S = 292;
+	private static final int DEFALT_3X_X2S = 612;
 	private static final int DEFALT_3Y_X2S = 285;
-	private static final int DEFALT_4X_X2S = 345;
+	private static final int DEFALT_4X_X2S = 665;
 	private static final int DEFALT_4Y_X2S = 212;
-	private static final int DEFALT_5X_X2S = 910;
+	private static final int DEFALT_5X_X2S = 1220;
 	private static final int DEFALT_5Y_X2S = DEFALT_4Y_X2S;
-	private static final int DEFALT_6X_X2S = 1004;
+	private static final int DEFALT_6X_X2S = 1324;
 	private static final int DEFALT_6Y_X2S = DEFALT_3Y_X2S;
-	private static final int DEFALT_7X_X2S = 1067;
+	private static final int DEFALT_7X_X2S = 1387;
 	private static final int DEFALT_7Y_X2S = DEFALT_2Y_X2S;
-	private static final int DEFALT_8X_X2S = 1124;
+	private static final int DEFALT_8X_X2S = 1444;
 	private static final int DEFALT_8Y_X2S = DEFALT_1Y_X2S;
 
-	private static final int MIN_1X_X2S = DEFALT_1X_X2S;
-	private static final int MAX_1X_X2S = DEFALT_8X_X2S;
+	private static final int MIN_1X_X2S = DEFALT_1X_X2S - 200;
+	private static final int MAX_1X_X2S = DEFALT_8X_X2S + 200;
 	private static final int MIN_1Y_X2S = DEFALT_1Y_X2S - 30;
 	private static final int MIN_8Y_X2S = MIN_1Y_X2S;
 	private static final int MAX_1Y_X2S = DEFALT_1Y_X2S;

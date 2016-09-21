@@ -110,33 +110,6 @@ public class SettingUtil {
 		kl.disableKeyguard();
 	}
 
-	// ========== Below is OLD ================
-
-	/** Camera自动调节亮度节点，1：开 0：关;默认打开 */
-	public static File fileAutoLightSwitch = new File(
-			"/sys/devices/platform/mt-i2c.1/i2c-1/1-007f/back_car_status");
-
-	/** 设置Camera自动调节亮度开关 */
-	public static void setAutoLight(Context context, boolean isAutoLightOn) {
-		SaveFileToNode(fileAutoLightSwitch, isAutoLightOn ? "1" : "0");
-		MyLog.v("SettingUtil.setAutoLight:" + isAutoLightOn);
-	}
-
-	/** 停车侦测开关节点，2：打开 3：关闭（默认） */
-	public static File fileParkingMonitor = new File(
-			"/sys/devices/platform/mt-i2c.1/i2c-1/1-007f/back_car_status");
-
-	public static void setParkingMonitor(Context context, boolean isParkingOn) {
-		MyLog.v("SettingUtil.setParkingMonitor:" + isParkingOn);
-		SaveFileToNode(fileParkingMonitor, isParkingOn ? "2" : "3");
-
-		SharedPreferences sharedPreferences = context.getSharedPreferences(
-				Constant.MySP.NAME, Context.MODE_PRIVATE);
-		Editor editor = sharedPreferences.edit();
-		editor.putBoolean(Constant.MySP.STR_PARKING_ON, isParkingOn);
-		editor.commit();
-	}
-
 	/** ACC状态节点 */
 	public static File fileAccStatus = new File(Constant.Path.NODE_ACC_STATUS);
 
@@ -172,82 +145,6 @@ public class SettingUtil {
 			}
 		}
 		return 0;
-	}
-
-	/** 获取背光亮度值 */
-	public static int getLCDValue() {
-		File fileLCDValue = new File("/sys/class/leds/lcd-backlight/brightness"); // 背光值节点
-
-		String strValue = "";
-		if (fileLCDValue.exists()) {
-			try {
-				InputStreamReader read = new InputStreamReader(
-						new FileInputStream(fileLCDValue), "utf-8");
-				BufferedReader bufferedReader = new BufferedReader(read);
-				String lineTxt = null;
-				while ((lineTxt = bufferedReader.readLine()) != null) {
-					strValue += lineTxt.toString();
-				}
-				read.close();
-				return Integer.parseInt(strValue);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				MyLog.e("SettingUtil.getLCDValue: FileNotFoundException");
-			} catch (IOException e) {
-				e.printStackTrace();
-				MyLog.e("SettingUtil.getLCDValue: IOException");
-			}
-		}
-		return -5;
-	}
-
-	/** 电子狗电源开关节点，1-打开 0-关闭 */
-	public static File fileEDogPower = new File(
-			"/sys/devices/platform/mt-i2c.1/i2c-1/1-007f/edog_car_status");
-
-	/**
-	 * 设置电子狗电源开关
-	 * 
-	 * @param isEDogOn
-	 */
-	public static void setEDogEnable(boolean isEDogOn) {
-		MyLog.v("SettingUtil.setEDogEnable:" + isEDogOn);
-		SaveFileToNode(fileEDogPower, isEDogOn ? "1" : "0");
-	}
-
-	/** 获取设备Mac地址 */
-	public String getLocalMacAddress(Context context) {
-		WifiManager wifi = (WifiManager) context
-				.getSystemService(Context.WIFI_SERVICE);
-		WifiInfo info = wifi.getConnectionInfo();
-		return info.getMacAddress();
-	}
-
-	/** 获取设备IMEI */
-	public String getImei(Context context) {
-		TelephonyManager telephonyManager = (TelephonyManager) context
-				.getSystemService(Context.TELEPHONY_SERVICE);
-		return telephonyManager.getDeviceId();
-	}
-
-	/** 获取设备IP地址 */
-	public String getLocalIpAddress() {
-		try {
-			for (Enumeration<NetworkInterface> en = NetworkInterface
-					.getNetworkInterfaces(); en.hasMoreElements();) {
-				NetworkInterface intf = en.nextElement();
-				for (Enumeration<InetAddress> enumIpAddr = intf
-						.getInetAddresses(); enumIpAddr.hasMoreElements();) {
-					InetAddress inetAddress = enumIpAddr.nextElement();
-					if (!inetAddress.isLoopbackAddress()) {
-						return inetAddress.getHostAddress().toString();
-					}
-				}
-			}
-		} catch (SocketException ex) {
-			Log.e("WifiPreference IpAddress", ex.toString());
-		}
-		return null;
 	}
 
 	public static float getGravityVauleBySensitive(int sensitive) {
