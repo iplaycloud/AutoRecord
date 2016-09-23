@@ -61,7 +61,7 @@ public interface Constant {
 
 		/** 关掉录像：释放预览 */
 		public static final String RELEASE_RECORD = "tchip.intent.action.RELEASE_RECORD";
-		
+
 		public static final String RELEASE_RECORD_TEST = "tchip.intent.action.RELEASE_RECORD_TEST";
 
 		// ================ Below is OLD ===============
@@ -290,6 +290,11 @@ public interface Constant {
 	public static final class Module {
 		/** 是否使用系统Camera参数 */
 		public static final boolean useSystemCameraParam = true;
+
+		/**
+		 * TX2S 9.76倒车是否全屏
+		 */
+		public static final boolean isTX2SBackFull = false;
 	}
 
 	/** 路径 */

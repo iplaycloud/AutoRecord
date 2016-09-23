@@ -175,9 +175,15 @@ public class MainActivity extends Activity {
 
 		if ("TX2S".equals(model)) {
 			setStatusBarVisible(true);
-			setContentView(R.layout.activity_main_tx2s);
+			if (Constant.Module.isTX2SBackFull) {
+				setContentView(R.layout.activity_main_tx2s);
+			} else {
+				setContentView(R.layout.activity_main);
+			}
 		} else {
-			setStatusBarVisible(false);
+			// setStatusBarVisible(false);
+			getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+					WindowManager.LayoutParams.FLAG_FULLSCREEN);
 			setContentView(R.layout.activity_main);
 		}
 
@@ -354,8 +360,13 @@ public class MainActivity extends Activity {
 		}
 	}
 
+	/**
+	 * 设置倒车预览全屏
+	 * 
+	 * @param big
+	 */
 	private void setBackPreviewBig(boolean big) {
-		if ("TX2S".equals(model)) {
+		if (Constant.Module.isTX2SBackFull && "TX2S".equals(model)) {
 			MyLog.i("setBackPreviewBig:" + big);
 			if (big) {
 				setStatusBarVisible(false);
@@ -550,10 +561,7 @@ public class MainActivity extends Activity {
 						SensorWatchService.class);
 				startService(intentSensor);
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
-				if (ClickUtil.shouldSaveBackPkg(2500)) {
-					cameraBeforeBack = (0 == layoutFront.getVisibility()) ? 0
-							: 1;
-				}
+				MyLog.i("cameraBeforeBack:" + cameraBeforeBack);
 				acquireFullWakeLock();
 				setBackLineVisible(true);
 				setBackPreviewBig(true);
@@ -1016,14 +1024,14 @@ public class MainActivity extends Activity {
 		if (isVisible) {
 			// 确保显示后摄,解决倒车线在前摄界面
 			layoutBack.setVisibility(View.VISIBLE);
-			if ("TX2S".equals(model)) {
+			if ("TX2S".equals(model) && Constant.Module.isTX2SBackFull) {
 				surfaceViewBack
 						.setLayoutParams(new RelativeLayout.LayoutParams(1920,
 								CAMERA_HEIGHT));
 			} else {
 				surfaceViewBack
 						.setLayoutParams(new RelativeLayout.LayoutParams(
-								CAMERA_WIDTH, CAMERA_HEIGHT)); // 854,480
+								CAMERA_WIDTH, CAMERA_HEIGHT));
 			}
 			surfaceViewFront.setLayoutParams(new RelativeLayout.LayoutParams(1,
 					1));
@@ -1303,11 +1311,13 @@ public class MainActivity extends Activity {
 			case R.id.imageFrontSwitch:
 			case R.id.textFrontSwitch:
 				switchCameraTo(1);
+				cameraBeforeBack = 1;
 				break;
 
 			case R.id.imageBackSwitch:
 			case R.id.textBackSwitch:
 				switchCameraTo(0);
+				cameraBeforeBack = 0;
 				break;
 
 			case R.id.imageBackLineShow:
