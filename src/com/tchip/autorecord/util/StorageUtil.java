@@ -1,6 +1,10 @@
 package com.tchip.autorecord.util;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
@@ -12,7 +16,6 @@ import com.tchip.autorecord.db.FrontVideoDbHelper;
 import android.content.Context;
 import android.content.Intent;
 import android.os.StatFs;
-import android.util.Log;
 
 public class StorageUtil {
 
@@ -156,8 +159,10 @@ public class StorageUtil {
 	 * 1.开启录像 {@link MainActivity#startRecordTask}
 	 * 
 	 * 2.文件保存回调{@link MainActivity#onFileSave}
+	 * 
+	 * @deprecated
 	 */
-	public static boolean releaseFrontStorage(Context context) {
+	public static boolean releaseFrontStorageByDb(Context context) {
 		if (!StorageUtil.isFrontCardExist()) {
 			MyLog.e("Storageutil.deleteOldestUnlockVideo:No Video Card");
 			return false;
@@ -357,8 +362,10 @@ public class StorageUtil {
 	 * 1.开启录像 {@link MainActivity#startRecordTask}
 	 * 
 	 * 2.文件保存回调{@link MainActivity#onFileSave}
+	 * 
+	 * @deprecated
 	 */
-	public static boolean releaseBackStorage(Context context) {
+	public static boolean releaseBackStorageByDb(Context context) {
 		if (!StorageUtil.isBackCardExist()) {
 			MyLog.e("Storageutil.deleteOldestUnlockVideo:No Video Card");
 			return false;
@@ -570,6 +577,8 @@ public class StorageUtil {
 	 * 将数据库中不存在的视频文件导入数据库
 	 * 
 	 * @param file
+	 * 
+	 * @deprecated
 	 */
 	public static void RecursionCheckFile(Context context, File file) {
 
@@ -650,6 +659,208 @@ public class StorageUtil {
 	private static void speakVoice(Context context, String content) {
 		context.sendBroadcast(new Intent(Constant.Broadcast.TTS_SPEAK)
 				.putExtra("content", content));
+	}
+
+	// Below is new function to release storage
+
+	/**
+	 * 删除最旧视频，调用此函数的地方：
+	 * 
+	 * 1.开启录像 {@link MainActivity#startRecordTask}
+	 * 
+	 * 2.文件保存回调{@link MainActivity#onFileSave}
+	 */
+	public static boolean releaseFrontStorage(Context context) {
+		if (!StorageUtil.isFrontCardExist()) {
+			MyLog.e("Storageutil.releaseFrontStorage:No Video Card");
+			return false;
+		}
+		try {
+			while (FileUtil.isFrontStorageLess()) {
+				List<File> listFrontUnLock = listFileSortByModifyTime(Constant.Path.VIDEO_FRONT_SD);
+				if (listFrontUnLock.size() > 0) { // 未加锁视频
+					File fileOldest = listFrontUnLock.get(0);
+					String fileName = fileOldest.getName();
+					if (fileOldest.exists() && fileOldest.isFile()
+							&& fileName.endsWith(".mp4")
+							&& !fileName.startsWith(".")) {
+						boolean isSuccess = fileOldest.delete();
+						MyLog.i("releaseFrontStorage.DEL Unlock:" + fileName
+								+ " " + isSuccess);
+
+						deleteBackByFront(context, fileName); // 删除同时段后录视频
+					}
+				} else { // 加锁视频
+					List<File> listFrontLock = listFileSortByModifyTime(Constant.Path.VIDEO_FRONT_SD_LOCK);
+					if (listFrontLock.size() > 0) {
+						File fileOldest = listFrontLock.get(0);
+						String fileName = fileOldest.getName();
+						if (fileOldest.exists() && fileOldest.isFile()
+								&& fileName.endsWith(".mp4")
+								&& !fileName.startsWith(".")) {
+							boolean isSuccess = fileOldest.delete();
+							MyLog.i("releaseFrontStorage.DEL Lock:" + fileName
+									+ " " + isSuccess);
+						}
+					} else {
+						if (FileUtil.isFrontStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
+							MyLog.e("StorageUtil:Storage is full...");
+							// TODO:显示格式化对话框
+							speakVoice(context, context.getResources()
+									.getString(R.string.sd_storage_too_low));
+							return false;
+						}
+					}
+				}
+
+				while (FileUtil.isFrontLockLess()) { // 前置加锁
+					List<File> listFrontLock = listFileSortByModifyTime(Constant.Path.VIDEO_FRONT_SD_LOCK);
+					if (listFrontLock.size() > 0) {
+						File fileOldest = listFrontLock.get(0);
+						String fileName = fileOldest.getName();
+						if (fileOldest.exists() && fileOldest.isFile()
+								&& fileName.endsWith(".mp4")
+								&& !fileName.startsWith(".")) {
+							boolean isSuccess = fileOldest.delete();
+							MyLog.i("releaseFrontStorage.DEL Lock:" + fileName
+									+ " " + isSuccess);
+						}
+					}
+				}
+			}
+			return true;
+		} catch (Exception e) {
+			/* 异常原因：1.文件由用户手动删除 */
+			MyLog.e("StorageUtil.deleteOldestUnlockVideo:Catch Exception:"
+					+ e.toString());
+			e.printStackTrace();
+			return true;
+		}
+	}
+
+	/**
+	 * 删除最旧视频，调用此函数的地方：
+	 * 
+	 * 1.开启录像 {@link MainActivity#startRecordTask}
+	 * 
+	 * 2.文件保存回调{@link MainActivity#onFileSave}
+	 * 
+	 */
+	public static boolean releaseBackStorage(Context context) {
+		if (!StorageUtil.isBackCardExist()) {
+			MyLog.e("Storageutil.deleteOldestUnlockVideo:No Video Card");
+			return false;
+		}
+		try {
+			while (FileUtil.isBackStorageLess()) {
+				List<File> listBackUnLock = listFileSortByModifyTime(Constant.Path.VIDEO_BACK_SD);
+				if (listBackUnLock.size() > 0) { // 未加锁视频
+					File fileOldest = listBackUnLock.get(0);
+					String fileName = fileOldest.getName();
+					if (fileOldest.exists() && fileOldest.isFile()
+							&& fileName.endsWith(".mp4")
+							&& !fileName.startsWith(".")) {
+						boolean isSuccess = fileOldest.delete();
+						MyLog.i("releaseBackStorage.DEL Unlock:" + fileName
+								+ " " + isSuccess);
+
+						deleteFrontByBack(context, fileName); // 删除同时段后录视频
+					}
+				} else { // 加锁视频
+					List<File> listBackLock = listFileSortByModifyTime(Constant.Path.VIDEO_BACK_SD_LOCK);
+					if (listBackLock.size() > 0) {
+						File fileOldest = listBackLock.get(0);
+						String fileName = fileOldest.getName();
+						if (fileOldest.exists() && fileOldest.isFile()
+								&& fileName.endsWith(".mp4")
+								&& !fileName.startsWith(".")) {
+							boolean isSuccess = fileOldest.delete();
+							MyLog.i("releaseBackStorage.DEL Lock:" + fileName
+									+ " " + isSuccess);
+						}
+					} else {
+						if (FileUtil.isBackStorageLess()) { // 此时若空间依然不足,提示用户清理存储（已不是行车视频的原因）
+							MyLog.e("StorageUtil:Storage is full...");
+							// TODO:显示格式化对话框
+							speakVoice(context, context.getResources()
+									.getString(R.string.sd_storage_too_low));
+							return false;
+						}
+					}
+				}
+
+				while (FileUtil.isBackLockLess()) { // 后置加锁
+					List<File> listBackLock = listFileSortByModifyTime(Constant.Path.VIDEO_BACK_SD_LOCK);
+					if (listBackLock.size() > 0) {
+						File fileOldest = listBackLock.get(0);
+						String fileName = fileOldest.getName();
+						if (fileOldest.exists() && fileOldest.isFile()
+								&& fileName.endsWith(".mp4")
+								&& !fileName.startsWith(".")) {
+							boolean isSuccess = fileOldest.delete();
+							MyLog.i("releaseBackStorage.DEL Lock:" + fileName
+									+ " " + isSuccess);
+						}
+					}
+				}
+			}
+			return true;
+		} catch (Exception e) {
+			/*
+			 * 异常原因：1.文件由用户手动删除
+			 */
+			MyLog.e("StorageUtil.deleteOldestUnlockVideo:Catch Exception:"
+					+ e.toString());
+			e.printStackTrace();
+			return true;
+		}
+	}
+
+	/**
+	 * 获取目录下所有文件(按时间排序)
+	 * 
+	 * @param path
+	 * @return
+	 */
+	public static List<File> listFileSortByModifyTime(String path) {
+		List<File> list = getFiles(path, new ArrayList<File>());
+		if (list != null && list.size() > 0) {
+			Collections.sort(list, new Comparator<File>() {
+				public int compare(File file, File newFile) {
+					if (file.lastModified() < newFile.lastModified()) {
+						return -1;
+					} else if (file.lastModified() == newFile.lastModified()) {
+						return 0;
+					} else {
+						return 1;
+					}
+				}
+			});
+		}
+		return list;
+	}
+
+	/**
+	 * 
+	 * 获取目录下所有文件
+	 * 
+	 * @param realpath
+	 * @param files
+	 * @return
+	 */
+	public static List<File> getFiles(String realpath, List<File> files) {
+		File realFile = new File(realpath);
+		if (realFile.isDirectory()) {
+			File[] subfiles = realFile.listFiles();
+			for (File file : subfiles) {
+				if (file.isDirectory()) {
+					getFiles(file.getAbsolutePath(), files);
+				} else {
+					files.add(file);
+				}
+			}
+		}
+		return files;
 	}
 
 }
