@@ -26,8 +26,6 @@ public class MyApp extends Application {
 	public static boolean shouldMountRecordFront = false;
 	public static boolean shouldMountRecordBack = false;
 
-	public static int indexCheck = 0;
-
 	/**
 	 * 分辨率
 	 * 

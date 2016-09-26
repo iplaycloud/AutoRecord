@@ -574,13 +574,64 @@ public class StorageUtil {
 	}
 
 	/**
+	 * 未录像时删除点视频
+	 * 
+	 * @param context
+	 * @param file
+	 */
+	public static void RecursionCheckDotFile(Context context, File file) {
+		if (file.exists()) {
+			try {
+				String fileName = file.getName();
+				if (file.isFile()) {
+					if (fileName.endsWith(".mp4")) {
+						if (fileName.startsWith(".")) {
+							// Delete file start with dot but not the recording
+							// one
+							if (!MyApp.isFrontRecording
+									&& fileName.endsWith("_0.mp4")) {
+								file.delete();
+								MyLog.v("StorageUtil.RecursionCheckFile-Delete DOT File:"
+										+ fileName);
+							}
+							if (!MyApp.isBackRecording
+									&& fileName.endsWith("_1.mp4")) {
+								file.delete();
+								MyLog.v("StorageUtil.RecursionCheckFile-Delete DOT File:"
+										+ fileName);
+							}
+						}
+						return;
+					} else if (!fileName.endsWith(".jpg")
+							&& !fileName.endsWith(".tmp")) {
+						file.delete();
+					}
+				} else if (file.isDirectory()) {
+					File[] childFile = file.listFiles();
+					if (childFile == null || childFile.length == 0) {
+						return;
+					}
+					for (File f : childFile) {
+						RecursionCheckDotFile(context, f);
+					}
+				}
+			} catch (Exception e) {
+				MyLog.e("StorageUtil.RecursionCheckFile-Catch Exception:"
+						+ e.toString());
+			}
+
+		}
+	}
+
+	/**
 	 * 将数据库中不存在的视频文件导入数据库
 	 * 
 	 * @param file
 	 * 
 	 * @deprecated
 	 */
-	public static void RecursionCheckFile(Context context, File file) {
+	public static void RecursionCheckFileAndInsert2Database(Context context,
+			File file) {
 
 		if (file.exists()) {
 			try {
@@ -645,7 +696,7 @@ public class StorageUtil {
 						return;
 					}
 					for (File f : childFile) {
-						RecursionCheckFile(context, f);
+						RecursionCheckFileAndInsert2Database(context, f);
 					}
 				}
 			} catch (Exception e) {
@@ -856,7 +907,12 @@ public class StorageUtil {
 				if (file.isDirectory()) {
 					getFiles(file.getAbsolutePath(), files);
 				} else {
-					files.add(file);
+					String fileName = file.getName();
+					if (file.exists() && file.isFile()
+							&& fileName.endsWith(".mp4")
+							&& !fileName.startsWith(".")) {
+						files.add(file);
+					}
 				}
 			}
 		}

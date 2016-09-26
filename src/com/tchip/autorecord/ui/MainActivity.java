@@ -1609,13 +1609,9 @@ public class MainActivity extends Activity {
 
 	/** 检查并删除异常视频文件：SD存在但数据库中不存在的文件 */
 	private void StartCheckErrorFileThread() {
-		MyLog.v("CheckErrorFile.indexCheck:" + MyApp.indexCheck);
-		if (!isVideoChecking && MyApp.indexCheck % 5 == 0) {
+		MyLog.v("CheckErrorFile.");
+		if (!isVideoChecking) {
 			new Thread(new CheckVideoThread()).start();
-		}
-		MyApp.indexCheck++;
-		if (MyApp.indexCheck >= 99) {
-			MyApp.indexCheck = 0;
 		}
 		if (Constant.Record.flashToCard) {
 			mMainHandler.post(new Runnable() {
@@ -1640,7 +1636,7 @@ public class MainActivity extends Activity {
 		public void run() {
 			isVideoChecking = true;
 			File dirRecord = new File(Constant.Path.RECORD_DIRECTORY);
-			StorageUtil.RecursionCheckFile(MainActivity.this, dirRecord);
+			StorageUtil.RecursionCheckDotFile(MainActivity.this, dirRecord);
 			isVideoChecking = false;
 		}
 

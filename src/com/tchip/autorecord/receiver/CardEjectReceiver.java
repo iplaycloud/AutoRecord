@@ -27,7 +27,6 @@ public class CardEjectReceiver extends BroadcastReceiver {
 
 				StorageUtil.createRecordDirectory();
 				MyApp.isVideoCardExist = true;
-				MyApp.indexCheck = 0;
 				if (MyApp.isAccOn) {
 					if (!MyApp.isFrontRecording) {
 						MyApp.shouldMountRecordFront = true;
