@@ -43,6 +43,7 @@
             </intent-filter>
         </activity>
 
+        <!--
         <provider
             android:name="com.tchip.autorecord.db.FrontVideoProvider"
             android:authorities="com.tchip.autorecord.db.FrontVideoProvider"
@@ -50,7 +51,8 @@
         <provider
             android:name="com.tchip.autorecord.db.BackVideoProvider"
             android:authorities="com.tchip.autorecord.db.BackVideoProvider"
-            android:exported="true" />
+            android:exported="true" />
+        -->
 
         <receiver android:name="com.tchip.autorecord.receiver.CardEjectReceiver" >
             <intent-filter android:priority="2147483647" >

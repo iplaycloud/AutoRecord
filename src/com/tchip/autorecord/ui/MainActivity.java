@@ -6,9 +6,9 @@ import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.MyApp;
 import com.tchip.autorecord.R;
 import com.tchip.autorecord.Typefaces;
-import com.tchip.autorecord.db.BackVideoDbHelper;
-import com.tchip.autorecord.db.DriveVideo;
-import com.tchip.autorecord.db.FrontVideoDbHelper;
+//import com.tchip.autorecord.db.BackVideoDbHelper;
+//import com.tchip.autorecord.db.DriveVideo;
+//import com.tchip.autorecord.db.FrontVideoDbHelper;
 import com.tchip.autorecord.service.SensorWatchService;
 import com.tchip.autorecord.thread.MoveImageThread;
 import com.tchip.autorecord.thread.WriteImageExifThread;
@@ -63,8 +63,8 @@ public class MainActivity extends Activity {
 	private Context context;
 	private SharedPreferences sharedPreferences;
 	private Editor editor;
-	private FrontVideoDbHelper frontVideoDb;
-	private BackVideoDbHelper backVideoDb;
+	// private FrontVideoDbHelper frontVideoDb;
+	// private BackVideoDbHelper backVideoDb;
 	private PowerManager powerManager;
 	private WakeLock partialWakeLock;
 	private WakeLock fullWakeLock;
@@ -197,8 +197,8 @@ public class MainActivity extends Activity {
 		sharedPreferences = getSharedPreferences(Constant.MySP.NAME,
 				Context.MODE_PRIVATE);
 		editor = sharedPreferences.edit();
-		frontVideoDb = new FrontVideoDbHelper(context); // 视频数据库
-		backVideoDb = new BackVideoDbHelper(context);
+		// frontVideoDb = new FrontVideoDbHelper(context); // 视频数据库
+		// backVideoDb = new BackVideoDbHelper(context);
 
 		initialLayout();
 
@@ -322,8 +322,8 @@ public class MainActivity extends Activity {
 		releaseBackRecorder();
 		closeFrontCamera();
 		closeBackCamera();
-		frontVideoDb.close();
-		backVideoDb.close();
+		// frontVideoDb.close();
+		// backVideoDb.close();
 		// 关闭碰撞侦测服务
 		Intent intentCrash = new Intent(context, SensorWatchService.class);
 		stopService(intentCrash);
@@ -3001,9 +3001,9 @@ public class MainActivity extends Activity {
 							videoName);
 
 					setupFrontViews(); // 更新录制按钮状态
-					DriveVideo driveVideo = new DriveVideo(videoName,
-							videoLock, videoResolution, 0);
-					frontVideoDb.addDriveVideo(driveVideo);
+					// DriveVideo driveVideo = new DriveVideo(videoName,
+					// videoLock, videoResolution, 0);
+					// frontVideoDb.addDriveVideo(driveVideo);
 
 					Flash2SDUtil.deleteFlashDotFile();
 					StartCheckErrorFileThread(); // 执行onFileSave时，此file已经不隐藏，下个正在录的为隐藏
@@ -3143,9 +3143,9 @@ public class MainActivity extends Activity {
 							videoName);
 
 					setupBackViews(); // 更新录制按钮状态
-					DriveVideo driveVideo = new DriveVideo(videoName,
-							videoLock, videoResolution, 1);
-					backVideoDb.addDriveVideo(driveVideo);
+					// DriveVideo driveVideo = new DriveVideo(videoName,
+					// videoLock, videoResolution, 1);
+					// backVideoDb.addDriveVideo(driveVideo);
 
 					Flash2SDUtil.deleteFlashDotFile();
 

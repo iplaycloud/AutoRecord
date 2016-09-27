@@ -38,10 +38,10 @@ public class ProviderUtil {
 
 		/** 前录分段:1,3 */
 		public static final String REC_FRONT_TIME = "rec_front_time";
-		
+
 		/** 前录比特率 */
 		public static final String REC_FRONT_1080_BITRATE = "rec_front_1080_bitrate";
-		
+
 		/** 后录比特率 */
 		public static final String REC_BACK_BITRATE = "rec_back_bitrate";
 
@@ -110,11 +110,10 @@ public class ProviderUtil {
 							+ name);
 			ContentResolver contentResolver = context.getContentResolver();
 			Cursor cursor = contentResolver.query(uri, null, null, null, null);
-			if (cursor != null && cursor.getCount() > 0) {
-				cursor.moveToFirst();
-				dbValue = cursor.getString(cursor.getColumnIndex("value"));
-				cursor.close();
-			} else {
+			if (cursor != null) {
+				if (cursor.moveToFirst()) {
+					dbValue = cursor.getString(cursor.getColumnIndex("value"));
+				}
 				cursor.close();
 			}
 		} catch (Exception e) {
