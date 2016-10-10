@@ -51,7 +51,7 @@
         <provider
             android:name="com.tchip.autorecord.db.BackVideoProvider"
             android:authorities="com.tchip.autorecord.db.BackVideoProvider"
-            android:exported="true" />
+            android:exported="true" />
         -->
 
         <receiver android:name="com.tchip.autorecord.receiver.CardEjectReceiver" >
