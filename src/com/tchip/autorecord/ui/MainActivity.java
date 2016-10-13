@@ -248,6 +248,7 @@ public class MainActivity extends Activity {
 		intentFilter.addAction(Constant.Broadcast.GOING_SHUTDOWN);
 		intentFilter.addAction(Constant.Broadcast.RELEASE_RECORD);
 		intentFilter.addAction(Constant.Broadcast.RELEASE_RECORD_TEST);
+		intentFilter.addAction("tchip.intent.action.MOVE_RECORD_BACK");
 		registerReceiver(mainReceiver, intentFilter);
 
 		// 接收额外信息
@@ -624,6 +625,8 @@ public class MainActivity extends Activity {
 				killAutoRecord();
 			} else if (Constant.Broadcast.RELEASE_RECORD_TEST.equals(action)) {
 				killAutoRecordForTest();
+			} else if ("tchip.intent.action.MOVE_RECORD_BACK".equals(action)) {
+				moveTaskToBack(true);
 			}
 		}
 	}
