@@ -294,7 +294,7 @@ public interface Constant {
 		/**
 		 * TX2S 9.76倒车是否全屏
 		 */
-		public static final boolean isTX2SBackFull = true;
+		public static final boolean isTX2SBackFull = false;
 	}
 
 	/** 路径 */
