@@ -362,6 +362,19 @@ public class MainActivity extends Activity {
 	}
 
 	/**
+	 * TX2S设置行车模式:非全屏，不显示按钮和倒车线
+	 * 
+	 * @param isDriveOn
+	 */
+	private void setDriveMode(boolean isDriveOn) {
+		if (isDriveOn) { // 隐藏录像按钮
+
+		} else { // 显示录像按钮
+
+		}
+	}
+
+	/**
 	 * 设置倒车预览全屏
 	 * 
 	 * @param big
