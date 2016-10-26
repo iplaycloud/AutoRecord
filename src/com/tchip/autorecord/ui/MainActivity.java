@@ -149,7 +149,7 @@ public class MainActivity extends Activity {
 		model = Build.MODEL;
 		if ("TX2S".equals(model)) { // TX2S-9.76
 			CAMERA_WIDTH = 1280;
-			CAMERA_HEIGHT = 450;
+			CAMERA_HEIGHT = 445;
 			if ("SL".equals(brand)) {
 				uiConfig = UIConfig.SL9;
 			} else {
@@ -387,7 +387,7 @@ public class MainActivity extends Activity {
 				layoutBack.setVisibility(View.VISIBLE);
 				surfaceViewBack
 						.setLayoutParams(new RelativeLayout.LayoutParams(1920,
-								CAMERA_HEIGHT));
+								480)); // 1920 * 480
 				surfaceViewFront
 						.setLayoutParams(new RelativeLayout.LayoutParams(1, 1));
 				layoutFront.setVisibility(View.GONE);
@@ -405,7 +405,7 @@ public class MainActivity extends Activity {
 				layoutBack.setVisibility(View.VISIBLE);
 				surfaceViewBack
 						.setLayoutParams(new RelativeLayout.LayoutParams(
-								CAMERA_WIDTH, CAMERA_HEIGHT)); // 854,480
+								CAMERA_WIDTH, CAMERA_HEIGHT)); // 1280 * 445
 				surfaceViewFront
 						.setLayoutParams(new RelativeLayout.LayoutParams(1, 1));
 				layoutFront.setVisibility(View.GONE);
@@ -1043,7 +1043,7 @@ public class MainActivity extends Activity {
 			if ("TX2S".equals(model) && Constant.Module.isTX2SBackFull) {
 				surfaceViewBack
 						.setLayoutParams(new RelativeLayout.LayoutParams(1920,
-								CAMERA_HEIGHT));
+								480));
 			} else {
 				surfaceViewBack
 						.setLayoutParams(new RelativeLayout.LayoutParams(
@@ -1065,9 +1065,9 @@ public class MainActivity extends Activity {
 				layoutBackLine.addView(backLineView);
 			}
 		} else {
-			layoutBackRecord.setVisibility(View.VISIBLE);
 			layoutBackLineControl.setVisibility(View.GONE);
 			layoutBackLine.removeAllViews();
+			layoutBackRecord.setVisibility(View.VISIBLE);
 		}
 	}
 
