@@ -418,7 +418,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void run() {
 			try {
-				Thread.sleep(7000);
+				Thread.sleep(10000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -439,7 +439,7 @@ public class MainActivity extends Activity {
 		@Override
 		public void run() {
 			try {
-				Thread.sleep(6000);
+				Thread.sleep(8000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
