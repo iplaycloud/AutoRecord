@@ -676,9 +676,15 @@ public class MainActivity extends Activity {
 				}
 				// 自动录像:如果已经在录像则不处理
 				if (Constant.Record.autoRecordFront && !isFrontRecord()) {
-					Message message = new Message();
-					message.what = 1;
-					autoHandler.sendMessage(message);
+					if (!StorageUtil.isFrontCardExist()) {
+						Message message = new Message();
+						message.what = 3;
+						autoHandler.sendMessage(message);
+					} else {
+						Message message = new Message();
+						message.what = 1;
+						autoHandler.sendMessage(message);
+					}
 				}
 
 				if (shouldRecordBack() && !isBackRecord()) {
@@ -713,6 +719,10 @@ public class MainActivity extends Activity {
 
 			case 2:
 				startRecordBack();
+				break;
+
+			case 3:
+				noVideoSDHint();
 				break;
 
 			default:
@@ -770,7 +780,12 @@ public class MainActivity extends Activity {
 				if (MyApp.shouldMountRecordFront) {
 					MyApp.shouldMountRecordFront = false;
 					if (MyApp.isAccOn && !isFrontRecord()) {
-						new Thread(new RecordFrontWhenMountThread()).start();
+						if (!StorageUtil.isFrontCardExist()) {
+							noVideoSDHint();
+						} else {
+							new Thread(new RecordFrontWhenMountThread())
+									.start();
+						}
 					}
 				}
 				if (MyApp.shouldMountRecordBack) {
@@ -1394,7 +1409,7 @@ public class MainActivity extends Activity {
 
 	/** 视频SD卡不存在提示 */
 	private void noVideoSDHint() {
-		if (MyApp.isAccOn) {
+		if (MyApp.isAccOn && !ClickUtil.isHintSleepTooQuick(3000)) {
 			String strNoSD = getResources().getString(
 					R.string.hint_sd_record_not_exist);
 			HintUtil.showToast(context, strNoSD);
