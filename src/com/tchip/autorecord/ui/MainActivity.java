@@ -2950,8 +2950,8 @@ public class MainActivity extends Activity {
 		public void onError(int error) {
 			switch (error) {
 			case TachographCallback.ERROR_SAVE_VIDEO_FAIL:
-				// String strSaveVideoErr = getResources().getString(
-				// R.string.hint_save_video_error);
+				String strSaveVideoErr = getResources().getString(
+						R.string.hint_save_video_error);
 				// HintUtil.showToast(MainActivity.this, strSaveVideoErr);
 				MyLog.e("Front Record Error : ERROR_SAVE_VIDEO_FAIL");
 				// 视频保存失败，原因：存储空间不足，清空文件夹，视频被删掉
@@ -2960,6 +2960,7 @@ public class MainActivity extends Activity {
 				// if (stopRecorder() == 0) {
 				// setRecordState(false);
 				// }
+				speakVoice(strSaveVideoErr);
 				StartCheckErrorFileThread();
 				break;
 
@@ -3094,8 +3095,8 @@ public class MainActivity extends Activity {
 		public void onError(int error) {
 			switch (error) {
 			case TachographCallback.ERROR_SAVE_VIDEO_FAIL:
-				// String strSaveVideoErr = getResources().getString(
-				// R.string.hint_save_video_error);
+				String strSaveVideoErr = getResources().getString(
+						R.string.hint_save_video_error);
 				// HintUtil.showToast(MainActivity.this, strSaveVideoErr);
 				MyLog.e("Back Record Error : ERROR_SAVE_VIDEO_FAIL");
 				// 视频保存失败，原因：存储空间不足，清空文件夹，视频被删掉
@@ -3104,6 +3105,7 @@ public class MainActivity extends Activity {
 				// if (stopRecorder() == 0) {
 				// setRecordState(false);
 				// }
+				speakVoice(strSaveVideoErr);
 				StartCheckErrorFileThread();
 				break;
 
