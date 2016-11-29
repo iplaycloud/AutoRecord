@@ -275,6 +275,9 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onResume() {
 		MyLog.v("onResume");
+
+		ProviderUtil.setValue(context, Name.RECORD_INITIAL, "1");
+
 		try {
 			refreshFrontButton(); // 更新录像界面按钮状态
 			setupFrontViews();
@@ -318,6 +321,8 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		MyLog.v("onDestroy");
+
+		ProviderUtil.setValue(context, Name.RECORD_INITIAL, "0");
 		// 释放录像区域
 		releaseFrontRecorder();
 		releaseBackRecorder();
@@ -1916,7 +1921,7 @@ public class MainActivity extends Activity {
 			return true;
 		} catch (Exception ex) {
 			closeBackCamera();
-			MyLog.e("Back.openCamera:Catch Exception!");
+			MyLog.e("Back.openCamera:Catch Exception:" + ex);
 			return false;
 		}
 	}
@@ -3225,14 +3230,18 @@ public class MainActivity extends Activity {
 
 	public boolean isFrontRecord() {
 		if (recorderFront != null) {
-			return 1 == recorderFront.isRecording();
+			int intFrontRecording = recorderFront.isRecording();
+			MyLog.d("Tachograph.isFrontRecord:" + intFrontRecording);
+			return 1 == intFrontRecording;
 		} else
 			return false;
 	}
 
 	public boolean isBackRecord() {
 		if (recorderBack != null) {
-			return 1 == recorderBack.isRecording();
+			int intBackRecording = recorderBack.isRecording();
+			MyLog.d("Tachograph.isBackRecord:" + intBackRecording);
+			return 1 == intBackRecording;
 		} else
 			return false;
 	}

@@ -12,6 +12,9 @@ public class ProviderUtil {
 	}
 
 	public static final class Name { // Ctrl+Shift+X
+		/** AutoRecord是否初始化 */
+		public static final String RECORD_INITIAL = "record_initial";
+
 		/** ACC状态:0-OFF 1-ON */
 		public static final String ACC_STATE = "acc_state";
 
