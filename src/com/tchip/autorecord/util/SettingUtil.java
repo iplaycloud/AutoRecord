@@ -11,10 +11,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.util.Enumeration;
 
 import com.tchip.autorecord.Constant;
 import com.tchip.autorecord.util.ProviderUtil.Name;
@@ -23,13 +19,8 @@ import android.app.KeyguardManager;
 import android.app.KeyguardManager.KeyguardLock;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class SettingUtil {
@@ -121,6 +112,38 @@ public class SettingUtil {
 	public static int getAccStatus() {
 		int accStatus = getFileInt(fileAccStatus);
 		return accStatus;
+	}
+
+	/**
+	 * 获取CVBS状态
+	 * 
+	 * @return
+	 */
+	public static boolean isCVBSIn() {
+		File fileCVBSState = new File(Constant.Path.NODE_CVBS_STATUS); // 背光值节点
+		boolean isCVBSIn = false;
+		String strValue = "";
+		if (fileCVBSState.exists()) {
+			try {
+				InputStreamReader read = new InputStreamReader(
+						new FileInputStream(fileCVBSState), "utf-8");
+				BufferedReader bufferedReader = new BufferedReader(read);
+				String lineTxt = null;
+				while ((lineTxt = bufferedReader.readLine()) != null) {
+					strValue += lineTxt.toString();
+				}
+				read.close();
+				isCVBSIn = strValue.endsWith("1");
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				MyLog.e("[SettingUtil]getCVBSState: FileNotFoundException");
+			} catch (IOException e) {
+				e.printStackTrace();
+				MyLog.e("[SettingUtil]getCVBSState: IOException");
+			}
+		}
+		MyLog.i("[SettingUtil]isCVBSIn:" + isCVBSIn);
+		return isCVBSIn;
 	}
 
 	public static int getFileInt(File file) {

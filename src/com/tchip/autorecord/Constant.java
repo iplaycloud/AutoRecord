@@ -295,11 +295,16 @@ public interface Constant {
 		 * TX2S 9.76倒车是否全屏
 		 */
 		public static final boolean isTX2SBackFull = true;
+
+		/** 是否可以侦测后拉CVBS状态（仅有TX5支持） */
+		public static final boolean hasCVBSDetect = false;
 	}
 
 	/** 路径 */
 	public static final class Path {
 		public static final String NODE_ACC_STATUS = "/sys/bus/i2c/devices/0-007f/ACC_status";
+		/** CVBS 状态(5位数，最后一位标志0,1) */
+		public static final String NODE_CVBS_STATUS = "/sys/bus/i2c/devices/0-007f/camera_status";
 
 		/** SDcard Path */
 		public static final String SD_CARD = Environment

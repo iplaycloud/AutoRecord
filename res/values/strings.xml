@@ -65,5 +65,7 @@
     <string name="hint_enable_record_back">开启后录会影响SD卡使用寿命，继续开启吗?</string>
     <string name="enable_cancel">暂不开启</string>
     <string name="enable_confirm">仍然开启</string>
+    
+    <string name="no_cvbs_detect">请先插入后拉摄像头！</string>
 
 </resources>

@@ -286,13 +286,22 @@ public class MainActivity extends Activity {
 			e.printStackTrace();
 			MyLog.e("onResume catch Exception:" + e.toString());
 		}
+
 		if (cameraBeforeBack == 0) {
 			String strBackState = ProviderUtil.getValue(context,
 					Name.BACK_CAR_STATE, "0");
-			switchCameraTo(Integer.parseInt(strBackState));
 			if ("1".equals(strBackState)) { // 隐藏格式化对话框
-				setBackPreviewBig(true);
-				sendBroadcast(new Intent(Constant.Broadcast.HIDE_FORMAT_DIALOG));
+				if (Constant.Module.hasCVBSDetect && !SettingUtil.isCVBSIn()) {
+					HintUtil.showToast(context,
+							getString(R.string.no_cvbs_detect));
+				} else {
+					switchCameraTo(Integer.parseInt(strBackState));
+					setBackPreviewBig(true);
+					sendBroadcast(new Intent(
+							Constant.Broadcast.HIDE_FORMAT_DIALOG));
+				}
+			} else {
+				switchCameraTo(Integer.parseInt(strBackState));
 			}
 		}
 		super.onResume();
@@ -342,6 +351,7 @@ public class MainActivity extends Activity {
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		MyLog.i("[onKeyDown]keyCode:" + keyCode);
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
 			sendHomeKey();
 			return true;
@@ -506,6 +516,8 @@ public class MainActivity extends Activity {
 							MyApp.isParkRecording = false;
 						}
 					} else {
+						ProviderUtil
+								.setValue(context, Name.PARK_REC_STATE, "0");
 						MyApp.isParkRecording = false;
 					}
 				}
@@ -581,9 +593,14 @@ public class MainActivity extends Activity {
 				startService(intentSensor);
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_ON)) {
 				MyLog.i("cameraBeforeBack:" + cameraBeforeBack);
-				acquireFullWakeLock();
-				setBackLineVisible(true);
-				setBackPreviewBig(true);
+				if (Constant.Module.hasCVBSDetect && !SettingUtil.isCVBSIn()) {
+					HintUtil.showToast(context,
+							getString(R.string.no_cvbs_detect));
+				} else {
+					acquireFullWakeLock();
+					setBackLineVisible(true);
+					setBackPreviewBig(true);
+				}
 			} else if (action.equals(Constant.Broadcast.BACK_CAR_OFF)) {
 				releaseFullWakeLock();
 				setBackPreviewBig(false);
@@ -757,7 +774,39 @@ public class MainActivity extends Activity {
 				if (MyApp.isBackLockSecond && !MyApp.isBackRecording) {
 					MyApp.isBackLockSecond = false;
 				}
+
+				if (!MyApp.isAccOn && !MyApp.isFrontRecording
+						&& !MyApp.isBackRecording && !isFroceSleeping) {
+					new Thread(new ForceSleepThread()).start();
+				}
 			}
+		}
+	}
+
+	private boolean isFroceSleeping = false;
+
+	public class ForceSleepThread implements Runnable {
+
+		@Override
+		public void run() {
+			MyLog.w("[ForceSleepThread]RUN");
+			isFroceSleeping = true;
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+
+			if (!MyApp.isAccOn && !MyApp.isFrontRecording
+					&& !MyApp.isBackRecording) {
+				MyApp.isParkRecording = false;
+				ProviderUtil.setValue(context, Name.PARK_REC_STATE, "0");
+				killAutoRecord();
+				sendBroadcast(new Intent(Constant.Broadcast.KILL_APP).putExtra(
+						"name", "com.tchip.autorecord"));
+			}
+			isFroceSleeping = false;
+			MyLog.w("[ForceSleepThread]END");
 		}
 	}
 
@@ -1346,8 +1395,13 @@ public class MainActivity extends Activity {
 
 			case R.id.imageFrontSwitch:
 			case R.id.textFrontSwitch:
-				switchCameraTo(1);
-				cameraBeforeBack = 1;
+				if (Constant.Module.hasCVBSDetect && !SettingUtil.isCVBSIn()) {
+					HintUtil.showToast(context,
+							getString(R.string.no_cvbs_detect));
+				} else {
+					switchCameraTo(1);
+					cameraBeforeBack = 1;
+				}
 				break;
 
 			case R.id.imageBackSwitch:
